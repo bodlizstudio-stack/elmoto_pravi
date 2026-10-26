@@ -105,6 +105,10 @@ export function euroToCents(raw: string) {
   return { cents: Math.round(value * 100), zero: false };
 }
 
+export function coverOf(bike: { images: { url: string; alt: string; isCover: boolean }[] }) {
+  return bike.images.find((image) => image.isCover) ?? bike.images[0] ?? null;
+}
+
 export function displayName(bike: { brand: string; model: string; variant?: string }) {
   return [bike.brand, bike.model, bike.variant].filter(Boolean).join(" ");
 }

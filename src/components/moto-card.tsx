@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { PhotoFrame } from "@/components/photo";
 import { CompareToggle } from "@/components/compare-button";
-import { coverOf, type PublicBike } from "@/lib/motorcycles";
-import { conditionLabel, displayName, formatCc, formatKm, formatPrice, statusLabel } from "@/lib/utils";
+import type { PublicBike } from "@/lib/motorcycles";
+import { conditionLabel, coverOf, displayName, formatCc, formatKm, formatPrice, statusLabel } from "@/lib/utils";
 
 export function MotoCard({ bike, hrefBase = "/motorji" }: { bike: PublicBike; hrefBase?: string }) {
   const cover = coverOf(bike);
