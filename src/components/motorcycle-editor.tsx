@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { PhotoManager } from "@/components/photo-manager";
 import { saveMotorcycle, type ActionState } from "@/lib/actions/admin";
 import { publicationLabel } from "@/lib/offer";
@@ -69,7 +69,6 @@ Kraj ogleda:\tŠpruha 33, Trzin`;
 
 export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
   const [state, action, pending] = useActionState(saveMotorcycle, null as ActionState);
-  const [dirty, setDirty] = useState(false);
 
   const [brand, setBrand] = useState(bike?.brand ?? "");
   const [model, setModel] = useState(bike?.model ?? "");
@@ -89,23 +88,11 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
   const [engineType, setEngineType] = useState(bike?.engineType ?? "");
   const [specsText, setSpecsText] = useState(bike?.specs ?? "");
   const [description, setDescription] = useState(bike?.description || bike?.cardSummary || "");
+  const [selectedFilesCount, setSelectedFilesCount] = useState(0);
 
-  const unsaved = dirty || Boolean(state?.error);
-  const published = bike?.publication === "PUBLISHED";
   const parsedTable = parseSpecs(specsText);
 
-  useEffect(() => {
-    const onLeave = (event: BeforeUnloadEvent) => {
-      if (!unsaved) return;
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", onLeave);
-    return () => window.removeEventListener("beforeunload", onLeave);
-  }, [unsaved]);
-
   function handleSpecsChange(raw: string) {
-    setDirty(true);
     setSpecsText(raw);
     const items = parseSpecs(raw);
     for (const item of items) {
@@ -148,13 +135,7 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
           <h1 className="text-3xl font-semibold">{bike ? "Uredi motor" : "Nov motor"}</h1>
           {bike ? <p className="mt-2 text-sm text-ink/70">Stanje objave: {publicationLabel(bike.publication)}</p> : null}
         </div>
-        <Link
-          href="/admin"
-          className="btn btn-secondary"
-          onClick={(event) => {
-            if (unsaved && !window.confirm("Imaš neshranjene spremembe. Želiš vseeno zapustiti stran?")) event.preventDefault();
-          }}
-        >
+        <Link href="/admin" className="btn btn-secondary">
           Nazaj na ponudbo
         </Link>
       </div>
@@ -163,13 +144,9 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
           {state.error}
         </p>
       ) : null}
-      <form
-        action={action}
-        className="grid gap-6"
-        onChange={() => setDirty(true)}
-        onSubmit={() => setDirty(false)}
-      >
+      <form action={action} className="grid gap-6">
         {bike ? <input type="hidden" name="id" value={bike.id} /> : null}
+        <input type="hidden" name="featured" value="on" />
         <input type="hidden" name="engineCc" value={engineCc} />
         <input type="hidden" name="category" value={category} />
         <input type="hidden" name="color" value={color} />
@@ -277,33 +254,34 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
           ) : (
             <label className="field">
               <span>Dodaj slike</span>
-              <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+              <input
+                name="photos"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={(e) => setSelectedFilesCount(e.target.files?.length ?? 0)}
+              />
+              {selectedFilesCount > 0 ? (
+                <small className="text-sm font-semibold text-emerald-700">
+                  Izbranih fotografij: {selectedFilesCount} (naložile se bodo ob kliku na Shrani objavo)
+                </small>
+              ) : null}
               <small className="text-sm text-ink/60">
                 Izberi lahko več fotografij hkrati. JPG, PNG ali WebP, posamezna do 8 MB. Prva je naslovna. Na strani motorja jih obiskovalec lista levo in desno.
               </small>
             </label>
           )}
-          <label className="flex min-h-12 items-center gap-3">
-            <input className="size-5" type="checkbox" name="featured" defaultChecked={bike?.featured ?? false} />
-            Pokaži tudi na naslovnici
-          </label>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <button className="btn btn-primary" name="intent" value="publish" disabled={pending}>
-              {pending ? "Objavljam ..." : published ? "Shrani in posodobi stran" : "Objavi na stran"}
+            <button className="btn btn-primary" type="submit" name="intent" value="publish" disabled={pending}>
+              {pending ? "Shranjujem objavo ..." : "Shrani objavo"}
             </button>
             {bike ? (
-              <Link
-                className="btn btn-secondary"
-                href={`/admin/motorji/${bike.id}/predogled`}
-                onClick={(event) => {
-                  if (unsaved && !window.confirm("Imaš neshranjene spremembe. Želiš vseeno zapustiti stran?")) event.preventDefault();
-                }}
-              >
+              <Link className="btn btn-secondary" href={`/admin/motorji/${bike.id}/predogled`}>
                 Predogled
               </Link>
             ) : null}
           </div>
-          {pending ? <p role="status">Shranjujem in posodabljam ponudbo ...</p> : null}
+          {pending ? <p role="status">Shranjujem in objavljam motor na stran ...</p> : null}
         </section>
       </form>
     </div>

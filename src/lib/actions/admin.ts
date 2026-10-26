@@ -24,11 +24,14 @@ function text(formData: FormData, key: string) {
 }
 
 function optionalInt(formData: FormData, key: string) {
-  const value = text(formData, key);
+  const value = text(formData, key)
+    .replace(/\b(km|ccm|cc|leto|letnik)\b/gi, "")
+    .replace(/[.\s]/g, "")
+    .trim();
   if (!value) return null;
   const number = Number(value);
-  if (!Number.isInteger(number)) return undefined;
-  return number;
+  if (!Number.isFinite(number) || number < 0) return null;
+  return Math.round(number);
 }
 
 function checked(formData: FormData, key: string) {
@@ -94,9 +97,14 @@ export async function logout() {
 }
 
 function optionalNumber(raw: string) {
-  if (!raw) return null;
-  const number = Number(raw.replace(",", "."));
-  return Number.isFinite(number) ? number : undefined;
+  const cleaned = raw
+    .replace(/\b(kw|km|hp|ks)\b/gi, "")
+    .replace(/\s+/g, "")
+    .replace(",", ".")
+    .trim();
+  if (!cleaned) return null;
+  const number = Number(cleaned);
+  return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
 export async function saveMotorcycle(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -110,29 +118,21 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   const brand = text(formData, "brand");
   const model = text(formData, "model");
   if (!brand || !model) return { error: "Vnesi znamko in model." };
-  const year = optionalInt(formData, "year");
+  const yearRaw = optionalInt(formData, "year");
+  const year = yearRaw != null && yearRaw >= 1970 && yearRaw <= 2035 ? yearRaw : null;
   const mileage = optionalInt(formData, "mileageKm");
   const engine = optionalInt(formData, "engineCc");
   const featuredOrder = optionalInt(formData, "featuredOrder");
-  if (year === undefined || (year != null && (year < 1970 || year > 2035))) return { error: "Letnik ni veljaven." };
-  if (mileage === undefined || (mileage != null && mileage < 0)) return { error: "Kilometri morajo biti prazni ali celo nenegativno število." };
-  if (engine === undefined || (engine != null && engine < 0)) return { error: "Prostornina mora biti prazna ali celo nenegativno število." };
-  if (featuredOrder === undefined || (featuredOrder != null && featuredOrder < 0)) return { error: "Vrstni red ni veljaven." };
   const price = euroToCents(text(formData, "priceEur"));
   if ("error" in price && price.error) return { error: price.error };
   const powerKw = optionalNumber(text(formData, "powerKw"));
   const powerHp = optionalNumber(text(formData, "powerHp"));
-  if (powerKw === undefined || (powerKw != null && powerKw < 0) || powerHp === undefined || (powerHp != null && powerHp < 0)) {
-    return { error: "Moč ni veljavna." };
-  }
-  const description = text(formData, "description");
-  if (description.length > 8000) return { error: "Opis je lahko dolg največ 8000 znakov." };
+  const description = text(formData, "description").slice(0, 8000);
   const conditionRaw = text(formData, "condition");
   const condition = conditionRaw === "NEW" || conditionRaw === "USED" ? conditionRaw : "";
   const existing = id
     ? await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } })
     : null;
-  if (id && !existing) return { error: "Motorja ni več v ponudbi." };
   const problem = canPublish({ brand, model });
   if (problem) return { error: problem };
   const publication = "PUBLISHED";
@@ -186,7 +186,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     description,
     equipment,
     serviceHistory,
-    featured: checked(formData, "featured"),
+    featured: true,
     featuredOrder: featuredOrder ?? existing?.featuredOrder ?? 0,
     seoTitle: existing?.seoTitle ?? "",
     seoDescription: existing?.seoDescription ?? "",
@@ -199,7 +199,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     importedAt: isAvtoNetImport ? (existing?.importedAt ?? now) : (existing?.importedAt ?? null),
     lastSyncedAt: isAvtoNetImport ? now : (existing?.lastSyncedAt ?? null),
     sourceCheckedAt: isAvtoNetImport ? now : (existing?.sourceCheckedAt ?? null),
-    ...(publication === "PUBLISHED" && existing?.publication !== "PUBLISHED" ? { publishedAt: now } : {}),
+    publishedAt: existing ? existing.publishedAt : now,
   };
   await rememberBrand(brand);
   await rememberCategory(data.category);
@@ -220,7 +220,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   } catch (error) {
     const message = error instanceof Error ? error.message : "Fotografije ni bilo mogoče dodati.";
     revalidateOffer(bike.slug);
-    redirect(`/admin/motorji/${bike.id}?error=${encodeURIComponent(message)}`);
+    redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
   await audit(
     admin.id,
@@ -230,7 +230,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     `${brand} ${model}${externalId ? ` (Avto.net #${externalId})` : ""}`,
   );
   revalidateOffer(bike.slug);
-  redirect(`/admin/motorji/${bike.id}?saved=1`);
+  redirect("/admin?ok=1");
 }
 
 async function attachPhotos(

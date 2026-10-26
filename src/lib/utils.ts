@@ -97,8 +97,16 @@ export function parseSpecs(text: string) {
 }
 
 export function euroToCents(raw: string) {
-  const cleaned = raw.trim().replace(/\s/g, "").replace(",", ".");
+  let cleaned = raw
+    .replace(/€|eur/gi, "")
+    .replace(/\s/g, "")
+    .trim();
   if (!cleaned) return { cents: null as number | null, zero: false };
+  if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(cleaned)) {
+    cleaned = cleaned.replace(/\./g, "").replace(",", ".");
+  } else {
+    cleaned = cleaned.replace(",", ".");
+  }
   const value = Number(cleaned);
   if (!Number.isFinite(value) || value < 0) return { error: "Cena ni veljavna." as const };
   if (value === 0) return { cents: null, zero: true };
