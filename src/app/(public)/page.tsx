@@ -6,6 +6,7 @@ import { ExternalLink } from "@/components/external-link";
 import { Photo } from "@/components/photo";
 import { MotoCard } from "@/components/moto-card";
 import { MotoEquipmentSection } from "@/components/moto-equipment";
+import { ReviewsMarquee } from "@/components/reviews-marquee";
 import { prisma } from "@/lib/db";
 import { publishedKoveModels } from "@/lib/kove";
 import { homeBikes } from "@/lib/motorcycles";
@@ -37,12 +38,21 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [bikes, settings, instagram, kove] = await Promise.all([
+  const [bikes, settings, instagram, testimonials, kove] = await Promise.all([
     homeBikes(),
     getSettings(),
     prisma.mediaAsset.findMany({ where: { kind: "instagram", published: true }, orderBy: { sortOrder: "asc" }, take: 3 }),
+    prisma.testimonial.findMany({ where: { published: true }, orderBy: { createdAt: "desc" } }),
     Promise.resolve(publishedKoveModels[0] ?? null),
   ]);
+
+  const extraReviews = testimonials.map((item) => ({
+    id: item.id,
+    authorName: item.authorName,
+    text: item.text,
+    rating: item.rating ?? 5,
+    source: item.source || "Google",
+  }));
 
   return (
     <>
@@ -119,6 +129,8 @@ export default async function HomePage() {
       </section>
 
       <MotoEquipmentSection />
+
+      <ReviewsMarquee extraReviews={extraReviews} />
 
       <section className="home-section home-offer bg-white text-[#171a1f]" aria-labelledby="izbrani">
         <div className="wrap">
