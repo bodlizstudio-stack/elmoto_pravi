@@ -6,14 +6,13 @@ import { requireAdmin } from "@/lib/guard";
 export const dynamic = "force-dynamic";
 
 const links = [
-  ["/admin", "Motorji"],
+  ["/admin", "Ponudba"],
   ["/admin/motorji/nov", "Dodaj motor"],
-  ["/admin/motorji/nov?mode=avtonet", "Uvozi motor iz Avto.net"],
   ["/admin/geslo", "Geslo"],
   ["/admin/najem", "Najem"],
   ["/admin/povprasevanja", "Povpraševanja"],
   ["/admin/vsebina", "Vsebina"],
-  ["/admin/uvoz", "CSV/JSON uvoz"],
+  ["/admin/uvoz", "Uvoz"],
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

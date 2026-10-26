@@ -72,10 +72,28 @@ export function parseSpecs(text: string) {
   return lines(text)
     .map((line) => {
       const idx = line.indexOf(":");
-      if (idx === -1) return { label: "Opomba", value: line };
-      return { label: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
+      const tabIdx = line.indexOf("\t");
+      let rawLabel = "";
+      let rawValue = "";
+      if (idx !== -1) {
+        rawLabel = line.slice(0, idx);
+        rawValue = line.slice(idx + 1);
+      } else if (tabIdx !== -1) {
+        rawLabel = line.slice(0, tabIdx);
+        rawValue = line.slice(tabIdx + 1);
+      } else {
+        return null;
+      }
+      const label = rawLabel.replace(/\s+/g, " ").trim();
+      const value = rawValue
+        .replace(/,\s*,+/g, ",")
+        .replace(/^,\s*|\s*,$/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!label || !value) return null;
+      return { label, value };
     })
-    .filter((item) => item.label && item.value);
+    .filter((item): item is { label: string; value: string } => Boolean(item));
 }
 
 export function euroToCents(raw: string) {

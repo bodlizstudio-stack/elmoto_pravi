@@ -5,7 +5,7 @@ import { publicListStatuses } from "@/lib/offer";
 
 export const bikeInclude = {
   images: { orderBy: [{ isCover: "desc" as const }, { sortOrder: "asc" as const }] },
-  specifications: { orderBy: { label: "asc" as const } },
+  specifications: true,
   rentalRates: { orderBy: { createdAt: "asc" as const } },
 } satisfies Prisma.MotorcycleInclude;
 

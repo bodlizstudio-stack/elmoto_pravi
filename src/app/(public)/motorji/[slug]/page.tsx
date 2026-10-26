@@ -100,14 +100,30 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
             ) : bike.status === "RESERVED" ? (
               <p className="mt-4 border border-black/10 bg-white p-4 leading-7">Vozilo je označeno kot rezervirano. Povpraševanje lahko vseeno pošlješ.</p>
             ) : null}
-            <dl className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {rows.map(([label, value]) => (
-                <div key={label} className="border-b border-black/10 pb-2">
-                  <dt className="text-xs uppercase tracking-[0.12em] text-ink/50">{label}</dt>
-                  <dd className="mt-1">{value}</dd>
+            {bike.specifications.length > 0 ? (
+              <div className="mt-6 overflow-hidden rounded-[12px] border border-black/10 bg-white">
+                <div className="border-b border-black/10 bg-[#171a1f] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white">
+                  Osnovni podatki in specifikacije
                 </div>
-              ))}
-            </dl>
+                <dl className="divide-y divide-black/10 text-sm">
+                  {bike.specifications.map((spec) => (
+                    <div key={spec.id} className="grid grid-cols-[9.5rem_1fr] gap-3 px-4 py-2.5 sm:grid-cols-[11.5rem_1fr]">
+                      <dt className="font-semibold text-ink/65">{spec.label}:</dt>
+                      <dd className="font-medium text-ink">{spec.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ) : (
+              <dl className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {rows.map(([label, value]) => (
+                  <div key={label} className="border-b border-black/10 pb-2">
+                    <dt className="text-xs uppercase tracking-[0.12em] text-ink/50">{label}</dt>
+                    <dd className="mt-1">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
             <div className="mt-6">
               <CompareActions id={bike.id} />
             </div>
