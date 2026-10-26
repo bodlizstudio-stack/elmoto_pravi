@@ -240,6 +240,49 @@ async function attachPhotos(
   images: { sortOrder: number }[],
   formData: FormData,
 ) {
+  if (formData.has("galleryJson")) {
+    const rawGallery = text(formData, "galleryJson");
+    try {
+      const parsed = JSON.parse(rawGallery) as unknown;
+      if (Array.isArray(parsed)) {
+        const items = parsed
+          .map((item) => {
+            if (!item || typeof item !== "object") return null;
+            const rec = item as Record<string, unknown>;
+            const url = String(rec.url ?? "").trim();
+            if (!url) return null;
+            return {
+              url,
+              alt: String(rec.alt ?? "").trim() || `${brand} ${model}`.trim(),
+              isCover: Boolean(rec.isCover),
+            };
+          })
+          .filter((item): item is { url: string; alt: string; isCover: boolean } => Boolean(item))
+          .slice(0, 30);
+
+        if (items.length > 0 && !items.some((item) => item.isCover)) {
+          items[0].isCover = true;
+        }
+
+        await prisma.motorcycleImage.deleteMany({ where: { motorcycleId } });
+        for (let idx = 0; idx < items.length; idx += 1) {
+          await prisma.motorcycleImage.create({
+            data: {
+              motorcycleId,
+              url: items[idx].url,
+              alt: items[idx].alt,
+              sortOrder: idx + 1,
+              isCover: items[idx].isCover,
+            },
+          });
+        }
+        return;
+      }
+    } catch {
+      // Fallback to importedImages / photos below
+    }
+  }
+
   let importedUrls: string[] = [];
   const rawImported = text(formData, "importedImages");
   if (rawImported) {

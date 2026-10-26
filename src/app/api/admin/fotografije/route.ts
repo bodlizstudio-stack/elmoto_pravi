@@ -35,16 +35,39 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const id = String(form.get("id") ?? "");
   const action = String(form.get("action") ?? "upload");
-  const bike = await prisma.motorcycle.findUnique({
-    where: { id },
-    include: { images: { orderBy: { sortOrder: "asc" } } },
-  });
-  if (!bike) return NextResponse.json({ error: "Motor še ni shranjen." }, { status: 404 });
+  const bike = id
+    ? await prisma.motorcycle.findUnique({
+        where: { id },
+        include: { images: { orderBy: { sortOrder: "asc" } } },
+      })
+    : null;
   try {
     assertDurableStore();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Shranjevanje ni trajno.";
     return NextResponse.json({ error: message }, { status: 503 });
+  }
+
+  if (!bike) {
+    if (action === "upload") {
+      const file = form.get("file");
+      if (!(file instanceof File) || file.size <= 0) {
+        return NextResponse.json({ error: "Izberi fotografijo." }, { status: 400 });
+      }
+      const url = await saveImage(file);
+      return NextResponse.json({
+        images: [
+          {
+            id: `temp-${Date.now()}`,
+            url,
+            alt: file.name,
+            isCover: true,
+            sortOrder: 1,
+          },
+        ],
+      });
+    }
+    return NextResponse.json({ images: [] });
   }
 
   try {

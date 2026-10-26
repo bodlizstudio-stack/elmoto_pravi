@@ -88,7 +88,6 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
   const [engineType, setEngineType] = useState(bike?.engineType ?? "");
   const [specsText, setSpecsText] = useState(bike?.specs ?? "");
   const [description, setDescription] = useState(bike?.description || bike?.cardSummary || "");
-  const [selectedFilesCount, setSelectedFilesCount] = useState(0);
 
   const parsedTable = parseSpecs(specsText);
 
@@ -249,28 +248,7 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
 
         <section className="grid gap-4 rounded-[12px] border border-black/10 bg-white p-4 sm:p-5">
           <h2 className="text-xl font-semibold">Fotografije</h2>
-          {bike ? (
-            <PhotoManager motorcycleId={bike.id} images={bike.images} />
-          ) : (
-            <label className="field">
-              <span>Dodaj slike</span>
-              <input
-                name="photos"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                onChange={(e) => setSelectedFilesCount(e.target.files?.length ?? 0)}
-              />
-              {selectedFilesCount > 0 ? (
-                <small className="text-sm font-semibold text-emerald-700">
-                  Izbranih fotografij: {selectedFilesCount} (naložile se bodo ob kliku na Shrani objavo)
-                </small>
-              ) : null}
-              <small className="text-sm text-ink/60">
-                Izberi lahko več fotografij hkrati. JPG, PNG ali WebP, posamezna do 8 MB. Prva je naslovna. Na strani motorja jih obiskovalec lista levo in desno.
-              </small>
-            </label>
-          )}
+          <PhotoManager motorcycleId={bike?.id} images={bike?.images ?? []} />
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button className="btn btn-primary" type="submit" name="intent" value="publish" disabled={pending}>
               {pending ? "Shranjujem objavo ..." : "Shrani objavo"}
