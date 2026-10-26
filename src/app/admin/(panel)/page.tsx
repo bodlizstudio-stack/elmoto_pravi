@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { setOfferAction } from "@/lib/actions/admin";
 import { prisma } from "@/lib/db";
-import { availabilityLabel, publicationLabel } from "@/lib/offer";
+import { availabilityLabel } from "@/lib/offer";
 import { displayName, formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -14,27 +14,25 @@ function priceLabel(cents: number | null, confirmed: boolean) {
 export default async function AdminHome({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; publication?: string; status?: string; error?: string; ok?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; error?: string; ok?: string }>;
 }) {
   const query = await searchParams;
   const q = (query.q ?? "").trim().toLocaleLowerCase("sl");
-  const publication = query.publication ?? "";
   const status = query.status ?? "";
   const bikes = await prisma.motorcycle.findMany({
+    where: { publication: "PUBLISHED" },
     include: { images: { orderBy: { sortOrder: "asc" } } },
-    orderBy: { updatedAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { updatedAt: "desc" }],
   });
   const visible = bikes.filter((bike) => {
-    if (publication && bike.publication !== publication) return false;
     if (status && bike.status !== status) return false;
     if (!q) return true;
     return `${bike.brand} ${bike.model} ${bike.variant}`.toLocaleLowerCase("sl").includes(q);
   });
   const counts = {
-    published: bikes.filter((bike) => bike.publication === "PUBLISHED").length,
-    drafts: bikes.filter((bike) => bike.publication === "DRAFT").length,
-    reserved: bikes.filter((bike) => bike.status === "RESERVED" && bike.publication !== "ARCHIVED").length,
-    sold: bikes.filter((bike) => bike.status === "SOLD" && bike.publication !== "ARCHIVED").length,
+    published: bikes.length,
+    reserved: bikes.filter((bike) => bike.status === "RESERVED").length,
+    sold: bikes.filter((bike) => bike.status === "SOLD").length,
   };
   const when = new Intl.DateTimeFormat("sl-SI", { dateStyle: "medium", timeStyle: "short" });
 
@@ -56,10 +54,9 @@ export default async function AdminHome({
           Sprememba je shranjena.
         </p>
       ) : null}
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         {[
-          ["Objavljeni", counts.published],
-          ["Osnutki", counts.drafts],
+          ["Aktivni oglasi", counts.published],
           ["Rezervirani", counts.reserved],
           ["Prodani", counts.sold],
         ].map(([label, value]) => (
@@ -69,25 +66,15 @@ export default async function AdminHome({
           </p>
         ))}
       </div>
-      <form method="get" className="grid gap-3 rounded-[12px] border border-black/10 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <form method="get" className="grid gap-3 rounded-[12px] border border-black/10 bg-white p-4 sm:grid-cols-3">
         <label className="field">
           <span>Iskanje</span>
           <input name="q" defaultValue={query.q ?? ""} placeholder="Znamka ali naziv" />
         </label>
         <label className="field">
-          <span>Objava</span>
-          <select name="publication" defaultValue={publication}>
-            <option value="">Vsa stanja</option>
-            <option value="PUBLISHED">Objavljeno</option>
-            <option value="DRAFT">Osnutek</option>
-            <option value="ARCHIVED">Arhivirano</option>
-          </select>
-        </label>
-        <label className="field">
           <span>Razpoložljivost</span>
           <select name="status" defaultValue={status}>
-            <option value="">Vse</option>
-            <option value="UNKNOWN">Preveri po povpraševanju</option>
+            <option value="">Vsi oglasi</option>
             <option value="AVAILABLE">Na voljo</option>
             <option value="RESERVED">Rezervirano</option>
             <option value="SOLD">Prodano</option>
@@ -114,8 +101,7 @@ export default async function AdminHome({
                     {bike.year ?? "Letnik ni vpisan"} · {priceLabel(bike.priceCents, bike.priceConfirmed)}
                   </p>
                   <p className="mt-1 text-sm leading-6">
-                    {publicationLabel(bike.publication)} · {availabilityLabel(bike.status) || "Brez oznake"} ·{" "}
-                    {bike.featured ? "Na naslovnici" : "Ni na naslovnici"}
+                    {availabilityLabel(bike.status) || "Na voljo"}
                   </p>
                   <p className="text-sm text-ink/60">Zadnja sprememba: {when.format(bike.updatedAt)}</p>
                 </div>
@@ -123,39 +109,26 @@ export default async function AdminHome({
                   <Link className="btn btn-primary min-h-11" href={`/admin/motorji/${bike.id}`}>
                     Uredi
                   </Link>
-                  {bike.publication !== "PUBLISHED" ? (
-                    <form action={setOfferAction}>
-                      <input type="hidden" name="id" value={bike.id} />
-                      <input type="hidden" name="offerAction" value="publish" />
-                      <button className="btn btn-secondary min-h-11">Objavi</button>
-                    </form>
-                  ) : (
-                    <form action={setOfferAction}>
-                      <input type="hidden" name="id" value={bike.id} />
-                      <input type="hidden" name="offerAction" value="draft" />
-                      <button className="btn btn-secondary min-h-11">Umakni v osnutek</button>
-                    </form>
-                  )}
                   {bike.status !== "SOLD" ? (
                     <form action={setOfferAction}>
                       <input type="hidden" name="id" value={bike.id} />
                       <input type="hidden" name="offerAction" value="sold" />
                       <button className="btn btn-secondary min-h-11">Označi kot prodano</button>
                     </form>
-                  ) : null}
-                  {bike.publication === "ARCHIVED" ? (
-                    <form action={setOfferAction}>
-                      <input type="hidden" name="id" value={bike.id} />
-                      <input type="hidden" name="offerAction" value="restore" />
-                      <button className="btn btn-secondary min-h-11">Obnovi v osnutek</button>
-                    </form>
                   ) : (
                     <form action={setOfferAction}>
                       <input type="hidden" name="id" value={bike.id} />
-                      <input type="hidden" name="offerAction" value="archive" />
-                      <button className="btn btn-secondary min-h-11">Arhiviraj</button>
+                      <input type="hidden" name="offerAction" value="available" />
+                      <button className="btn btn-secondary min-h-11">Označi kot na voljo</button>
                     </form>
                   )}
+                  <form action={setOfferAction}>
+                    <input type="hidden" name="id" value={bike.id} />
+                    <input type="hidden" name="offerAction" value="delete" />
+                    <button className="btn btn-secondary min-h-11 border-accent/40 text-accent hover:border-accent hover:bg-accent/5">
+                      Odstrani oglas
+                    </button>
+                  </form>
                 </div>
               </div>
             </article>

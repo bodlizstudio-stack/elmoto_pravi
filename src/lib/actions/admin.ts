@@ -405,6 +405,12 @@ export async function setOfferAction(formData: FormData) {
     await prisma.motorcycle.update({ where: { id }, data: { publication: "DRAFT" } });
   } else if (offerAction === "sold") {
     await prisma.motorcycle.update({ where: { id }, data: { status: "SOLD" } });
+  } else if (offerAction === "available") {
+    await prisma.motorcycle.update({ where: { id }, data: { status: "AVAILABLE" } });
+  } else if (offerAction === "delete") {
+    const images = bike.images;
+    await prisma.motorcycle.delete({ where: { id } });
+    await Promise.all(images.map((image) => removeUpload(image.url)));
   } else if (offerAction === "archive") {
     await prisma.motorcycle.update({ where: { id }, data: { publication: "ARCHIVED" } });
   } else {
@@ -426,7 +432,6 @@ export async function deleteMotorcycle(formData: FormData) {
   const id = text(formData, "id");
   const bike = await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } });
   if (!bike) redirect("/admin");
-  if (text(formData, "confirm") !== displayName(bike)) redirect(`/admin/motorji/${id}?error=Za+trajni+izbris+vpi%C5%A1i+to%C4%8Den+naziv+motorja.`);
   const images = bike.images;
   await prisma.motorcycle.delete({ where: { id } });
   await Promise.all(images.map((image) => removeUpload(image.url)));
