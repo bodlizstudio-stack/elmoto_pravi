@@ -16,6 +16,7 @@ import { findOverlap } from "@/lib/availability";
 import { parseInTimeZone } from "@/lib/time";
 import { removeUpload, saveImage, saveRemoteImage } from "@/lib/uploads";
 import { validateAvtoNetImageUrl } from "@/lib/avtonet-import";
+import { ensureDbSynced, persistDbSnapshot } from "@/lib/shared-store";
 
 export type ActionState = { error?: string; ok?: string } | null;
 
@@ -114,6 +115,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Shranjevanje ni trajno." };
   }
+  await ensureDbSynced();
   const id = text(formData, "id");
   const brand = text(formData, "brand");
   const model = text(formData, "model");
@@ -219,9 +221,11 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     await attachPhotos(bike.id, brand, model, existing?.images ?? [], formData);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Fotografije ni bilo mogoče dodati.";
+    await persistDbSnapshot();
     revalidateOffer(bike.slug);
     redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
+  await persistDbSnapshot();
   await audit(
     admin.id,
     existing ? "UPDATE" : isAvtoNetImport ? "AVTONET_IMPORT" : "CREATE",
@@ -366,6 +370,7 @@ export async function uploadMotorcycleImages(formData: FormData) {
     const message = error instanceof Error ? error.message : "Shranjevanje ni trajno.";
     redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
+  await ensureDbSynced();
   const id = text(formData, "id");
   const bike = await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } });
   if (!bike) return;
@@ -385,6 +390,7 @@ export async function uploadMotorcycleImages(formData: FormData) {
       },
     });
   }
+  await persistDbSnapshot();
   await audit(admin.id, "UPLOAD", "MotorcycleImage", id, `${files.length} fotografij`);
   revalidatePath("/", "layout");
   redirect(`/admin/motorji/${id}?saved=1`);
@@ -392,6 +398,7 @@ export async function uploadMotorcycleImages(formData: FormData) {
 
 export async function updateImage(formData: FormData) {
   const admin = await requireAdmin();
+  await ensureDbSynced();
   const imageId = text(formData, "imageId");
   const action = text(formData, "imageAction");
   const image = await prisma.motorcycleImage.findUnique({ where: { id: imageId } });
@@ -422,6 +429,7 @@ export async function updateImage(formData: FormData) {
       await prisma.motorcycleImage.update({ where: { id: sibling.id }, data: { sortOrder: image.sortOrder } });
     }
   }
+  await persistDbSnapshot();
   await audit(admin.id, action.toUpperCase(), "MotorcycleImage", image.motorcycleId, imageId);
   revalidatePath("/", "layout");
   redirect(`/admin/motorji/${image.motorcycleId}?saved=1`);
@@ -435,11 +443,12 @@ export async function setOfferAction(formData: FormData) {
     const message = error instanceof Error ? error.message : "Shranjevanje ni trajno.";
     redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
+  await ensureDbSynced();
   const id = text(formData, "id");
   const offerAction = text(formData, "offerAction");
   const back = text(formData, "back") || "/admin";
   const bike = await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } });
-  if (!bike) redirect("/admin?error=Motorja+ni+ve%C4%8D+v+ponudbi.");
+  if (!bike) redirect(`${back}?ok=1`);
   if (offerAction === "publish") {
     const problem = canPublish({ brand: bike.brand, model: bike.model });
     if (problem) redirect(`${back}?error=${encodeURIComponent(problem)}`);
@@ -459,6 +468,7 @@ export async function setOfferAction(formData: FormData) {
   } else {
     return;
   }
+  await persistDbSnapshot();
   await audit(admin.id, offerAction.toUpperCase(), "Motorcycle", id, bike.slug);
   revalidatePath("/", "layout");
   redirect(`${back}?ok=1`);
@@ -472,12 +482,14 @@ export async function deleteMotorcycle(formData: FormData) {
     const message = error instanceof Error ? error.message : "Shranjevanje ni trajno.";
     redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
+  await ensureDbSynced();
   const id = text(formData, "id");
   const bike = await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } });
-  if (!bike) redirect("/admin");
+  if (!bike) redirect("/admin?ok=1");
   const images = bike.images;
   await prisma.motorcycle.delete({ where: { id } });
   await Promise.all(images.map((image) => removeUpload(image.url)));
+  await persistDbSnapshot();
   await audit(admin.id, "DELETE", "Motorcycle", id, bike.slug);
   revalidatePath("/", "layout");
   redirect("/admin?ok=1");

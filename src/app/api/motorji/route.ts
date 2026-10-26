@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { ensureDbSynced } from "@/lib/shared-store";
 
 export async function GET(request: Request) {
+  await ensureDbSynced();
   const ids = new URL(request.url).searchParams.get("ids")?.split(",").map((id) => id.trim()).filter(Boolean).slice(0, 30) ?? [];
   if (!ids.length) return NextResponse.json([]);
   const bikes = await prisma.motorcycle.findMany({

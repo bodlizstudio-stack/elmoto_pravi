@@ -49,6 +49,7 @@ export type EditableBike = {
   seoTitle: string;
   seoDescription: string;
   source: string;
+  sourceUrl?: string;
   sourceCheckedAt: string;
   specs: string;
   images: Photo[];
@@ -86,6 +87,7 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
   const [transmission, setTransmission] = useState(bike?.transmission ?? "");
   const [driveType, setDriveType] = useState(bike?.driveType ?? "");
   const [engineType, setEngineType] = useState(bike?.engineType ?? "");
+  const [sourceUrl, setSourceUrl] = useState(bike?.sourceUrl || bike?.source || "");
   const [specsText, setSpecsText] = useState(bike?.specs ?? "");
   const [description, setDescription] = useState(bike?.description || bike?.cardSummary || "");
 
@@ -198,6 +200,19 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
             <label className="field">
               <span>Konji (KM)</span>
               <input name="powerHp" type="number" step="0.1" value={powerHp} onChange={(e) => setPowerHp(e.target.value)} />
+            </label>
+            <label className="field sm:col-span-2">
+              <span>Povezava do oglasa na Avto.net (neobvezno)</span>
+              <input
+                name="sourceUrl"
+                type="url"
+                value={sourceUrl}
+                onChange={(e) => setSourceUrl(e.target.value)}
+                placeholder="https://www.avto.net/Ads/details.asp?id=..."
+              />
+              <small className="text-sm text-ink/60">
+                Če prilepiš povezavo do oglasa na Avto.net, se bo pri motorju prikazal gumb »Poglej oglas na Avto.net«.
+              </small>
             </label>
           </div>
 

@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { Gallery } from "@/components/gallery";
 import { prisma } from "@/lib/db";
 import { publicationLabel } from "@/lib/offer";
+import { ensureDbSynced } from "@/lib/shared-store";
 import { conditionLabel, displayName, formatCc, formatKm, formatPower, formatPrice, lines, stockLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function PreviewPage({ params }: { params: Promise<{ id: string }> }) {
+  await ensureDbSynced();
   const { id } = await params;
   const bike = await prisma.motorcycle.findUnique({
     where: { id },

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { MotorcycleEditor } from "@/components/motorcycle-editor";
 import { deleteMotorcycle } from "@/lib/actions/admin";
 import { prisma } from "@/lib/db";
+import { ensureDbSynced } from "@/lib/shared-store";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function EditMotorcyclePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
+  await ensureDbSynced();
   const { id } = await params;
   const query = await searchParams;
   const bike = await prisma.motorcycle.findUnique({

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { setOfferAction } from "@/lib/actions/admin";
 import { prisma } from "@/lib/db";
 import { availabilityLabel } from "@/lib/offer";
+import { ensureDbSynced } from "@/lib/shared-store";
 import { displayName, formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export default async function AdminHome({
 }: {
   searchParams: Promise<{ q?: string; status?: string; error?: string; ok?: string }>;
 }) {
+  await ensureDbSynced();
   const query = await searchParams;
   const q = (query.q ?? "").trim().toLocaleLowerCase("sl");
   const status = query.status ?? "";

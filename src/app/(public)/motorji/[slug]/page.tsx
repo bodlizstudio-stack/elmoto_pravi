@@ -3,14 +3,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ContactForm } from "@/components/contact-form";
-import { CompareActions } from "@/components/compare-button";
+import { CompareActions, type CompareBikeItem } from "@/components/compare-button";
 import { Gallery } from "@/components/gallery";
 import { MotoCard } from "@/components/moto-card";
 import { ShareButton } from "@/components/share-button";
 import { getBikeBySlug, publicChoices, relatedBikes } from "@/lib/motorcycles";
 import { getSettings } from "@/lib/settings";
 import { siteUrl } from "@/lib/site";
-import { conditionLabel, displayName, factualSummary, formatCc, formatKm, formatPower, formatPrice, lines, statusLabel, stockLabel } from "@/lib/utils";
+import {
+  conditionLabel,
+  coverOf,
+  displayName,
+  factualSummary,
+  formatCc,
+  formatKm,
+  formatPower,
+  formatPrice,
+  lines,
+  statusLabel,
+  stockLabel,
+} from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -36,39 +48,103 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
   const [related, settings, choices] = await Promise.all([relatedBikes(bike), getSettings(), publicChoices()]);
   const name = displayName(bike);
   const sold = bike.status === "SOLD";
-  const rows = [
-    ["Znamka", bike.brand],
-    ["Model", bike.model],
-    ["Različica", bike.variant],
-    ["Letnik", bike.year ? String(bike.year) : ""],
-    ["Stanje", conditionLabel(bike.condition)],
-    ["Kilometri", formatKm(bike.mileageKm) || ""],
-    ["Prostornina", formatCc(bike.engineCc) || ""],
-    ["Moč", formatPower(bike.powerKw, bike.powerHp) || ""],
-    ["Tip motorja", bike.engineType],
-    ["Menjalnik", bike.transmission],
-    ["Tip pogona", bike.driveType],
-    ["Barva", bike.color],
-    ["Kategorija dovoljenja", bike.licenseCategory],
-    ["Razpoložljivost", stockLabel(bike.status)],
-  ].filter(([, value]) => value);
+  const cover = coverOf(bike);
+  const externalUrl = (bike.sourceUrl || (bike.source?.startsWith("http") ? bike.source : "")).trim();
+
+  const compareItem: CompareBikeItem = {
+    id: bike.id,
+    slug: bike.slug,
+    brand: bike.brand,
+    model: bike.model,
+    variant: bike.variant,
+    year: bike.year,
+    mileageKm: bike.mileageKm,
+    engineCc: bike.engineCc,
+    powerKw: bike.powerKw,
+    powerHp: bike.powerHp,
+    transmission: bike.transmission,
+    driveType: bike.driveType,
+    color: bike.color,
+    licenseCategory: bike.licenseCategory,
+    category: bike.category,
+    condition: bike.condition,
+    status: bike.status,
+    priceCents: bike.priceConfirmed && bike.priceCents && bike.priceCents > 0 ? bike.priceCents : null,
+    priceConfirmed: Boolean(bike.priceConfirmed && bike.priceCents && bike.priceCents > 0),
+    image: cover?.url ?? null,
+    sourceUrl: externalUrl || undefined,
+  };
+
+  const baseRows = (
+    [
+      ["Znamka", bike.brand],
+      ["Model", bike.model],
+      ["Različica", bike.variant],
+      ["Letnik", bike.year ? String(bike.year) : ""],
+      ["Stanje", conditionLabel(bike.condition)],
+      ["Kilometri", formatKm(bike.mileageKm) || ""],
+      ["Prostornina", formatCc(bike.engineCc) || ""],
+      ["Moč motorja", formatPower(bike.powerKw, bike.powerHp) || ""],
+      ["Tip motorja", bike.engineType],
+      ["Menjalnik", bike.transmission],
+      ["Prenos moči", bike.driveType],
+      ["Kategorija", bike.category],
+      ["Barva", bike.color],
+      ["Kategorija dovoljenja", bike.licenseCategory],
+      ["Razpoložljivost", stockLabel(bike.status)],
+    ] as [string, string][]
+  ).filter(([, value]) => Boolean(value));
+
+  // Merge pasted specifications with base fields so every entered detail appears in the table
+  const specRows: { label: string; value: string }[] = [];
+  const seenLabels = new Set<string>();
+
+  for (const [label, value] of baseRows) {
+    if (label === "Znamka" || label === "Model" || label === "Letnik") {
+      specRows.push({ label, value });
+      seenLabels.add(label.toLowerCase());
+    }
+  }
+
+  for (const spec of bike.specifications) {
+    const norm = spec.label.trim().toLowerCase();
+    if (!seenLabels.has(norm)) {
+      specRows.push({ label: spec.label, value: spec.value });
+      seenLabels.add(norm);
+    }
+  }
+
+  for (const [label, value] of baseRows) {
+    const norm = label.toLowerCase();
+    const alreadyCovered =
+      seenLabels.has(norm) ||
+      (norm === "stanje" && seenLabels.has("starost")) ||
+      (norm === "kilometri" && seenLabels.has("prevoženi km")) ||
+      (norm === "prostornina" && seenLabels.has("motor"));
+    if (!alreadyCovered) {
+      specRows.push({ label, value });
+      seenLabels.add(norm);
+    }
+  }
+
   const equipment = lines(bike.equipment);
-  const offer = bike.priceConfirmed && bike.priceCents && bike.priceCents > 0
-    ? {
-        "@type": "Offer",
-        priceCurrency: "EUR",
-        price: (bike.priceCents / 100).toFixed(2),
-        ...(bike.status === "AVAILABLE" || bike.status === "RESERVED" || sold
-          ? {
-              availability: sold
-                ? "https://schema.org/SoldOut"
-                : bike.status === "RESERVED"
-                  ? "https://schema.org/LimitedAvailability"
-                  : "https://schema.org/InStock",
-            }
-          : {}),
-      }
-    : undefined;
+  const offer =
+    bike.priceConfirmed && bike.priceCents && bike.priceCents > 0
+      ? {
+          "@type": "Offer",
+          priceCurrency: "EUR",
+          price: (bike.priceCents / 100).toFixed(2),
+          ...(bike.status === "AVAILABLE" || bike.status === "RESERVED" || sold
+            ? {
+                availability: sold
+                  ? "https://schema.org/SoldOut"
+                  : bike.status === "RESERVED"
+                    ? "https://schema.org/LimitedAvailability"
+                    : "https://schema.org/InStock",
+              }
+            : {}),
+        }
+      : undefined;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -88,55 +164,72 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
           <Gallery images={bike.images.map((image) => ({ url: image.url, alt: image.alt || name }))} title={name} />
           <div>
-            {bike.status === "UNKNOWN" ? (
-              <p className="text-sm leading-6 text-ink/70">Razpoložljivost preveri po povpraševanju.</p>
-            ) : statusLabel(bike.status) ? (
+            {bike.status === "UNKNOWN" ? null : statusLabel(bike.status) ? (
               <p className="text-xs uppercase tracking-[0.18em] text-accent">{statusLabel(bike.status)}</p>
             ) : null}
             <h1 className="display mt-2 text-5xl sm:text-6xl">{name}</h1>
             <p className="mt-4 display text-4xl">{formatPrice(bike.priceCents, bike.priceConfirmed)}</p>
             {sold ? (
-              <p className="mt-4 border border-black/10 bg-white p-4 leading-7">To vozilo je prodano in ni več na voljo za nakup.</p>
+              <p className="mt-4 border border-black/10 bg-white p-4 leading-7">
+                To vozilo je prodano in ni več na voljo za nakup.
+              </p>
             ) : bike.status === "RESERVED" ? (
-              <p className="mt-4 border border-black/10 bg-white p-4 leading-7">Vozilo je označeno kot rezervirano. Povpraševanje lahko vseeno pošlješ.</p>
+              <p className="mt-4 border border-black/10 bg-white p-4 leading-7">
+                Vozilo je označeno kot rezervirano. Povpraševanje lahko vseeno pošlješ.
+              </p>
             ) : null}
-            {bike.specifications.length > 0 ? (
+
+            {specRows.length > 0 ? (
               <div className="mt-6 overflow-hidden rounded-[12px] border border-black/10 bg-white">
                 <div className="border-b border-black/10 bg-[#171a1f] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white">
                   Osnovni podatki in specifikacije
                 </div>
                 <dl className="divide-y divide-black/10 text-sm">
-                  {bike.specifications.map((spec) => (
-                    <div key={spec.id} className="grid grid-cols-[9.5rem_1fr] gap-3 px-4 py-2.5 sm:grid-cols-[11.5rem_1fr]">
+                  {specRows.map((spec, idx) => (
+                    <div
+                      key={`${spec.label}-${idx}`}
+                      className="grid grid-cols-[9.5rem_1fr] gap-3 px-4 py-2.5 sm:grid-cols-[11.5rem_1fr]"
+                    >
                       <dt className="font-semibold text-ink/65">{spec.label}:</dt>
                       <dd className="font-medium text-ink">{spec.value}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
-            ) : (
-              <dl className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {rows.map(([label, value]) => (
-                  <div key={label} className="border-b border-black/10 pb-2">
-                    <dt className="text-xs uppercase tracking-[0.12em] text-ink/50">{label}</dt>
-                    <dd className="mt-1">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
+            ) : null}
+
             <div className="mt-6">
-              <CompareActions id={bike.id} />
+              <CompareActions id={bike.id} bike={compareItem} />
             </div>
-            <div className="mt-6 hidden flex-col gap-3 md:flex">
+
+            <div className="mt-6 flex flex-col gap-3">
+              {externalUrl ? (
+                <a
+                  href={externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary w-full"
+                >
+                  Poglej oglas na Avto.net ↗
+                </a>
+              ) : null}
               {!sold ? (
                 <>
-                  <a className="btn btn-primary w-full" href="#povprasevanje">Pošlji povpraševanje</a>
-                  <a className="btn btn-dark w-full" href="#povprasevanje">Dogovori se za ogled</a>
+                  <a className={`btn ${externalUrl ? "btn-dark" : "btn-primary"} w-full`} href="#povprasevanje">
+                    Pošlji povpraševanje
+                  </a>
+                  <a className="btn btn-dark w-full" href="#povprasevanje">
+                    Dogovori se za ogled
+                  </a>
                 </>
               ) : (
-                <Link className="btn btn-dark w-full" href="/motorji">Poglej druge motorje</Link>
+                <Link className="btn btn-dark w-full" href="/motorji">
+                  Poglej druge motorje
+                </Link>
               )}
-              <a className="btn btn-dark w-full" href={`tel:${settings.phoneTel}`}>Pokliči prodajalca</a>
+              <a className="btn btn-dark w-full" href={`tel:${settings.phoneTel}`}>
+                Pokliči prodajalca ({settings.phoneDisplay})
+              </a>
               <ShareButton title={name} />
             </div>
           </div>
@@ -145,9 +238,9 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
         <section className="mt-12 max-w-3xl">
           <h2 className="display text-4xl">Opis motorja</h2>
           {bike.description ? (
-            <p className="prose-copy mt-4">{bike.description}</p>
+            <p className="prose-copy mt-4 whitespace-pre-line">{bike.description}</p>
           ) : (
-            <p className="mt-4 leading-7">{factualSummary(bike)} Podrobnejši opis bo dodan, ko ga vpiše EL-MOTO.</p>
+            <p className="mt-4 leading-7">{factualSummary(bike)}</p>
           )}
           {equipment.length ? (
             <>
@@ -164,29 +257,15 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
               <h3 className="display mt-8 text-3xl">Servisna zgodovina</h3>
               <p className="prose-copy mt-3">{bike.serviceHistory}</p>
             </>
-          ) : (
-            <p className="mt-6 text-sm leading-6 text-ink/60">Servisna zgodovina je navedena samo, če jo je podjetje dokumentiralo pri tem vozilu.</p>
-          )}
-          {bike.specifications.length ? (
-            <>
-              <h3 className="display mt-8 text-3xl">Dodatni podatki</h3>
-              <dl className="mt-3 grid gap-2">
-                {bike.specifications.map((spec) => (
-                  <div key={spec.id} className="grid grid-cols-1 gap-1 border-b border-black/10 py-2 sm:grid-cols-2">
-                    <dt>{spec.label}</dt>
-                    <dd>{spec.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </>
           ) : null}
-          {bike.source ? <SourceNote source={bike.source} checkedAt={bike.sourceCheckedAt} /> : null}
         </section>
 
         {!sold ? (
-          <section id="povprasevanje" className="mt-12 max-w-2xl scroll-mt-24 bg-white p-4 sm:p-6">
+          <section id="povprasevanje" className="mt-12 max-w-2xl scroll-mt-24 rounded-[12px] border border-black/10 bg-white p-4 sm:p-6">
             <h2 className="display text-4xl">Povpraševanje</h2>
-            <p className="mt-2 mb-5 text-sm leading-6 text-ink/70">Obrazec je izpolnjen za ta motor. Oddaja ni potrditev nakupa.</p>
+            <p className="mt-2 mb-5 text-sm leading-6 text-ink/70">
+              Obrazec je izpolnjen za ta motor. Oddaja ni potrditev nakupa.
+            </p>
             <ContactForm
               initialType="PURCHASE"
               initialMotorcycleId={bike.id}
@@ -208,32 +287,24 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
       </div>
       <div className="dock fixed inset-x-0 bottom-0 z-30 border-t border-black/10 bg-white p-3 text-ink md:hidden">
         <div className="grid grid-cols-2 gap-2">
-          <a className="btn btn-primary" href={`tel:${settings.phoneTel}`}>Pokliči</a>
-          {sold ? (
-            <Link className="btn btn-secondary" href="/motorji">Drugi motorji</Link>
+          <a className="btn btn-primary" href={`tel:${settings.phoneTel}`}>
+            Pokliči
+          </a>
+          {externalUrl ? (
+            <a className="btn btn-secondary" href={externalUrl} target="_blank" rel="noopener noreferrer">
+              Avto.net ↗
+            </a>
+          ) : sold ? (
+            <Link className="btn btn-secondary" href="/motorji">
+              Drugi motorji
+            </Link>
           ) : (
-            <a className="btn btn-secondary" href="#povprasevanje">Povpraševanje</a>
+            <a className="btn btn-secondary" href="#povprasevanje">
+              Povpraševanje
+            </a>
           )}
         </div>
       </div>
     </article>
-  );
-}
-
-function SourceNote({ source, checkedAt }: { source: string; checkedAt: Date | null }) {
-  const parts = source.split(/\s+/).filter(Boolean);
-  const urls = parts.filter((part) => part.startsWith("http"));
-  const rest = parts.filter((part) => !part.startsWith("http")).join(" ");
-  return (
-    <p className="mt-6 text-sm leading-6 text-ink/50">
-      Vir podatkov:{" "}
-      {urls.length
-        ? urls.map((url, index) => (
-            <span key={url}>{index > 0 ? ", " : null}<a className="underline" href={url} target="_blank" rel="noreferrer">{index === 0 ? "objava na Instagramu" : "druga objava"}</a></span>
-          ))
-        : source}
-      {rest ? ` ${rest}` : ""}
-      {checkedAt ? `, preverjeno ${checkedAt.toLocaleDateString("sl-SI")}.` : "."}
-    </p>
   );
 }

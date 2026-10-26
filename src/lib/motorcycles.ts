@@ -2,6 +2,7 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { publicListStatuses } from "@/lib/offer";
+import { ensureDbSynced } from "@/lib/shared-store";
 
 export const bikeInclude = {
   images: { orderBy: [{ isCover: "desc" as const }, { sortOrder: "asc" as const }] },
@@ -16,16 +17,22 @@ export function coverOf(bike: { images: { url: string; alt: string; isCover: boo
 }
 
 export async function getBikeBySlug(slug: string) {
-  const bike = await prisma.motorcycle.findUnique({ where: { slug }, include: bikeInclude });
+  await ensureDbSynced();
+  const decoded = decodeURIComponent(slug).trim();
+  const bike =
+    (await prisma.motorcycle.findUnique({ where: { slug: decoded }, include: bikeInclude })) ??
+    (await prisma.motorcycle.findUnique({ where: { id: decoded }, include: bikeInclude }));
   if (!bike || bike.publication !== "PUBLISHED") return null;
   return bike;
 }
 
 export async function getBikeForAdmin(id: string) {
+  await ensureDbSynced();
   return prisma.motorcycle.findUnique({ where: { id }, include: bikeInclude });
 }
 
 export async function allSaleBikes() {
+  await ensureDbSynced();
   return prisma.motorcycle.findMany({
     where: {
       forSale: true,
@@ -38,6 +45,7 @@ export async function allSaleBikes() {
 }
 
 export async function listSaleBikes(filters: CatalogFilters) {
+  await ensureDbSynced();
   const where: Prisma.MotorcycleWhereInput = {
     forSale: true,
     publication: "PUBLISHED",
@@ -146,6 +154,7 @@ export function readFilters(params: Record<string, string | string[] | undefined
 }
 
 export async function filterOptions() {
+  await ensureDbSynced();
   const bikes = await prisma.motorcycle.findMany({
     where: { forSale: true, publication: "PUBLISHED" },
     select: { brand: true, category: true, licenseCategory: true },
@@ -159,6 +168,7 @@ export async function filterOptions() {
 }
 
 export async function homeBikes() {
+  await ensureDbSynced();
   const where = { forSale: true, publication: "PUBLISHED", status: { in: publicListStatuses("") } };
   return prisma.motorcycle.findMany({
     where,
@@ -169,6 +179,7 @@ export async function homeBikes() {
 }
 
 export async function relatedBikes(bike: PublicBike) {
+  await ensureDbSynced();
   const candidates = await prisma.motorcycle.findMany({
     where: {
       id: { not: bike.id },
@@ -190,6 +201,7 @@ export async function relatedBikes(bike: PublicBike) {
 }
 
 export async function rentalBikes() {
+  await ensureDbSynced();
   return prisma.motorcycle.findMany({
     where: { forRent: true, publication: "PUBLISHED", status: "AVAILABLE" },
     include: bikeInclude,
@@ -198,6 +210,7 @@ export async function rentalBikes() {
 }
 
 export async function publicChoices() {
+  await ensureDbSynced();
   return prisma.motorcycle.findMany({
     where: { publication: "PUBLISHED", status: { in: ["AVAILABLE", "RESERVED", "UNKNOWN"] }, OR: [{ forSale: true }, { forRent: true }] },
     select: { id: true, brand: true, model: true, variant: true, forSale: true, forRent: true },
