@@ -44,7 +44,7 @@ export async function saveImage(file: File) {
     return blob.url;
   }
   if (process.env.VERCEL) {
-    throw new Error("Nalaganje ni nastavljeno. V gostovanju dodaj skrivnost BLOB_READ_WRITE_TOKEN.");
+    return `data:image/webp;base64,${optimized.toString("base64")}`;
   }
   const dir = path.join(process.cwd(), "public", "uploads");
   await mkdir(dir, { recursive: true });

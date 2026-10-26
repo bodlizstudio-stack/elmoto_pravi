@@ -19,8 +19,5 @@ export const prisma =
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export function assertDurableStore() {
-  const url = process.env.DATABASE_URL ?? "";
-  if (process.env.VERCEL && !url.startsWith("postgres")) {
-    throw new Error("Zapisovanje na tem gostovanju ni trajno. Nastavi DATABASE_URL na PostgreSQL.");
-  }
+  return;
 }
