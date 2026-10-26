@@ -25,11 +25,11 @@ export const partners = [
     id: "cargarantie",
     name: "CarGarantie",
     role: "Jamstvo",
-    text: "Zanesljivo jamstvo za rabljena in nova motorna kolesa.",
+    text: "Zanesljiva zaščita pred stroški popravil za nova in rabljena motorna kolesa.",
     logo: "/images/partners/cargarantie.svg",
     width: 178,
     height: 47,
     href: "/garancija-financiranje#cargarantie",
-    externalUrl: "https://www.cargarantie.com/sl/",
+    externalUrl: "https://www.cargarantie.com/si/lastnik-vozila/katera-jamstva-so-na-voljo/",
   },
 ] as const;
