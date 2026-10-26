@@ -2,7 +2,7 @@ export const site = {
   brand: "EL-MOTO",
   legalName: "EL-MOTO d.o.o.",
   registryName: "EL-MOTO, trgovina in posredništvo, d.o.o.",
-  slogan: "Zanesljivi motorji. Brezskrbna vožnja.",
+  slogan: "Tvoja pot. Tvoj motor.",
   street: "Špruha 33",
   postalCode: "1236",
   city: "Trzin",
@@ -10,6 +10,7 @@ export const site = {
   countryCode: "SI",
   phoneDisplay: "070 868 600",
   phoneTel: "+38670868600",
+  whatsappUrl: "https://wa.me/38670868600",
   email: "info@elmoto.si",
   instagram: "https://www.instagram.com/elmoto.si/",
   instagramHandle: "@elmoto.si",
@@ -71,9 +72,16 @@ export const saleLinks = [
   { href: "/motorji?condition=NEW", label: "Novi motorji", condition: "NEW" },
 ] as const;
 
+export const ponudbaLinks = [
+  { href: "/motorji", label: "PRODAJA" },
+  { href: "/uvoz", label: "UVOZ" },
+  { href: "/najem", label: "NAJEM" },
+  { href: "/oprema", label: "OPREMA" },
+] as const;
+
 export const navItems = [
   { href: "/kove", label: "KOVE" },
-  { href: "/najem", label: "Najem" },
-  { href: "/o-nas", label: "O nas" },
-  { href: "/kontakt", label: "Kontakt" },
+  { href: "/garancija-financiranje", label: "GARANCIJA & FINANCIRANJE" },
+  { href: "/galerija", label: "GALERIJA" },
+  { href: "/kontakt", label: "KONTAKT" },
 ] as const;

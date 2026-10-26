@@ -148,20 +148,12 @@ export async function filterOptions() {
 
 export async function homeBikes() {
   const where = { forSale: true, publication: "PUBLISHED", status: { in: publicListStatuses("") } };
-  const featured = await prisma.motorcycle.findMany({
-    where: { ...where, featured: true },
+  return prisma.motorcycle.findMany({
+    where,
     include: bikeInclude,
-    orderBy: [{ featuredOrder: "asc" }, { publishedAt: "desc" }],
+    orderBy: [{ createdAt: "desc" }, { publishedAt: "desc" }],
     take: 3,
   });
-  if (featured.length >= 3) return featured;
-  const rest = await prisma.motorcycle.findMany({
-    where: { ...where, id: { notIn: featured.map((bike) => bike.id) } },
-    include: bikeInclude,
-    orderBy: { publishedAt: "desc" },
-    take: 3 - featured.length,
-  });
-  return [...featured, ...rest];
 }
 
 export async function relatedBikes(bike: PublicBike) {

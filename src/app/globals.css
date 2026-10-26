@@ -368,6 +368,11 @@ textarea {
   text-transform: none;
 }
 
+.public-site header,
+.public-site header .btn {
+  text-transform: uppercase;
+}
+
 .public-site .field span,
 .public-site .field-label {
   color: #3a414a;

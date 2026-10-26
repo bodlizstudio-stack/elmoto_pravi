@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Bike, MessageCircle, Sparkles } from "lucide-react";
+import { ArrowRight, Bike, MessageCircle, Sparkles } from "lucide-react";
 import { ExternalLink } from "@/components/external-link";
 import { Photo } from "@/components/photo";
 import { MotoCard } from "@/components/moto-card";
@@ -61,14 +61,14 @@ export default async function HomePage() {
           </div>
           <div className="wrap home-hero-grid">
             <div className="home-hero-copy">
-              <p className="kicker text-[0.78rem] uppercase tracking-[0.08em] sm:text-[0.84rem]">EL-MOTO · Novi in rabljeni motorji</p>
+              <p className="kicker text-[0.78rem] uppercase tracking-[0.08em] sm:text-[0.84rem]">NOVI IN RABLJENI MOTORJI Z GARANCIJO</p>
               <h1 className="home-hero-title display">
-                Tvoja naslednja
+                Tvoja pot.
                 <br />
-                zgodba na dveh kolesih.
+                Tvoj motor.
               </h1>
               <p className="mt-4 max-w-[34rem] text-[17px] leading-7 text-[#3a414a]">
-                Poišči motor za vsakodnevne poti, vikend izlete ali nove avanture. Oglej si ponudbo EL-MOTO in spoznaj motocikle KOVE.
+                Odkrij skrbno izbrano ponudbo motornih koles za nakup ali najem. Pri EL-MOTO se vsaka dobra zgodba začne na dveh kolesih.
               </p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <Link className="btn btn-primary w-full sm:w-auto" href="/motorji">
@@ -86,14 +86,6 @@ export default async function HomePage() {
                 </a>
               </p>
             </div>
-            <Link href="/kove" className="kove-card">
-              <span className="text-xs font-semibold tracking-[0.14em] text-[#5b616b]">KOVE PRI EL-MOTO</span>
-              <span className="text-lg font-semibold leading-6 text-[#171a1f]">Pooblaščeni prodajalec</span>
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#ec2336]">
-                Spoznaj znamko
-                <ArrowUpRight aria-hidden className="h-4 w-4" />
-              </span>
-            </Link>
           </div>
         </div>
         <div className="wrap home-bridge-wrap">
@@ -215,17 +207,43 @@ export default async function HomePage() {
             Za možnosti financiranja in jamstva pri izbranem motorju nas kontaktiraj.
           </p>
           <ul className="mt-8 grid gap-4 md:grid-cols-3">
-            {partners.map((partner) => (
-              <li key={partner.name} className="flex flex-col items-center rounded-[12px] border border-[#e2e5e9] bg-white px-6 py-8 text-center">
-                <p className="text-sm font-semibold text-[#5b616b]">{partner.role}</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={partner.logo} alt={partner.name} width={partner.width} height={partner.height} className="partner-logo mt-4" />
-                <p className="mt-4 text-[17px] leading-7 text-[#5b616b]">{partner.text}</p>
-              </li>
-            ))}
+            {partners.map((partner) => {
+              const isExternal = partner.href.startsWith("http");
+              const content = (
+                <>
+                  <p className="text-sm font-semibold text-[#5b616b]">{partner.role}</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={partner.logo} alt={partner.name} width={partner.width} height={partner.height} className="partner-logo mt-4 transition-transform group-hover:scale-105" />
+                  <p className="mt-4 text-[17px] leading-7 text-[#5b616b]">{partner.text}</p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#ec2336]">
+                    {isExternal ? "Odpri kalkulator" : "Več informacij"}
+                    <ArrowRight aria-hidden className="h-4 w-4" />
+                  </span>
+                </>
+              );
+              return (
+                <li key={partner.name}>
+                  {isExternal ? (
+                    <ExternalLink
+                      href={partner.href}
+                      className="group flex h-full flex-col items-center rounded-[12px] border border-[#e2e5e9] bg-white px-6 py-8 text-center transition hover:border-[#171a1f] hover:shadow-md"
+                    >
+                      {content}
+                    </ExternalLink>
+                  ) : (
+                    <Link
+                      href={partner.href}
+                      className="group flex h-full flex-col items-center rounded-[12px] border border-[#e2e5e9] bg-white px-6 py-8 text-center transition hover:border-[#171a1f] hover:shadow-md"
+                    >
+                      {content}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
-          <Link className="btn btn-primary mt-8 w-full sm:w-auto" href="/kontakt?vrsta=PURCHASE&model=Financiranje%20in%20jamstvo">
-            Preveri možnosti
+          <Link className="btn btn-primary mt-8 w-full sm:w-auto" href="/garancija-financiranje">
+            Garancija in financiranje
           </Link>
         </div>
       </section>
