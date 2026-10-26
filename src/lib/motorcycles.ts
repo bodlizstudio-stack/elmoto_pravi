@@ -25,6 +25,18 @@ export async function getBikeForAdmin(id: string) {
   return prisma.motorcycle.findUnique({ where: { id }, include: bikeInclude });
 }
 
+export async function allSaleBikes() {
+  return prisma.motorcycle.findMany({
+    where: {
+      forSale: true,
+      publication: "PUBLISHED",
+      status: { in: ["AVAILABLE", "RESERVED", "SOLD", "UNKNOWN"] },
+    },
+    include: bikeInclude,
+    orderBy: [{ createdAt: "desc" }, { publishedAt: "desc" }],
+  });
+}
+
 export async function listSaleBikes(filters: CatalogFilters) {
   const where: Prisma.MotorcycleWhereInput = {
     forSale: true,
