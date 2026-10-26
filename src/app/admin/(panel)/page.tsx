@@ -41,10 +41,15 @@ export default async function AdminHome({
   return (
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-semibold">Ponudba</h1>
-        <Link className="btn btn-primary" href="/admin/motorji/nov">
-          Dodaj motor
-        </Link>
+        <h1 className="text-3xl font-semibold">Motorji v ponudbi</h1>
+        <div className="flex flex-wrap gap-2">
+          <Link className="btn btn-primary" href="/admin/motorji/nov?mode=avtonet">
+            Uvozi motor iz Avto.net
+          </Link>
+          <Link className="btn btn-secondary" href="/admin/motorji/nov?mode=manual">
+            Dodaj motor
+          </Link>
+        </div>
       </div>
       {query.error ? (
         <p className="border border-accent/40 bg-white p-3 text-sm text-accent" role="alert">

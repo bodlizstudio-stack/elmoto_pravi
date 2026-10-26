@@ -14,7 +14,8 @@ import { displayName, parseSpecs, slugify, euroToCents } from "@/lib/utils";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { findOverlap } from "@/lib/availability";
 import { parseInTimeZone } from "@/lib/time";
-import { removeUpload, saveImage } from "@/lib/uploads";
+import { removeUpload, saveImage, saveRemoteImage } from "@/lib/uploads";
+import { validateAvtoNetImageUrl } from "@/lib/avtonet-import";
 
 export type ActionState = { error?: string; ok?: string } | null;
 
@@ -136,22 +137,43 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   if (problem) return { error: problem };
   const publication = "PUBLISHED";
   const slug = existing ? existing.slug : await uniqueSlug(`${brand}-${model}-${year ?? ""}`);
+  const variant = formData.has("variant") ? text(formData, "variant") : (existing?.variant ?? "");
+  const firstRegistration = formData.has("firstRegistration") ? text(formData, "firstRegistration") : (existing?.firstRegistration ?? "");
+  const fuelType = formData.has("fuelType") ? text(formData, "fuelType") : (existing?.fuelType ?? "");
+  const engineType = formData.has("engineType") ? text(formData, "engineType") : (existing?.engineType ?? "");
+  const transmission = formData.has("transmission") ? text(formData, "transmission") : (existing?.transmission ?? "");
+  const driveType = formData.has("driveType") ? text(formData, "driveType") : (existing?.driveType ?? "");
+  const color = formData.has("color") ? text(formData, "color") : (existing?.color ?? "");
+  const licenseCategory = formData.has("licenseCategory") ? text(formData, "licenseCategory") : (existing?.licenseCategory ?? "");
+  const category = formData.has("category") ? text(formData, "category") : (existing?.category ?? "");
+  const equipment = formData.has("equipment") ? text(formData, "equipment") : (existing?.equipment ?? "");
+  const serviceHistory = formData.has("serviceHistory") ? text(formData, "serviceHistory") : (existing?.serviceHistory ?? "");
+  const sourcePlatform = formData.has("sourcePlatform") ? text(formData, "sourcePlatform") : (existing?.sourcePlatform ?? "");
+  const sourceUrl = formData.has("sourceUrl") ? text(formData, "sourceUrl") : (existing?.sourceUrl ?? "");
+  const externalId = formData.has("externalId") ? text(formData, "externalId") : (existing?.externalId ?? "");
+  const importStatus = formData.has("importStatus") ? text(formData, "importStatus") : (existing?.importStatus ?? "");
+  const syncEnabled = formData.has("syncEnabled") ? checked(formData, "syncEnabled") : (existing?.syncEnabled ?? false);
+  const now = new Date();
+  const isAvtoNetImport = sourcePlatform === "Avto.net" || Boolean(sourceUrl);
+
   const data = {
     slug,
     brand,
     model,
-    variant: existing?.variant ?? "",
+    variant,
     year,
+    firstRegistration,
     mileageKm: mileage,
-    engineCc: existing?.engineCc ?? engine,
+    engineCc: engine ?? existing?.engineCc ?? null,
     powerKw: powerKw && powerKw > 0 ? powerKw : null,
     powerHp: powerHp && powerHp > 0 ? powerHp : null,
-    engineType: existing?.engineType ?? "",
-    transmission: existing?.transmission ?? "",
-    driveType: existing?.driveType ?? "",
-    color: existing?.color ?? "",
-    licenseCategory: existing?.licenseCategory ?? "",
-    category: existing?.category ?? "",
+    fuelType,
+    engineType,
+    transmission,
+    driveType,
+    color,
+    licenseCategory,
+    category,
     condition,
     status: existing?.status || "UNKNOWN",
     publication,
@@ -162,15 +184,22 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     priceOnRequest: !price.cents,
     cardSummary: description.slice(0, 280),
     description,
-    equipment: existing?.equipment ?? "",
-    serviceHistory: existing?.serviceHistory ?? "",
+    equipment,
+    serviceHistory,
     featured: checked(formData, "featured"),
     featuredOrder: featuredOrder ?? existing?.featuredOrder ?? 0,
     seoTitle: existing?.seoTitle ?? "",
     seoDescription: existing?.seoDescription ?? "",
-    source: existing?.source ?? "",
-    sourceCheckedAt: existing?.sourceCheckedAt ?? null,
-    ...(publication === "PUBLISHED" && existing?.publication !== "PUBLISHED" ? { publishedAt: new Date() } : {}),
+    source: sourceUrl || existing?.source || "",
+    sourcePlatform,
+    sourceUrl,
+    externalId,
+    importStatus,
+    syncEnabled,
+    importedAt: isAvtoNetImport ? (existing?.importedAt ?? now) : (existing?.importedAt ?? null),
+    lastSyncedAt: isAvtoNetImport ? now : (existing?.lastSyncedAt ?? null),
+    sourceCheckedAt: isAvtoNetImport ? now : (existing?.sourceCheckedAt ?? null),
+    ...(publication === "PUBLISHED" && existing?.publication !== "PUBLISHED" ? { publishedAt: now } : {}),
   };
   await rememberBrand(brand);
   await rememberCategory(data.category);
@@ -193,7 +222,13 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     revalidateOffer(bike.slug);
     redirect(`/admin/motorji/${bike.id}?error=${encodeURIComponent(message)}`);
   }
-  await audit(admin.id, existing ? "UPDATE" : "CREATE", "Motorcycle", bike.id, `${brand} ${model}`);
+  await audit(
+    admin.id,
+    existing ? "UPDATE" : isAvtoNetImport ? "AVTONET_IMPORT" : "CREATE",
+    "Motorcycle",
+    bike.id,
+    `${brand} ${model}${externalId ? ` (Avto.net #${externalId})` : ""}`,
+  );
   revalidateOffer(bike.slug);
   redirect(`/admin/motorji/${bike.id}?saved=1`);
 }
@@ -205,22 +240,72 @@ async function attachPhotos(
   images: { sortOrder: number }[],
   formData: FormData,
 ) {
+  let importedUrls: string[] = [];
+  const rawImported = text(formData, "importedImages");
+  if (rawImported) {
+    try {
+      const parsed = JSON.parse(rawImported) as unknown;
+      if (Array.isArray(parsed)) {
+        importedUrls = parsed.map((u) => String(u ?? "").trim()).filter(Boolean);
+      }
+    } catch {
+      importedUrls = [];
+    }
+  }
+
   const files = formData.getAll("photos").filter((file): file is File => file instanceof File && file.size > 0);
-  if (!files.length) return;
-  if (images.length + files.length > 30) throw new Error("Na enem motorju je lahko največ 30 fotografij.");
+  if (!importedUrls.length && !files.length) return;
+  if (images.length + importedUrls.length + files.length > 30) {
+    throw new Error("Na enem motorju je lahko največ 30 fotografij.");
+  }
+
+  const preferredCoverIdx = optionalInt(formData, "coverIndex") ?? 0;
   let order = images.reduce((max, image) => Math.max(max, image.sortOrder), 0);
+  let addedCount = 0;
+
+  for (const remoteUrl of importedUrls) {
+    const storedUrl = (await saveRemoteImage(remoteUrl)) || validateAvtoNetImageUrl(remoteUrl);
+    if (!storedUrl) continue;
+    order += 1;
+    const isCover = images.length === 0 && addedCount === preferredCoverIdx;
+    addedCount += 1;
+    await prisma.motorcycleImage.create({
+      data: {
+        motorcycleId,
+        url: storedUrl,
+        alt: `${brand} ${model}`.trim(),
+        sortOrder: order,
+        isCover,
+      },
+    });
+  }
+
   for (const file of files) {
     const url = await saveImage(file);
     order += 1;
+    const isCover = images.length === 0 && addedCount === preferredCoverIdx;
+    addedCount += 1;
     await prisma.motorcycleImage.create({
       data: {
         motorcycleId,
         url,
         alt: `${brand} ${model}`.trim(),
         sortOrder: order,
-        isCover: images.length === 0 && order === 1,
+        isCover,
       },
     });
+  }
+
+  // Ensure at least one cover image exists if photos were added
+  const hasCover = await prisma.motorcycleImage.findFirst({ where: { motorcycleId, isCover: true } });
+  if (!hasCover) {
+    const firstImg = await prisma.motorcycleImage.findFirst({
+      where: { motorcycleId },
+      orderBy: { sortOrder: "asc" },
+    });
+    if (firstImg) {
+      await prisma.motorcycleImage.update({ where: { id: firstImg.id }, data: { isCover: true } });
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import { canPublish, publicListStatuses } from "@/lib/offer";
 import { euroToCents, formatPrice, slugify } from "@/lib/utils";
 import { contactSchema } from "@/lib/validators";
 import { parseMotorcycleImport } from "@/lib/import-motorcycles";
+import { parseAvtoNetContent, validateAvtoNetUrl } from "@/lib/avtonet-import";
 
 describe("cene", () => {
   it("ne prikaže 0 EUR ali nepotrjene cene", () => {
@@ -98,5 +99,92 @@ describe("uvoz", () => {
     expect(result.rows[0]?.priceCents).toBeNull();
     expect(result.rows[0]?.priceConfirmed).toBe(false);
     expect(result.rows[0]?.model).toBe("NC750X");
+  });
+});
+
+describe("avto.net uvoz", () => {
+  it("preveri veljavnost povezave in prepreči SSRF", () => {
+    expect(validateAvtoNetUrl("").valid).toBe(false);
+    expect(validateAvtoNetUrl("https://evil.example.com/Ads/details.asp?id=123").valid).toBe(false);
+    expect(validateAvtoNetUrl("http://127.0.0.1:3000/Ads/details.asp?id=123").valid).toBe(false);
+    expect(validateAvtoNetUrl("javascript:alert(1)").valid).toBe(false);
+
+    const valid = validateAvtoNetUrl(
+      "https://www.avto.net/Ads/details.asp?id=21948512&display=Yamaha%20MT-07",
+    );
+    expect(valid.valid).toBe(true);
+    expect(valid.externalId).toBe("21948512");
+    expect(valid.displayHint).toBe("Yamaha MT-07");
+  });
+
+  it("pravilno razbere podatke oglasa in slik ter pusti manjkajoča polja prazna", () => {
+    const sampleHtml = `
+      <html>
+        <head><title>Yamaha MT-07 Pure | Avto.net</title></head>
+        <body>
+          <h1>Yamaha MT-07 Pure</h1>
+          <table>
+            <tr><th>Starost:</th><td>rabljeno</td></tr>
+            <tr><th>Prva registracija:</th><td>05 / 2022</td></tr>
+            <tr><th>Letnik proizvodnje:</th><td>2022</td></tr>
+            <tr><th>Prevoženi km:</th><td>12.500 km</td></tr>
+            <tr><th>Cena:</th><td>6.990 €</td></tr>
+            <tr><th>Prostornina:</th><td>689 ccm</td></tr>
+            <tr><th>Moč motorja:</th><td>54 kW</td></tr>
+            <tr><th>Gorivo:</th><td>bencinski motor</td></tr>
+            <tr><th>Menjalnik:</th><td>ročni menjalnik</td></tr>
+            <tr><th>Barva:</th><td>črna kovinska</td></tr>
+            <tr><th>Kategorija:</th><td>Naked</td></tr>
+          </table>
+          <div>Ostali podatki</div>
+          <p>Odlično ohranjen motor, 1. lastnik, potrjena servisna knjiga, ABS, LED, kovčka.</p>
+          <img src="https://images.avto.net/photo/21948512/1001_small.jpg" />
+          <img src="https://images.avto.net/photo/21948512/1002.jpg" />
+        </body>
+      </html>
+    `;
+
+    const parsed = parseAvtoNetContent({
+      url: "https://www.avto.net/Ads/details.asp?id=21948512",
+      externalId: "21948512",
+      rawContent: sampleHtml,
+    });
+
+    expect(parsed.brand).toBe("Yamaha");
+    expect(parsed.model).toBe("MT-07 Pure");
+    expect(parsed.year).toBe(2022);
+    expect(parsed.firstRegistration).toBe("05 / 2022");
+    expect(parsed.condition).toBe("USED");
+    expect(parsed.mileageKm).toBe(12500);
+    expect(parsed.priceEur).toBe("6990");
+    expect(parsed.engineCc).toBe(689);
+    expect(parsed.powerKw).toBe(54);
+    expect(parsed.powerHp).toBe(73);
+    expect(parsed.fuelType).toBe("bencinski motor");
+    expect(parsed.transmission).toBe("ročni menjalnik");
+    expect(parsed.color).toBe("črna kovinska");
+    expect(parsed.category).toBe("Naked");
+    expect(parsed.equipment).toContain("ABS");
+    expect(parsed.serviceHistory).toContain("1. lastnik");
+    expect(parsed.imageUrls).toEqual([
+      "https://images.avto.net/photo/21948512/1001.jpg",
+      "https://images.avto.net/photo/21948512/1002.jpg",
+    ]);
+  });
+
+  it("ne izmišlja manjkajočih podatkov", () => {
+    const empty = parseAvtoNetContent({
+      url: "https://www.avto.net/Ads/details.asp?id=99999999",
+      externalId: "99999999",
+      rawContent: "",
+    });
+    expect(empty.brand).toBe("");
+    expect(empty.model).toBe("");
+    expect(empty.year).toBeNull();
+    expect(empty.priceEur).toBe("");
+    expect(empty.mileageKm).toBeNull();
+    expect(empty.engineCc).toBeNull();
+    expect(empty.powerKw).toBeNull();
+    expect(empty.imageUrls).toEqual([]);
   });
 });

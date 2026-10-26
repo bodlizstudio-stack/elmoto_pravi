@@ -25,8 +25,8 @@ export default async function EditMotorcyclePage({
   return (
     <div className="grid gap-8">
       {query.saved ? (
-        <p className="border border-black/10 bg-white p-3 text-sm" role="status">
-          Motor je na strani. Obiskovalci vidijo spremembo takoj.
+        <p className="rounded-[10px] border border-emerald-600/30 bg-emerald-50 p-3 text-sm font-semibold text-emerald-950" role="status">
+          Motor je bil uspešno shranjen.
         </p>
       ) : null}
       {query.error ? (

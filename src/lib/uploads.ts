@@ -22,9 +22,8 @@ async function displayBuffer(buffer: Buffer) {
   return sharp(buffer).rotate().resize({ width: 2000, height: 2000, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
 }
 
-export async function saveImage(file: File) {
-  if (file.size <= 0 || file.size > MAX_BYTES) throw new Error("Fotografija mora biti manjša od 8 MB.");
-  const buffer = Buffer.from(await file.arrayBuffer());
+export async function saveImageBuffer(buffer: Buffer) {
+  if (buffer.length <= 0 || buffer.length > MAX_BYTES) throw new Error("Fotografija mora biti manjša od 8 MB.");
   const kind = sniffImage(buffer);
   if (kind === "heic") {
     throw new Error("HEIC ni podprt. V telefonu pri izbiri fotografije izberi Najbolj združljivo ali JPG.");
@@ -50,6 +49,37 @@ export async function saveImage(file: File) {
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, name), optimized);
   return `/uploads/${name}`;
+}
+
+export async function saveImage(file: File) {
+  if (file.size <= 0 || file.size > MAX_BYTES) throw new Error("Fotografija mora biti manjša od 8 MB.");
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return saveImageBuffer(buffer);
+}
+
+export async function saveRemoteImage(url: string): Promise<string | null> {
+  try {
+    const parsed = new URL(url.trim());
+    if (parsed.protocol !== "https:") return null;
+    const host = parsed.hostname.toLowerCase();
+    if (host !== "images.avto.net" && host !== "www.avto.net" && host !== "avto.net") {
+      return null;
+    }
+    const response = await fetch(parsed.toString(), {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; ELMOTO-Importer/1.0)",
+        "Accept": "image/webp,image/jpeg,image/png,image/*;q=0.8",
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return null;
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    if (buffer.length <= 0 || buffer.length > MAX_BYTES) return null;
+    return await saveImageBuffer(buffer);
+  } catch {
+    return null;
+  }
 }
 
 export async function removeUpload(url: string) {

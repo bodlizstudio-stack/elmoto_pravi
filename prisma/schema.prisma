@@ -61,19 +61,28 @@ model Motorcycle {
   serviceHistory  String                     @default("")
   featured        Boolean                    @default(false)
   featuredOrder   Int                        @default(0)
-  seoTitle        String                     @default("")
-  seoDescription  String                     @default("")
-  source          String                     @default("")
-  sourceCheckedAt DateTime?
-  publishedAt     DateTime                   @default(now())
-  createdAt       DateTime                   @default(now())
-  updatedAt       DateTime                   @updatedAt
-  images          MotorcycleImage[]
-  specifications  MotorcycleSpecification[]
-  rentalRates     RentalRate[]
-  rentalBlocks    RentalBlock[]
-  bookings        RentalBooking[]
-  inquiries       Inquiry[]
+  seoTitle          String                     @default("")
+  seoDescription    String                     @default("")
+  firstRegistration String                     @default("")
+  fuelType          String                     @default("")
+  source            String                     @default("")
+  sourcePlatform    String                     @default("")
+  sourceUrl         String                     @default("")
+  externalId        String                     @default("")
+  importedAt        DateTime?
+  lastSyncedAt      DateTime?
+  importStatus      String                     @default("")
+  syncEnabled       Boolean                    @default(false)
+  sourceCheckedAt   DateTime?
+  publishedAt       DateTime                   @default(now())
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  images            MotorcycleImage[]
+  specifications    MotorcycleSpecification[]
+  rentalRates       RentalRate[]
+  rentalBlocks      RentalBlock[]
+  bookings          RentalBooking[]
+  inquiries         Inquiry[]
 
   @@index([publication, forSale])
   @@index([status, forSale])
@@ -82,6 +91,8 @@ model Motorcycle {
   @@index([category])
   @@index([featured])
   @@index([publishedAt])
+  @@index([externalId])
+  @@index([sourceUrl])
 }
 
 model MotorcycleImage {
