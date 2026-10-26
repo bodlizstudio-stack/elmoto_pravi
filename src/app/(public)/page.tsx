@@ -60,12 +60,20 @@ export default async function HomePage() {
         <div className="home-hero-stage">
           <div className="home-hero-photo-wrap">
             <Image
-              src="/images/hero/elmoto-panorama.webp"
-              alt="Predstavitvena panorama motociklov ob jezeru. Ni fotografija salona ali zaloge EL-MOTO."
+              src="/images/hero/hero-desktop.webp"
+              alt="Predstavitvena panorama motociklov ob jezeru."
               fill
               priority
               sizes="100vw"
-              className="home-hero-photo"
+              className="home-hero-photo hidden lg:block"
+            />
+            <Image
+              src="/images/hero/hero-mobile.webp"
+              alt="Predstavitvena panorama motociklov ob jezeru."
+              fill
+              priority
+              sizes="100vw"
+              className="home-hero-photo block lg:hidden"
             />
             <div className="home-hero-fade" aria-hidden="true" />
           </div>
