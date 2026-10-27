@@ -8,11 +8,6 @@ export const dynamic = "force-dynamic";
 const links = [
   ["/admin", "Ponudba"],
   ["/admin/motorji/nov", "Dodaj motor"],
-  ["/admin/geslo", "Geslo"],
-  ["/admin/najem", "Najem"],
-  ["/admin/povprasevanja", "Povpraševanja"],
-  ["/admin/vsebina", "Vsebina"],
-  ["/admin/uvoz", "Uvoz"],
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
