@@ -186,11 +186,7 @@ export default async function HomePage() {
           </div>
 
           {bikes.length ? (
-            <div
-              className={`mt-8 grid gap-5 md:grid-cols-2 ${
-                bikes.length >= 4 ? "xl:grid-cols-4" : "xl:grid-cols-3"
-              }`}
-            >
+            <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {bikes.map((bike) => (
                 <MotoCard key={bike.id} bike={bike} />
               ))}

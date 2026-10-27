@@ -10,7 +10,7 @@ import { audit, requireAdmin } from "@/lib/guard";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseMotorcycleImport } from "@/lib/import-motorcycles";
 import { canPublish } from "@/lib/offer";
-import { displayName, parseSpecs, slugify, euroToCents } from "@/lib/utils";
+import { displayName, extractMileageFromText, parseSpecs, slugify, euroToCents } from "@/lib/utils";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { findOverlap } from "@/lib/availability";
 import { parseInTimeZone } from "@/lib/time";
@@ -108,6 +108,27 @@ function optionalNumber(raw: string) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
+const HOMEPAGE_FEATURED_LIMIT = 3;
+
+async function enforceHomepageFeaturedLimit(activeBikeId: string) {
+  const others = await prisma.motorcycle.findMany({
+    where: {
+      publication: "PUBLISHED",
+      featured: true,
+      NOT: { id: activeBikeId },
+    },
+    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    select: { id: true },
+  });
+  const toUnfeature = others.slice(HOMEPAGE_FEATURED_LIMIT - 1).map((item) => item.id);
+  if (toUnfeature.length > 0) {
+    await prisma.motorcycle.updateMany({
+      where: { id: { in: toUnfeature } },
+      data: { featured: false },
+    });
+  }
+}
+
 export async function saveMotorcycle(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const admin = await requireAdmin();
   try {
@@ -122,7 +143,12 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   if (!brand || !model) return { error: "Vnesi znamko in model." };
   const yearRaw = optionalInt(formData, "year");
   const year = yearRaw != null && yearRaw >= 1970 && yearRaw <= 2035 ? yearRaw : null;
-  const mileage = optionalInt(formData, "mileageKm");
+  const descriptionRaw = text(formData, "description").slice(0, 8000);
+  const specsRaw = formData.has("specs") ? text(formData, "specs") : "";
+  const mileage =
+    optionalInt(formData, "mileageKm") ??
+    extractMileageFromText(descriptionRaw) ??
+    extractMileageFromText(specsRaw);
   const engine = optionalInt(formData, "engineCc");
   const featuredOrder = optionalInt(formData, "featuredOrder");
   const price = euroToCents(text(formData, "priceEur"));
@@ -141,7 +167,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
       : powerKwRaw && powerKwRaw > 0
         ? Math.round(powerKwRaw * 1.35962)
         : null;
-  const description = text(formData, "description").slice(0, 8000);
+  const description = descriptionRaw;
   const conditionRaw = text(formData, "condition");
   const condition = conditionRaw === "NEW" || conditionRaw === "USED" ? conditionRaw : "";
   const statusRaw = text(formData, "status");
@@ -226,6 +252,9 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   const bike = existing
     ? await prisma.motorcycle.update({ where: { id: existing.id }, data })
     : await prisma.motorcycle.create({ data });
+  if (data.featured) {
+    await enforceHomepageFeaturedLimit(bike.id);
+  }
   if (formData.has("specs")) {
     const specs = parseSpecs(text(formData, "specs"));
     await prisma.motorcycleSpecification.deleteMany({ where: { motorcycleId: bike.id } });
@@ -480,7 +509,8 @@ export async function setOfferAction(formData: FormData) {
   } else if (offerAction === "available") {
     await prisma.motorcycle.update({ where: { id }, data: { status: "AVAILABLE" } });
   } else if (offerAction === "feature") {
-    await prisma.motorcycle.update({ where: { id }, data: { featured: true } });
+    await prisma.motorcycle.update({ where: { id }, data: { featured: true, publishedAt: new Date() } });
+    await enforceHomepageFeaturedLimit(id);
   } else if (offerAction === "unfeature") {
     await prisma.motorcycle.update({ where: { id }, data: { featured: false } });
   } else if (offerAction === "delete") {

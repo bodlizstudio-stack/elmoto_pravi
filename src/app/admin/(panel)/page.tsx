@@ -185,7 +185,7 @@ export default async function AdminHome({
                       ) : null}
                       {bike.featured ? (
                         <span className="inline-flex items-center rounded-md border border-[#E31B2B]/30 bg-[#E31B2B]/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-[#E31B2B]">
-                          ★ Na naslovnici (vrstni red: {bike.featuredOrder})
+                          ★ Na naslovnici (Novo v ponudbi)
                         </span>
                       ) : null}
                     </div>

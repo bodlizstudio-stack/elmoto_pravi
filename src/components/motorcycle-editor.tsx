@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { PhotoManager } from "@/components/photo-manager";
 import { saveMotorcycle, type ActionState } from "@/lib/actions/admin";
 import { publicationLabel } from "@/lib/offer";
-import { parseSpecs } from "@/lib/utils";
+import { extractMileageFromText, parseSpecs } from "@/lib/utils";
 
 type Photo = {
   id: string;
@@ -75,6 +75,7 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
   const [model, setModel] = useState(bike?.model ?? "");
   const [year, setYear] = useState(bike?.year != null ? String(bike.year) : "");
   const [mileageKm, setMileageKm] = useState(bike?.mileageKm != null ? String(bike.mileageKm) : "");
+  const [mileageManuallyEdited, setMileageManuallyEdited] = useState(bike?.mileageKm != null);
   const [engineCc, setEngineCc] = useState(bike?.engineCc != null ? String(bike.engineCc) : "");
   const [powerKw, setPowerKw] = useState(bike?.powerKw != null ? String(bike.powerKw) : "");
   const [powerHp, setPowerHp] = useState(bike?.powerHp != null ? String(bike.powerHp) : "");
@@ -111,8 +112,8 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
         const y = val.match(/\b(19[7-9]\d|20[0-3]\d)\b/);
         if (y && !year) setYear(y[1]);
       } else if (key.includes("prevoženi") || key.includes("kilometri")) {
-        const km = val.replace(/\./g, "").match(/\b(\d{1,6})\b/);
-        if (km) setMileageKm(km[1]);
+        const km = extractMileageFromText(val) ?? (val.replace(/\./g, "").match(/\b(\d{1,6})\b/)?.[1] ? Number(val.replace(/\./g, "").match(/\b(\d{1,6})\b/)![1]) : null);
+        if (km != null) setMileageKm(String(km));
       } else if (key === "motor" || key.includes("prostornina")) {
         const cc = val.match(/(\d{2,4})\s*ccm/i);
         if (cc) setEngineCc(cc[1]);
@@ -135,6 +136,18 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
         const num = Number(cleaned);
         if (Number.isFinite(num) && num > 0) setPriceEur(String(Math.round(num)));
       }
+    }
+    if (!mileageManuallyEdited || !mileageKm) {
+      const detected = extractMileageFromText(raw);
+      if (detected != null) setMileageKm(String(detected));
+    }
+  }
+
+  function handleDescriptionChange(raw: string) {
+    setDescription(raw);
+    const detected = extractMileageFromText(raw);
+    if (detected != null && (!mileageManuallyEdited || !mileageKm)) {
+      setMileageKm(String(detected));
     }
   }
 
@@ -190,7 +203,17 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
             </label>
             <label className="field">
               <span>Kilometri</span>
-              <input name="mileageKm" type="number" value={mileageKm} onChange={(e) => setMileageKm(e.target.value)} />
+              <input
+                name="mileageKm"
+                type="number"
+                value={mileageKm}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setMileageKm(val);
+                  setMileageManuallyEdited(val.trim().length > 0);
+                }}
+                placeholder="npr. 14500 (ali zaznano samodejno iz opisa)"
+              />
             </label>
             <label className="field">
               <span>Novo ali rabljeno</span>
@@ -273,7 +296,9 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
                 onChange={(e) => setFeatured(e.target.checked)}
                 className="h-5 w-5 accent-[#E31B2B]"
               />
-              <span>Prikaži na naslovnici v sekciji »NOVO V PONUDBI«</span>
+              <span>
+                Prikaži na naslovnici v sekciji »NOVO V PONUDBI« (prikažejo se zadnji 3 dodani motorji — ob dodajanju novega se najstarejši samodejno umakne z naslovnice)
+              </span>
             </label>
           </div>
 
@@ -312,12 +337,12 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
           </div>
 
           <label className="field">
-            <span>Opis</span>
+            <span>Opis (če v opisu omeniš prevožene kilometre, npr. »14.500 km«, se polje Kilometri izpolni samodejno)</span>
             <textarea
               name="description"
               rows={6}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => handleDescriptionChange(e.target.value)}
             />
           </label>
         </section>

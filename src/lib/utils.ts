@@ -96,6 +96,62 @@ export function parseSpecs(text: string) {
     .filter((item): item is { label: string; value: string } => Boolean(item));
 }
 
+export function extractMileageFromText(raw: string): number | null {
+  if (!raw) return null;
+  // Remove power expressions like "35 kW (48 KM)" or "35kW / 48KM" and speed "km/h"
+  const cleaned = raw
+    .replace(/\d+(?:[.,]\d+)?\s*kW\s*(?:\(\s*\d+(?:[.,]\d+)?\s*(?:KM|HP|KS)\s*\)|[/,-]\s*\d+(?:[.,]\d+)?\s*(?:KM|HP|KS))/gi, " ")
+    .replace(/\(\s*\d+(?:[.,]\d+)?\s*KM\s*\)/g, " ")
+    .replace(/\d+\s*km\s*\/\s*(?:h|dan|uro)/gi, " ");
+
+  const toInt = (val: string): number | null => {
+    const digits = val.replace(/[.\s']/g, "").trim();
+    if (!/^\d{1,6}$/.test(digits)) return null;
+    const num = Number(digits);
+    if (!Number.isFinite(num) || num < 0 || num > 400000) return null;
+    return num;
+  };
+
+  // 1. Explicit phrases: "Prevoženi km: 14.500", "prevoženih samo 8.200 km", "kilometri: 12000"
+  const explicitBefore = cleaned.match(
+    /(?:prevo[zž]en(?:ih|i|o|a)?(?:\s*km|\s*kilometrov)?|kilometr(?:ov|i|e)?|stanje\s*[sš]tevca)\s*(?:je|so|samo|le|cca\.?|okoli|pribl\.?|-|:)*\s*(\d{1,3}(?:[.\s']\d{3})+|\d{1,6})(?:\s*(?:km|kilometr(?:ov|i|e)?))?\b/i,
+  );
+  if (explicitBefore?.[1]) {
+    const parsed = toInt(explicitBefore[1]);
+    if (parsed != null) return parsed;
+  }
+
+  // 2. Number before "prevoženih km / kilometrov": "14.500 prevoženih km", "14500 kilometrov"
+  const explicitAfter = cleaned.match(
+    /\b(\d{1,3}(?:[.\s']\d{3})+|\d{1,6})\s*(?:prevo[zž]en(?:ih|i)?\s*(?:km|kilometr(?:ov|i|e)?)?|kilometr(?:ov|i|e))\b/i,
+  );
+  if (explicitAfter?.[1]) {
+    const parsed = toInt(explicitAfter[1]);
+    if (parsed != null) return parsed;
+  }
+
+  // 3. Number with thousands separator followed by km: "14.500 km" or "1.200 km"
+  const formattedKm = cleaned.match(/\b(\d{1,3}(?:\.\d{3})+)\s*km\b/i);
+  if (formattedKm?.[1]) {
+    const parsed = toInt(formattedKm[1]);
+    if (parsed != null) return parsed;
+  }
+
+  // 4. Plain number followed by lowercase "km" (or any case "km" if >= 250): "14500 km", "850 km", "samo 120 km"
+  const plainMatches = cleaned.matchAll(/\b(\d{1,6})\s*(km)\b/gi);
+  for (const match of plainMatches) {
+    const num = toInt(match[1]);
+    const unit = match[2];
+    if (num == null) continue;
+    // Lowercase "km" or number >= 250 (since motorcycle horsepower is rarely >= 250 without kW)
+    if (unit === "km" || num >= 250) {
+      return num;
+    }
+  }
+
+  return null;
+}
+
 export function euroToCents(raw: string) {
   let cleaned = raw
     .replace(/€|eur/gi, "")
