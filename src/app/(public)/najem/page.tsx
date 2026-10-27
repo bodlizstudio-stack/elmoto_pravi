@@ -21,9 +21,14 @@ export default async function RentalPage() {
     <section className="bg-paper py-8 text-ink sm:py-12">
       <div className="wrap">
         <Breadcrumbs items={[{ href: "/", label: "Domov" }, { label: "Najem" }]} />
-        <h1 className="display mt-4 text-5xl sm:text-7xl">Najem motorjev — svoboda brez meja</h1>
-        <p className="mt-4 max-w-2xl text-lg leading-7">Izberi motor, določi termin in pošlji povpraševanje za svojo naslednjo avanturo.</p>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/70">Prikazani so samo motorji, ki so označeni kot na voljo za najem. Oddaja obrazca ni samodejna rezervacija in ne vključuje spletnega plačila.</p>
+        <p className="kicker mt-4 uppercase tracking-[0.12em]">Preizkus motorjev KOVE in najem</p>
+        <h1 className="display mt-2 text-5xl sm:text-7xl">Najem motorjev — svoboda brez meja</h1>
+        <p className="mt-4 max-w-3xl text-lg leading-7">
+          Te zanimajo motorji <strong>KOVE</strong>, vendar nisi prepričan, kateri model ti bolj ustreza, ali bi ga rad pred nakupom najprej preizkusil? Z možnostjo najema lahko motor spoznaš v praksi in preveriš, ali je prava izbira zate. Motor lahko najameš tudi zgolj za užitek in izkoristek prostega časa brez nakupa.
+        </p>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/70">
+          Izberi motor, določi termin in pošlji povpraševanje. Oddaja obrazca ni samodejna rezervacija in ne vključuje spletnega plačila.
+        </p>
         {bikes.length ? (
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {bikes.map((bike) => {

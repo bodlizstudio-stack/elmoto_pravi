@@ -136,6 +136,79 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="home-section bg-white text-[#171a1f]" aria-labelledby="o-nas-domov">
+        <div className="wrap grid gap-10 lg:grid-cols-[1.15fr_1fr] lg:items-start">
+          <div>
+            <p className="kicker uppercase tracking-[0.14em]">O podjetju EL-MOTO</p>
+            <h2 id="o-nas-domov" className="display mt-3 text-[clamp(1.8rem,3vw,2.6rem)]">
+              Več kot le prevozno sredstvo. Svoboda, strast in nove poti.
+            </h2>
+            <div className="mt-4 space-y-4 text-[17px] leading-7 text-[#5b616b]">
+              <p>
+                Pri <strong>EL-MOTO</strong> verjamemo, da je motor več kot le prevozno sredstvo — je svoboda, strast do vožnje in želja po odkrivanju novih poti. Naša ponudba združuje skrbno izbrana rabljena motorna kolesa z garancijo različnih znamk ter nova motorna kolesa znamke <strong>KOVE</strong>.
+              </p>
+              <p>
+                Poleg motornih koles iz naše ponudbe ti omogočamo tudi <strong>uvoz po naročilu</strong>, <strong>komisijsko prodajo</strong> ter <strong>odkup in menjavo</strong> motorja. Motor KOVE pa lahko tudi <strong>najameš</strong> – bodisi za preizkus pred nakupom bodisi preprosto za užitek v vožnji.
+              </p>
+              <p>
+                Za še več brezskrbnosti so na voljo možnost podaljšanja jamstva <strong>Bike PROTECTION by CarGarantie</strong> in prilagodljive možnosti financiranja (<strong>Leanpay</strong>, <strong>NLB Buy&amp;Go</strong>). Stavimo na kakovost, prilagodljivost in oseben pristop – od prvega vprašanja do končne odločitve.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link className="btn btn-primary" href="/o-nas">
+                Več o nas
+              </Link>
+              <Link className="btn btn-secondary" href="/kontakt">
+                Kontaktiraj nas
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              {
+                title: "Prodaja motornih koles",
+                text: "Rabljena motorna kolesa z garancijo ter nova motorna kolesa znamke KOVE.",
+                href: "/motorji",
+              },
+              {
+                title: "Uvoz po naročilu",
+                text: "Iščeš točno določen model? Pomagamo ti poiskati motor po tvojih željah.",
+                href: "/uvoz",
+              },
+              {
+                title: "Komisijska prodaja",
+                text: "Svoj motor prepustiš nam, mi pa pomagamo pri njegovi varni prodaji.",
+                href: "/uvoz",
+              },
+              {
+                title: "Odkup in menjava",
+                text: "Zamenjaj svoj trenutni motor za drugega z možnostjo odkupa ali doplačila.",
+                href: "/uvoz",
+              },
+              {
+                title: "Najem in preizkus KOVE",
+                text: "Pred nakupom najemi motor KOVE in preveri, kako ti ustreza v praksi.",
+                href: "/najem",
+              },
+              {
+                title: "Jamstvo in financiranje",
+                text: "Podaljšano jamstvo CarGarantie ter obročno odplačevanje Leanpay in NLB Buy&Go.",
+                href: "/garancija-financiranje",
+              },
+            ].map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className="group rounded-[12px] border border-[#e2e5e9] bg-[#f7f8f9] p-4 transition hover:border-[#171a1f] hover:bg-white hover:shadow-xs"
+              >
+                <h3 className="font-semibold text-[#171a1f] group-hover:text-[#ec2336]">{item.title}</h3>
+                <p className="mt-1.5 text-sm leading-6 text-[#5b616b]">{item.text}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <MotoEquipmentSection />
 
       <ReviewsMarquee extraReviews={extraReviews} />

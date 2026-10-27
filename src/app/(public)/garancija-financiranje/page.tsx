@@ -9,7 +9,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Garancija in financiranje | EL-MOTO",
   description:
-    "Uradni pogoji financiranja Leanpay, NLB Leasing&Go kalkulator obrokov ter jamstvo BikeProtection by CarGarantie pri EL-MOTO.",
+    "Fleksibilno financiranje Leanpay in NLB Buy&Go (do 15.000 EUR in do 84 obrokov) ter podaljšano jamstvo Bike PROTECTION by CarGarantie za nova in rabljena motorna kolesa pri EL-MOTO.",
   alternates: { canonical: "/garancija-financiranje" },
 };
 
@@ -41,13 +41,47 @@ const leanpayConditions = [
   "Biti moraš zaposlen za polni ali polovični delovni čas ali samostojni podjetnik z rednimi mesečnimi prejemki minimalno 710 EUR. Ali pa upokojenec z rednimi mesečnimi prejemki minimalno 570 EUR.",
 ];
 
+const nlbRequirements = [
+  "Veljavni osebni dokument",
+  "Davčno številko",
+  "Bančno kartico",
+  "Mobilni telefon",
+  "Dodatno dokumentacijo (v določenih primerih — preveri na nlbbuygo.si)",
+];
+
+const nlbAdvantages = [
+  "Za stranke vseh bank — odobritev takoj",
+  "Znesek nakupa do 15.000 € razdelite na do 84 enakovrednih obrokov",
+  "Načrt odplačevanja po svoji meri (sami izberete višino mesečnega obroka in število obrokov)",
+  "Prvi obrok plačaš naslednji mesec, mesečno odplačuješ vedno enak znesek",
+];
+
+const carGarantieKeyFeatures = [
+  {
+    title: "Kritje stroškov (delo in material)",
+    text: "Krije stroške popravil – tako delo kot material – za večino ključnih komponent vozila, kot so motor, menjalnik, krmiljenje, zavore, elektrika itd.",
+  },
+  {
+    title: "Popravila z originalnimi deli",
+    text: "Za razliko od nekaterih drugih ponudnikov komercialnih garancij se popravila običajno izvajajo na pooblaščenih servisih z uporabo originalnih nadomestnih delov.",
+  },
+  {
+    title: "Veljavnost po celotni Evropi",
+    text: "Če se vam vozilo pokvari v tujini, jamstvo še vedno velja. Zahtevek lahko uveljavljate na uradnem servisu kjer koli v EU.",
+  },
+  {
+    title: "Prenosljivost ob prodaji",
+    text: "Ob morebitni prodaji vozila pred iztekom jamstva se jamstvo prenese na novega lastnika, kar zvišuje tržno vrednost rabljenega motornega kolesa.",
+  },
+];
+
 const carGarantieBenefits = [
-  "Obsežno kritje stroškov popravil",
-  "Zagotovitev likvidnosti v primeru popravila",
+  "Obsežna zaščita pred stroški popravil",
+  "Zagotovitev plačila za popravilo (brez predhodnih finančnih vložkov)",
   "Veljavnost po vsej Evropi",
-  "Visoka gotovost načrtovanja",
-  "Ohranitev in dvig vrednosti vašega motornega kolesa",
-  "Brez predhodnih finančnih vložkov v primeru jamstva »CarGarantie«",
+  "Velika stopnja varnosti pri načrtovanju",
+  "Ohranjanje in dvig vrednosti vašega motornega kolesa",
+  "Možnost podaljšanja za 6 ali 12 mesecev (do 10 let od prve registracije ali do 80.000 km)",
 ];
 
 export default function GarancijaFinanciranjePage() {
@@ -58,8 +92,9 @@ export default function GarancijaFinanciranjePage() {
         <p className="kicker mt-4 uppercase tracking-[0.12em]">Brezskrben nakup pri EL-MOTO</p>
         <h1 className="display mt-2 text-4xl sm:text-5xl">Garancija in financiranje</h1>
         <p className="mt-4 max-w-2xl text-[17px] leading-7 text-[#5b616b]">
-          Klikni na posameznega partnerja za uradne pogoje obročnega odplačevanja <strong>Leanpay</strong>, spletni
-          kalkulator <strong>NLB Leasing&amp;Go</strong> ali program jamstva <strong>CarGarantie</strong>.
+          Za še več brezskrbnosti so pri EL-MOTO na voljo različne možnosti financiranja (<strong>Leanpay</strong> in{" "}
+          <strong>NLB Buy&amp;Go</strong> / <strong>NLB Lease&amp;Go</strong>) ter specializirano podaljšano jamstvo{" "}
+          <strong>Bike PROTECTION by CarGarantie</strong> za nova in rabljena motorna kolesa.
         </p>
 
         {/* Klikabilne kartice partnerjev */}
@@ -79,7 +114,7 @@ export default function GarancijaFinanciranjePage() {
                 />
                 <p className="mt-4 text-[16px] leading-6 text-[#5b616b]">{partner.text}</p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#ec2336]">
-                  {partner.id === "nlb" ? "Odpri kalkulator NLB" : `Poglej ${partner.name}`}
+                  Poglej {partner.name}
                   <ArrowUpRight aria-hidden className="h-4 w-4" />
                 </span>
               </>
@@ -113,23 +148,35 @@ export default function GarancijaFinanciranjePage() {
           <div className="flex flex-col gap-4 border-b border-[#e6e1f4] pb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="inline-block rounded-full bg-[#5b2d90]/10 px-3.5 py-1 text-xs font-bold tracking-wide text-[#5b2d90]">
-                Enostavna plačila na obroke
+                Enostavna plačila na obroke · Avto-Moto
               </span>
               <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-[#231942] sm:text-3xl">
-                Najenostavnejši način plačevanja na obroke!
+                Leanpay – Najenostavnejši način plačevanja na obroke!
               </h2>
               <p className="mt-2 max-w-2xl text-[16px] leading-6 text-[#4a4458]">
-                Vse urediš na mobilcu, brez obiskov banke in odvečne papirologije. V tvojih najljubših trgovinah tako na spletu kot v poslovalnicah.
+                Vse urediš na mobilcu, brez obiskov banke in odvečne papirologije. Preveri več na uradni strani{" "}
+                <ExternalLink href="https://www.leanpay.si/avto-moto/" className="font-semibold text-[#5b2d90] underline">
+                  leanpay.si/avto-moto
+                </ExternalLink>.
               </p>
             </div>
-            <ExternalLink
-              href="https://www.leanpay.si/"
-              className="inline-flex shrink-0 items-center gap-2 self-start rounded-[12px] border border-[#e6e1f4] bg-white px-4 py-3 shadow-2xs transition hover:border-[#5b2d90]"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/partners/leanpay.svg" alt="Leanpay" width={150} height={42} className="h-8 w-auto object-contain" />
-              <ArrowUpRight aria-hidden className="h-4 w-4 text-[#5b2d90]" />
-            </ExternalLink>
+            <div className="flex flex-wrap items-center gap-3 self-start">
+              <ExternalLink
+                href="https://www.leanpay.si/avto-moto/"
+                className="inline-flex shrink-0 items-center gap-2 rounded-[12px] border border-[#e6e1f4] bg-white px-4 py-3 shadow-2xs transition hover:border-[#5b2d90]"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/partners/leanpay_logo2.png" alt="Leanpay" width={150} height={38} className="h-8 w-auto object-contain" />
+                <ArrowUpRight aria-hidden className="h-4 w-4 text-[#5b2d90]" />
+              </ExternalLink>
+              <ExternalLink
+                href="https://www.leanpay.si/avto-moto/"
+                className="inline-flex shrink-0 items-center overflow-hidden rounded-[12px] shadow-2xs transition hover:opacity-90"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/partners/Leanpay-logo.png" alt="Leanpay Avto-Moto" width={120} height={51} className="h-12 w-auto object-contain" />
+              </ExternalLink>
+            </div>
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -179,16 +226,16 @@ export default function GarancijaFinanciranjePage() {
           <div className="mt-6 rounded-[16px] border border-[#e6e1f4] bg-white p-6">
             <h3 className="text-lg font-extrabold text-[#231942]">Kakšni so stroški?</h3>
             <p className="mt-2 text-[15px] leading-6 text-[#352f44]">
-              Leanpay se zavzema za preglednost in omogoča enostaven dostop do vseh informacij o transakciji, vključno s stroški, obrestmi, datumi zapadlosti in več. Te podatke lahko preveri vsak potencialni uporabnik v razdelku &quot;Standardne predhodne informacije&quot; na prvem zaslonu postopka prijave. Leanpay uporablja letno obrestno mero in stroške ocene tveganja, ki so natančno opredeljeni v ceniku Leanpay. Te informacije so na voljo v vsakem veljavnem ceniku za potrošniške kredite ter so prikazane na informativnem listu vsakega trgovca.
+              Leanpay se zavzema za preglednost in omogoča enostaven dostop do vseh informacij o transakciji, vključno s stroški, obrestmi, datumi zapadlosti in več. Te podatke lahko preveri vsak potencialni uporabnik v razdelku &quot;Standardne predhodne informacije&quot; na prvem zaslonu postopka prijave. Leanpay uporablja letno obrestno mero in stroške ocene tveganja, ki so natančno opredeljeni v ceniku Leanpay.
             </p>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <ExternalLink
-              href="https://www.leanpay.si/"
+              href="https://www.leanpay.si/avto-moto/"
               className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#5b2d90] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#472173]"
             >
-              Preveri svoj limit Brezplačno na Leanpay.si
+              Leanpay Avto-Moto – preveri svoj limit
               <ArrowUpRight aria-hidden className="h-4 w-4" />
             </ExternalLink>
             <Link
@@ -200,7 +247,7 @@ export default function GarancijaFinanciranjePage() {
           </div>
         </section>
 
-        {/* 2. NLB LEASING&GO KALKULATOR */}
+        {/* 2. NLB BUY&GO IN NLB LEASE&GO */}
         <section
           id="nlb"
           style={{ fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}
@@ -209,10 +256,10 @@ export default function GarancijaFinanciranjePage() {
           <div className="flex flex-col gap-4 border-b border-[#d8e1f0] pb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="inline-block rounded-full bg-[#002f6c]/10 px-3.5 py-1 text-xs font-bold tracking-wide text-[#002f6c]">
-                NLB Buy&amp;Go · Informativni izračun
+                NLB Buy&amp;Go · Do 15.000 € · Do 84 obrokov · Za stranke vseh bank
               </span>
               <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-[#002f6c] sm:text-3xl">
-                NLB Leasing&amp;Go – Kalkulator obrokov
+                NLB Buy&amp;Go in NLB Lease&amp;Go – Financiranje po vaši meri
               </h2>
             </div>
             <ExternalLink
@@ -220,34 +267,66 @@ export default function GarancijaFinanciranjePage() {
               className="inline-flex shrink-0 items-center gap-2 self-start rounded-[12px] border border-[#d8e1f0] bg-white px-4 py-3 shadow-2xs transition hover:border-[#002f6c]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/partners/nlb-buy-go.png" alt="NLB Leasing&Go" width={160} height={32} className="h-7 w-auto object-contain" />
+              <img src="/images/partners/nlb-buy-go.png" alt="NLB Buy&Go" width={160} height={32} className="h-7 w-auto object-contain" />
               <ArrowUpRight aria-hidden className="h-4 w-4 text-[#002f6c]" />
             </ExternalLink>
           </div>
 
           <p className="mt-5 max-w-3xl text-[16px] leading-7 text-[#25364d]">
-            Z rešitvijo <strong>NLB Leasing&amp;Go (NLB Buy&amp;Go)</strong> si lahko hitro in preprosto urediš financiranje za izbrano motorno kolo.
-            S klikom na spodnjo povezavo odpreš uradni NLB kalkulator, kjer si lahko takoj preračunaš informativni mesečni obrok.
+            <strong>NLB Buy&amp;Go</strong> je oblika financiranja, ki vam omogoča, da znesek svojega nakupa poravnate v več obrokih. Z NLB Buy&amp;Go lahko svoj nakup v vrednosti <strong>do 15.000 evrov</strong> razdelite na <strong>do 84 enakovrednih obrokov</strong>. Načrt odplačevanja lahko izdelate po svoji meri — to pomeni, da si sami izberete višino mesečnega obroka in število obrokov.
           </p>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-[16px] border border-[#d8e1f0] bg-white p-6">
+              <h3 className="text-lg font-extrabold text-[#002f6c]">Prednosti NLB Buy&amp;Go</h3>
+              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#25364d]">
+                {nlbAdvantages.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5">
+                    <CheckCircle2 aria-hidden className="mt-1 h-4 w-4 shrink-0 text-[#002f6c]" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-[16px] border border-[#d8e1f0] bg-white p-6">
+              <h3 className="text-lg font-extrabold text-[#002f6c]">Kaj potrebujem za sklenitev financiranja?</h3>
+              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#25364d]">
+                {nlbRequirements.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5">
+                    <CheckCircle2 aria-hidden className="mt-1 h-4 w-4 shrink-0 text-[#002f6c]" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <ExternalLink
               href="https://www.nlbbuygo.si/"
               className="inline-flex min-h-12 items-center gap-2 rounded-[10px] bg-[#002f6c] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#001f47]"
             >
-              Odpri NLB Leasing&amp;Go kalkulator
+              Odpri NLB Buy&amp;Go (nlbbuygo.si)
+              <ArrowUpRight aria-hidden className="h-4 w-4" />
+            </ExternalLink>
+            <ExternalLink
+              href="https://www.nlbleasego.si/fizicne-osebe"
+              className="inline-flex min-h-12 items-center gap-2 rounded-[10px] border border-[#002f6c]/30 bg-white px-6 py-3 text-sm font-bold text-[#002f6c] transition hover:border-[#002f6c]"
+            >
+              NLB Lease&amp;Go za fizične osebe
               <ArrowUpRight aria-hidden className="h-4 w-4" />
             </ExternalLink>
             <Link
-              href="/kontakt?vrsta=PURCHASE&model=NLB%20Leasing%26Go"
+              href="/kontakt?vrsta=PURCHASE&model=NLB%20Buy%26Go"
               className="inline-flex min-h-12 items-center rounded-[10px] border border-[#002f6c]/30 bg-white px-6 py-3 text-sm font-bold text-[#002f6c] transition hover:border-[#002f6c]"
             >
-              Povprašaj za NLB ponudbo
+              Povprašaj za NLB ponudbo pri EL-MOTO
             </Link>
           </div>
         </section>
 
-        {/* 3. URADNO BESEDILO IN SLOG CARGARANTIE */}
+        {/* 3. BIKE PROTECTION BY CARGARANTIE */}
         <section
           id="cargarantie"
           style={{ fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif" }}
@@ -256,10 +335,10 @@ export default function GarancijaFinanciranjePage() {
           <div className="flex flex-col gap-4 border-b border-[#e2e5e9] pb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="inline-block rounded-md bg-[#e30613]/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#e30613]">
-                BikeProtection by CarGarantie
+                Bike PROTECTION by CarGarantie
               </span>
               <h2 className="mt-3 text-2xl font-bold tracking-tight text-[#1a1d20] sm:text-3xl">
-                CarGarantie: Zanesljiva zaščita pred stroški popravil
+                Bike PROTECTION by CarGarantie – Specializirano jamstvo za nova in rabljena motorna kolesa
               </h2>
             </div>
             <ExternalLink
@@ -267,38 +346,55 @@ export default function GarancijaFinanciranjePage() {
               className="inline-flex shrink-0 items-center gap-2 self-start rounded-[10px] border border-[#e2e5e9] bg-[#f8f9fa] px-4 py-3 transition hover:border-[#e30613]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/partners/cargarantie.svg" alt="CarGarantie" width={160} height={42} className="h-8 w-auto object-contain" />
+              <img src="/images/partners/cargarantie.png" alt="CarGarantie" width={180} height={90} className="h-11 w-auto object-contain" />
               <ArrowUpRight aria-hidden className="h-4 w-4 text-[#e30613]" />
             </ExternalLink>
+          </div>
+
+          <div className="mt-6 space-y-4 text-[16px] leading-7 text-[#3b4046]">
+            <p>
+              <strong>Bike PROTECTION by CarGarantie</strong> je specializirano jamstvo za nova in rabljena motorna kolesa, ki ščiti lastnike pred nepričakovanimi stroški popravil po izteku tovarniške garancije.
+            </p>
+            <p>
+              <strong>CarGarantie</strong> je ena vodilnih specializiranih zavarovalnic v Evropi, ki ponuja podaljšana jamstva in garancije za nova ter rabljena vozila. Deluje kot zanesljiv partner za več kot 40 proizvajalcev vozil in okoli 23.000 avto-moto prodajalcev po Evropi.
+            </p>
+          </div>
+
+          <h3 className="mt-8 text-xl font-bold text-[#1a1d20]">Ključne značilnosti jamstva CarGarantie</h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {carGarantieKeyFeatures.map((feature) => (
+              <div key={feature.title} className="rounded-[14px] border border-[#e2e5e9] bg-[#f8f9fa] p-5">
+                <h4 className="flex items-center gap-2 text-base font-bold text-[#1a1d20]">
+                  <CheckCircle2 aria-hidden className="h-5 w-5 shrink-0 text-[#e30613]" />
+                  <span>{feature.title}</span>
+                </h4>
+                <p className="mt-2 text-[15px] leading-6 text-[#3b4046]">{feature.text}</p>
+              </div>
+            ))}
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="rounded-[14px] border border-[#e2e5e9] bg-[#f8f9fa] p-6">
               <h3 className="text-lg font-bold text-[#1a1d20]">
-                BikeProtection by CarGarantie: Več varnosti pri vožnji z motornim kolesom
+                Jamstvo za voznike rabljenih motornih koles – Varni med vožnjo
               </h3>
               <p className="mt-3 text-[15px] leading-6 text-[#3b4046]">
-                Vožnja z motorjem je več kot le premikanje. Gre za doživetje, za način življenja. Za bikerje je pot cilj. Da se boste na tej svoji poti vedno počutili varno, vam ponuja jamstvo BikeProtection zanesljivo zaščito pred nepričakovanimi stroški popravil. Tako lahko brezskrbno pohodite plin.
+                Vaše motorno kolo je bilo temeljito pregledano in strokovno pripravljeno. S sklenitvijo paketa <strong>Bike PROTECTION by CarGarantie</strong> boste najmanj 6 oz. 12 mesecev zaščiteni pred tem, da bi vas morebitni stroški popravil prehudo udarili po žepu. Jamstvo je popolno, kar pomeni, da velja skoraj za vse sestavne dele in za večkratno škodo, razen za obrabne dele (zavorne obloge, gume, žarnice). Možnost podaljšanja velja za 6 ali 12 mesecev do največ 10 let od datuma prve registracije ali do 80.000 prevoženih km.
               </p>
             </div>
 
             <div className="rounded-[14px] border border-[#e2e5e9] bg-[#f8f9fa] p-6">
               <h3 className="text-lg font-bold text-[#1a1d20]">
-                Jamstvo »CarGarantie« za rabljena in nova vozila: Užitek ob vožnji in to z dobrim občutkom
+                Podaljšano jamstvo pri nakupu novega motornega kolesa – Svoboda na dveh kolesih
               </h3>
               <p className="mt-3 text-[15px] leading-6 text-[#3b4046]">
-                Nakup rabljenega vozila je stvar zaupanja. Zaradi tega vaš prodajalec tukaj ne sklepa nikakršnih kompromisov. Vaše vozilo je bilo temeljito preverjeno in profesionalno pripravljeno. Vendar tudi pri še tako skrbni negi lahko pride do potrebe po popravilih. S ponudbo jamstev pri CarGarantie ste zanesljivo zaščiteni v primeru finančnih presenečenj.
+                Želimo, da bi se vaš utrip pospešil samo med vožnjo in ne ob prejemu računa za nepredvidena popravila. S paketom <strong>Bike PROTECTION by CarGarantie</strong> se lahko na terenu in cesti popolnoma prepustite ritmu motorja — jamstvo bo 12 do 24 mesecev po preteku tovarniške veljavnosti krilo nepredvidene stroške popravil novega motornega kolesa.
               </p>
             </div>
           </div>
 
           <div className="mt-6 rounded-[14px] border border-[#e2e5e9] bg-white p-6">
-            <h3 className="text-lg font-bold text-[#1a1d20]">Tako se izognete stroškom popravila</h3>
-            <p className="mt-2 text-[15px] leading-6 text-[#3b4046]">
-              CarGarantie vam ponuja širok spekter programov jamstva. Glede na zahteve in potrebe po varnosti lahko izbirate med različno ponudbo, kot je na primer obseg sklopov, ki pokriva najpomembnejše in najdražje dele ali pa kot je na primer popolno kritje, ki pokriva vse bistvene električne in mehanske elemente vozila, vse do nekaj izjem npr. obrabnih delov. Tudi obdobja posamezne ponudbe se med seboj razlikujejo – jamstvo se lahko sklepa za 12, 24 ali 36 mesecev. Prav zato, ker je za nas pomembno, da prejmete ravno to, kar želite.
-            </p>
-
-            <h4 className="mt-6 text-base font-bold text-[#1a1d20]">Storitve, ki se splačajo:</h4>
+            <h4 className="text-base font-bold text-[#1a1d20]">Ugodne storitve, ki se splačajo:</h4>
             <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
               {carGarantieBenefits.map((benefit) => (
                 <li key={benefit} className="flex items-start gap-2.5 text-[15px] leading-6 text-[#22262a]">

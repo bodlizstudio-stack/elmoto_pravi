@@ -6,8 +6,8 @@ export function Logo({ className = "h-9 w-auto sm:h-11" }: { className?: string 
     <Image
       src="/logo.png"
       alt=""
-      width={947}
-      height={235}
+      width={1772}
+      height={400}
       unoptimized
       className={className}
     />
