@@ -26,7 +26,7 @@ async function limit(prefix: string) {
 
 export async function submitInquiry(_prev: FormState, formData: FormData): Promise<FormState> {
   if (!(await limit("inquiry"))) {
-    return { ok: false, message: "Preveč poskusov. Počakajte nekaj minut in poskusite znova." };
+    return { ok: false, message: "Preveč poskusov. Počakaj nekaj minut in poskusi znova." };
   }
   const parsed = contactSchema.safeParse(readForm(formData));
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
@@ -89,13 +89,13 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
     };
   } catch (error) {
     console.error(error);
-    return { ok: false, message: "Povpraševanja ni bilo mogoče shraniti. Poskusite znova ali nas pokličite." };
+    return { ok: false, message: "Povpraševanja ni bilo mogoče shraniti. Poskusi znova ali nas pokliči." };
   }
 }
 
 export async function submitRental(_prev: FormState, formData: FormData): Promise<FormState> {
   if (!(await limit("rental"))) {
-    return { ok: false, message: "Preveč poskusov. Počakajte nekaj minut in poskusite znova." };
+    return { ok: false, message: "Preveč poskusov. Počakaj nekaj minut in poskusi znova." };
   }
   const parsed = rentalSchema.safeParse(readForm(formData));
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
@@ -121,7 +121,7 @@ export async function submitRental(_prev: FormState, formData: FormData): Promis
   }
   const days = rentalDays(pickup, ret);
   if (days <= 0) return { ok: false, message: "Vračilo mora biti po prevzemu." };
-  if (days > 90) return { ok: false, message: "V eno povpraševanje lahko vključite največ 90 dni." };
+  if (days > 90) return { ok: false, message: "V eno povpraševanje lahko vključiš največ 90 dni." };
 
   const overlap = await findOverlap(bike.id, pickup, ret);
   if (overlap) {
@@ -180,12 +180,12 @@ export async function submitRental(_prev: FormState, formData: FormData): Promis
     };
   } catch (error) {
     console.error(error);
-    return { ok: false, message: "Povpraševanja ni bilo mogoče shraniti. Poskusite znova ali nas pokličite." };
+    return { ok: false, message: "Povpraševanja ni bilo mogoče shraniti. Poskusi znova ali nas pokliči." };
   }
 }
 
 export async function subscribe(_prev: FormState, formData: FormData): Promise<FormState> {
-  if (!(await limit("subscribe"))) return { ok: false, message: "Preveč poskusov. Počakajte in poskusite znova." };
+  if (!(await limit("subscribe"))) return { ok: false, message: "Preveč poskusov. Počakaj in poskusi znova." };
   const settings = await getSettings();
   if (!settings.newsletterEnabled) return { ok: false, message: "Obvestila trenutno niso vklopljena." };
   const parsed = subscriberSchema.safeParse(readForm(formData));

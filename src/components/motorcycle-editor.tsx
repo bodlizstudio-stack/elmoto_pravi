@@ -82,12 +82,17 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
     bike?.priceCents && bike.priceCents > 0 ? String(bike.priceCents / 100) : "",
   );
   const [condition, setCondition] = useState(bike?.condition || "");
+  const [status, setStatus] = useState(
+    bike?.status && ["AVAILABLE", "RESERVED", "SOLD"].includes(bike.status) ? bike.status : "AVAILABLE",
+  );
   const [category, setCategory] = useState(bike?.category ?? "");
   const [color, setColor] = useState(bike?.color ?? "");
   const [transmission, setTransmission] = useState(bike?.transmission ?? "");
   const [driveType, setDriveType] = useState(bike?.driveType ?? "");
   const [engineType, setEngineType] = useState(bike?.engineType ?? "");
   const [sourceUrl, setSourceUrl] = useState(bike?.sourceUrl || bike?.source || "");
+  const [featured, setFeatured] = useState(bike?.featured ?? true);
+  const [featuredOrder, setFeaturedOrder] = useState(bike?.featuredOrder != null ? String(bike.featuredOrder) : "0");
   const [specsText, setSpecsText] = useState(bike?.specs ?? "");
   const [description, setDescription] = useState(bike?.description || bike?.cardSummary || "");
 
@@ -125,6 +130,10 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
         setCategory(val);
       } else if (key.includes("barva")) {
         setColor(val);
+      } else if (key.includes("cena") && !priceEur) {
+        const cleaned = val.replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", ".");
+        const num = Number(cleaned);
+        if (Number.isFinite(num) && num > 0) setPriceEur(String(Math.round(num)));
       }
     }
   }
@@ -147,8 +156,6 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
       ) : null}
       <form action={action} className="grid gap-6">
         {bike ? <input type="hidden" name="id" value={bike.id} /> : null}
-        <input type="hidden" name="featured" value="on" />
-        <input type="hidden" name="engineCc" value={engineCc} />
         <input type="hidden" name="category" value={category} />
         <input type="hidden" name="color" value={color} />
         <input type="hidden" name="transmission" value={transmission} />
@@ -194,15 +201,59 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
               </select>
             </label>
             <label className="field">
+              <span>Status oglasa</span>
+              <select name="status" value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="AVAILABLE">Na voljo</option>
+                <option value="RESERVED">Rezervirano</option>
+                <option value="SOLD">Prodano</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Prostornina (ccm)</span>
+              <input name="engineCc" type="number" value={engineCc} onChange={(e) => setEngineCc(e.target.value)} placeholder="npr. 498" />
+            </label>
+            <label className="field">
               <span>Moč (kW)</span>
-              <input name="powerKw" type="number" step="0.1" value={powerKw} onChange={(e) => setPowerKw(e.target.value)} />
+              <input
+                name="powerKw"
+                type="number"
+                step="0.1"
+                value={powerKw}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPowerKw(val);
+                  const kwNum = Number(val);
+                  if (Number.isFinite(kwNum) && kwNum > 0) {
+                    setPowerHp(String(Math.round(kwNum * 1.35962)));
+                  }
+                }}
+                placeholder="npr. 35"
+              />
             </label>
             <label className="field">
               <span>Konji (KM)</span>
-              <input name="powerHp" type="number" step="0.1" value={powerHp} onChange={(e) => setPowerHp(e.target.value)} />
+              <input
+                name="powerHp"
+                type="number"
+                step="0.1"
+                value={powerHp}
+                onChange={(e) => setPowerHp(e.target.value)}
+                placeholder="npr. 48 (izračuna se tudi samodejno iz kW)"
+              />
+            </label>
+            <label className="field">
+              <span>Vrstni red prikaza na naslovnici</span>
+              <input
+                name="featuredOrder"
+                type="number"
+                value={featuredOrder}
+                onChange={(e) => setFeaturedOrder(e.target.value)}
+                placeholder="0"
+              />
+              <small className="text-sm text-ink/60">Manjša številka (npr. 1, 2, 3) prikaže motor višje v sekciji Novo v ponudbi.</small>
             </label>
             <label className="field sm:col-span-2">
-              <span>Povezava do oglasa na Avto.net (neobvezno)</span>
+              <span>Povezava do oglasa na Avto.net (direktni link do motorja)</span>
               <input
                 name="sourceUrl"
                 type="url"
@@ -211,8 +262,18 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
                 placeholder="https://www.avto.net/Ads/details.asp?id=..."
               />
               <small className="text-sm text-ink/60">
-                Če prilepiš povezavo do oglasa na Avto.net, se bo pri motorju prikazal gumb »Poglej oglas na Avto.net«.
+                Ko je vpisana povezava do oglasa na Avto.net, klik na kartico motorja odpre ta konkretni oglas na Avto.net.
               </small>
+            </label>
+            <label className="flex items-center gap-3 rounded-[10px] border border-black/10 bg-[#f8f9fa] px-4 py-3 text-sm font-semibold sm:col-span-2">
+              <input
+                type="checkbox"
+                name="featured"
+                checked={featured}
+                onChange={(e) => setFeatured(e.target.checked)}
+                className="h-5 w-5 accent-[#E31B2B]"
+              />
+              <span>Prikaži na naslovnici v sekciji »NOVO V PONUDBI«</span>
             </label>
           </div>
 
@@ -269,9 +330,14 @@ export function MotorcycleEditor({ bike }: { bike?: EditableBike }) {
               {pending ? "Shranjujem objavo ..." : "Shrani objavo"}
             </button>
             {bike ? (
-              <Link className="btn btn-secondary" href={`/admin/motorji/${bike.id}/predogled`}>
-                Predogled
-              </Link>
+              <>
+                <Link className="btn btn-secondary" href={`/motorji/${bike.slug}`} target="_blank">
+                  Poglej oglas na strani ↗
+                </Link>
+                <Link className="btn btn-secondary" href={`/admin/motorji/${bike.id}/predogled`}>
+                  Predogled v administraciji
+                </Link>
+              </>
             ) : null}
           </div>
           {pending ? <p role="status">Shranjujem in objavljam motor na stran ...</p> : null}

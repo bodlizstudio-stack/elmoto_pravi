@@ -11,9 +11,9 @@ function LoginForm() {
   const [state, action, pending] = useActionState(login, null as ActionState);
   const params = useSearchParams();
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#f6f6f4] px-6 py-10 text-[#16181c]">
+    <main className="admin-shell grid min-h-dvh place-items-center bg-[#f6f6f4] px-6 py-10 text-[#16181c]">
       <form action={action} className="grid w-full max-w-md gap-4 rounded-[12px] border border-black/10 bg-white p-6">
-        <LogoLink className="h-10 w-auto" />
+        <LogoLink className="h-10 w-auto" theme="light" />
         <h1 className="text-2xl font-semibold">Prijava za skrbnika</h1>
         <p className="text-sm leading-6 text-ink/70">Ta stran ni za obiskovalce. Po prijavi lahko dodaš, urejaš in umakneš motorje.</p>
         {params.get("ponastavljeno") ? <p role="status">Geslo je ponastavljeno. Prijavi se z novim geslom.</p> : null}

@@ -19,7 +19,7 @@ export async function LegalDocument({
       <div className="wrap max-w-3xl">
         <Breadcrumbs items={[{ href: "/", label: "Domov" }, { label: page.title }]} />
         {!page.confirmed ? (
-          <p className="mt-6 border border-accent bg-white p-4 leading-7">
+          <p className="mt-6 rounded-[12px] border border-accent bg-[#25272D] p-4 leading-7 text-[#F5F5F5]">
             Osnutek. Besedilo mora pred javno objavo pregledati odgovorna oseba. Do potrditve ne velja kot uradni dokument podjetja.
           </p>
         ) : null}

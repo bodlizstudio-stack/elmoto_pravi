@@ -7,19 +7,21 @@ import { publishedKoveModels } from "@/lib/kove";
 import { koveCatalogUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "KOVE",
-  description: "EL-MOTO je pooblaščeni prodajalec motociklov KOVE. Spoznaj izbrane modele in pošlji povpraševanje.",
+  title: "KOVE | EL-MOTO d.o.o.",
+  description: "EL-MOTO d.o.o. je pooblaščeni prodajalec motociklov KOVE. Spoznaj izbrane modele in pošlji povpraševanje.",
   alternates: { canonical: "/kove" },
 };
 
 export default function KovePage() {
   return (
-    <section className="bg-[#f6f6f4] py-8 text-ink sm:py-12">
+    <section className="bg-[#111216] py-10 text-[#F5F5F5] sm:py-14">
       <div className="wrap">
         <Breadcrumbs items={[{ href: "/", label: "Domov" }, { label: "KOVE" }]} />
-        <p className="mt-6 text-sm font-semibold tracking-wide text-accent">KOVE pri EL-MOTO</p>
-        <h1 className="display mt-2 max-w-3xl text-4xl sm:text-6xl">Pooblaščeni prodajalec motociklov KOVE</h1>
-        <p className="mt-4 max-w-2xl text-[17px] leading-7 text-ink/80">
+        <p className="kicker mt-4">KOVE pri EL-MOTO</p>
+        <h1 className="display mt-2.5 max-w-3xl text-4xl text-white sm:text-6xl">
+          POOBLAŠČENI PRODAJALEC MOTOCIKLOV KOVE
+        </h1>
+        <p className="mt-4 max-w-2xl text-[17px] leading-7 text-[#B9BDC5]">
           Spoznaj motocikle KOVE in poišči model za svoj način vožnje. Pri EL-MOTO ti pomagamo pri izbiri ter preverimo ponudbo in dobavljivost.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -30,15 +32,15 @@ export default function KovePage() {
             Povprašaj za KOVE
           </Link>
         </div>
-        <p className="mt-6 max-w-2xl text-sm leading-6 text-ink/65">
-          Spodnji modeli so predstavitev znamke po uradnem katalogu, preverjenem 26. 10. 2026. Niso zaloga EL-MOTO. Cene in pogoje preveriš pri nas.
+        <p className="mt-6 max-w-2xl text-sm leading-6 text-[#B9BDC5]">
+          Spodnji modeli so predstavitev znamke po uradnem katalogu. Niso zaloga EL-MOTO. Cene in pogoje preveriš pri nas.
         </p>
 
         <div id="modeli" className="mt-10 scroll-mt-24">
           {publishedKoveModels.length ? (
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-5 lg:grid-cols-3">
               {publishedKoveModels.map((model) => (
-                <article key={model.slug} className="flex h-full flex-col rounded-[12px] border border-black/10 bg-white">
+                <article key={model.slug} className="moto-card flex h-full flex-col rounded-[14px] border border-white/10 bg-[#25272D]">
                   <div className="relative aspect-[3/2] bg-white">
                     <Image
                       src={model.image}
@@ -49,19 +51,22 @@ export default function KovePage() {
                     />
                   </div>
                   <div className="flex flex-1 flex-col p-5">
-                    <h2 className="text-2xl font-semibold">{model.name}</h2>
-                    <p className="mt-3 text-[17px] leading-7 text-ink/80">{model.description}</p>
-                    <ul className="mt-4 grid gap-1 text-sm text-ink/75">
+                    <h2 className="display text-3xl text-white">{model.name}</h2>
+                    <p className="mt-3 text-[16px] leading-7 text-[#B9BDC5]">{model.description}</p>
+                    <ul className="mt-4 grid gap-1.5 text-sm text-[#F5F5F5]">
                       {model.features.slice(0, 3).map((feature) => (
-                        <li key={feature}>{feature}</li>
+                        <li key={feature} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#E31B2B]" aria-hidden="true" />
+                          <span>{feature}</span>
+                        </li>
                       ))}
                     </ul>
                     <div className="mt-auto grid gap-2 pt-5">
                       <Link className="btn btn-primary w-full" href={`/kontakt?vrsta=PURCHASE&model=${encodeURIComponent(model.name)}`}>
                         Povprašaj za ta model
                       </Link>
-                      <ExternalLink href={model.sourceUrl} className="inline-flex min-h-11 items-center justify-center text-sm font-semibold underline">
-                        Uradni vir
+                      <ExternalLink href={model.sourceUrl} className="btn btn-secondary min-h-10 w-full text-sm">
+                        Uradni vir ↗
                       </ExternalLink>
                     </div>
                   </div>
@@ -69,7 +74,7 @@ export default function KovePage() {
               ))}
             </div>
           ) : (
-            <p className="rounded-[12px] border border-black/10 bg-white p-6 leading-7">
+            <p className="rounded-[14px] border border-white/10 bg-[#25272D] p-6 leading-7 text-[#B9BDC5]">
               Kartice modelov bodo objavljene, ko bodo na voljo fotografije točno teh modelov.
             </p>
           )}
@@ -83,7 +88,7 @@ export default function KovePage() {
             Objavljeni motorji KOVE
           </Link>
         </div>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-[#B9BDC5]">
           Povezava na objavljene motorje pokaže vozila, ki so vpisana v ponudbi na tej strani. Katalog zgoraj ni seznam zaloge.
         </p>
       </div>

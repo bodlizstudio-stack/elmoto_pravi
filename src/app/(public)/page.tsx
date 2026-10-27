@@ -1,51 +1,89 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Bike, MessageCircle, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Bike,
+  Compass,
+  Facebook,
+  Instagram,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Truck,
+} from "lucide-react";
 import { ExternalLink } from "@/components/external-link";
-import { Photo } from "@/components/photo";
 import { MotoCard } from "@/components/moto-card";
-import { MotoEquipmentSection } from "@/components/moto-equipment";
 import { ReviewsMarquee } from "@/components/reviews-marquee";
 import { prisma } from "@/lib/db";
-import { publishedKoveModels } from "@/lib/kove";
 import { homeBikes } from "@/lib/motorcycles";
-import { partners } from "@/lib/partners";
 import { getSettings } from "@/lib/settings";
-import { avtoNetUrl, site } from "@/lib/site";
+import { avtoNetUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: { absolute: "EL-MOTO | Novi in rabljeni motorji · KOVE" },
-  description: "EL-MOTO prodaja nove in rabljene motorje in je pooblaščeni prodajalec KOVE. Oglej si ponudbo ali pokliči 070 868 600.",
+  title: { absolute: "EL-MOTO d.o.o. | Novi in rabljeni motorji z garancijo · KOVE" },
+  description:
+    "Odkrij skrbno izbrano ponudbo novih in rabljenih motornih koles z garancijo. Pooblaščeni prodajalec KOVE v Trzinu.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "EL-MOTO | Novi in rabljeni motorji · KOVE",
-    description: "Novi in rabljeni motorji pri EL-MOTO. Pooblaščeni prodajalec KOVE.",
+    title: "EL-MOTO d.o.o. | Novi in rabljeni motorji z garancijo · KOVE",
+    description: "Novi in rabljeni motorji pri EL-MOTO d.o.o. Pooblaščeni prodajalec KOVE.",
     url: "/",
     locale: "sl_SI",
     type: "website",
     images: [
       {
-        url: "/images/hero/elmoto-panorama.jpg",
-        width: 1024,
-        height: 512,
-        alt: "Predstavitvena panorama motociklov ob jezeru. Ni fotografija salona EL-MOTO.",
+        url: "/images/hero/hero-elmoto.webp",
+        width: 1376,
+        height: 768,
+        alt: "EL-MOTO d.o.o. — Novi in rabljeni motorji z garancijo",
       },
     ],
   },
 };
 
+const serviceCards = [
+  {
+    title: "Novi motorji",
+    href: "/motorji?condition=NEW",
+    icon: Sparkles,
+  },
+  {
+    title: "Rabljeni motorji",
+    href: "/motorji?condition=USED",
+    icon: Bike,
+  },
+  {
+    title: "Uvoz motorjev",
+    href: "/uvoz",
+    icon: Truck,
+  },
+  {
+    title: "KOVE",
+    href: "/kove",
+    icon: Compass,
+  },
+  {
+    title: "Moto oprema",
+    href: "/oprema",
+    icon: ShoppingBag,
+  },
+  {
+    title: "Garancija in financiranje",
+    href: "/garancija-financiranje",
+    icon: ShieldCheck,
+  },
+] as const;
+
 export default async function HomePage() {
-  const [bikes, settings, instagram, testimonials, kove] = await Promise.all([
+  const [bikes, settings, testimonials] = await Promise.all([
     homeBikes(),
     getSettings(),
-    prisma.mediaAsset.findMany({ where: { kind: "instagram", published: true }, orderBy: { sortOrder: "asc" }, take: 3 }),
     prisma.testimonial.findMany({ where: { published: true }, orderBy: { createdAt: "desc" } }),
-    Promise.resolve(publishedKoveModels[0] ?? null),
   ]);
 
+  const { hero } = settings;
   const extraReviews = testimonials.map((item) => ({
     id: item.id,
     authorName: item.authorName,
@@ -54,188 +92,114 @@ export default async function HomePage() {
     source: item.source || "Google",
   }));
 
+  const overlayAlpha = Math.min(0.98, Math.max(0.25, hero.overlay / 100));
+  const objectPosDesktop = `${hero.focusX}% ${hero.focusY}%`;
+
   return (
     <>
-      <section className="home-hero text-[#171a1f]">
+      {/* 1. HERO SEKCIJA */}
+      <section className="home-hero border-b border-white/10 bg-[#111216] text-[#F5F5F5]">
         <div className="home-hero-stage">
           <div className="home-hero-photo-wrap">
-            <Image
-              src="/images/hero/hero-desktop.webp"
-              alt="Predstavitvena panorama motociklov ob jezeru."
-              fill
-              priority
-              sizes="100vw"
-              className="home-hero-photo hidden lg:block"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={hero.image || "/images/hero/hero-elmoto.webp"}
+              alt="EL-MOTO — Tvoja pot. Tvoj motor."
+              style={{ objectPosition: objectPosDesktop }}
+              className="home-hero-photo hidden h-full w-full lg:block"
             />
-            <Image
-              src="/images/hero/hero-mobile.webp"
-              alt="Predstavitvena panorama motociklov ob jezeru."
-              fill
-              priority
-              sizes="100vw"
-              className="home-hero-photo block lg:hidden"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={hero.imageMobile || hero.image || "/images/hero/hero-elmoto-mobile.webp"}
+              alt="EL-MOTO — Tvoja pot. Tvoj motor."
+              className="home-hero-photo block h-full w-full object-[58%_top] lg:hidden"
             />
-            <div className="home-hero-fade" aria-hidden="true" />
+            <div
+              className="home-hero-fade"
+              aria-hidden="true"
+              style={{
+                opacity: Math.min(1, overlayAlpha / 0.72),
+              }}
+            />
           </div>
+
           <div className="wrap home-hero-grid">
-            <div className="home-hero-copy">
-              <p className="kicker text-[0.78rem] uppercase tracking-[0.08em] sm:text-[0.84rem]">NOVI IN RABLJENI MOTORJI Z GARANCIJO</p>
-              <h1 className="home-hero-title display">
-                Tvoja pot.
-                <br />
-                Tvoj motor.
-              </h1>
-              <p className="mt-4 max-w-[34rem] text-[17px] leading-7 text-[#3a414a]">
-                Odkrij skrbno izbrano ponudbo motornih koles za nakup ali najem. Pri EL-MOTO se vsaka dobra zgodba začne na dveh kolesih.
+            <div className="home-hero-copy max-w-[36rem]">
+              <p className="kicker text-xs sm:text-sm">{hero.kicker}</p>
+              <h1 className="home-hero-title display">{hero.title}</h1>
+              <p className="mt-4 max-w-[33rem] text-base leading-7 text-[#F5F5F5]/90 sm:text-[17px]">
+                {hero.text}
               </p>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                <Link className="btn btn-primary w-full sm:w-auto" href="/motorji">
-                  Oglej si motorje
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <Link className="btn btn-primary w-full px-7 sm:w-auto" href="/motorji">
+                  <span>{hero.button}</span>
                   <ArrowRight aria-hidden className="h-4 w-4" />
                 </Link>
-                <Link className="btn btn-secondary w-full sm:w-auto" href="/kove">
-                  Spoznaj KOVE
-                </Link>
               </div>
-              <p className="mt-4 text-sm text-[#3a414a]">
-                Potrebuješ pomoč pri izbiri?{" "}
-                <a className="font-semibold text-[#171a1f] underline decoration-[#ec2336] decoration-2 underline-offset-4" href={`tel:${site.phoneTel}`}>
-                  {site.phoneDisplay}
-                </a>
-              </p>
             </div>
-          </div>
-        </div>
-        <div className="wrap home-bridge-wrap">
-          <nav className="home-bridge" aria-label="Hitre poti">
-            <Link href="/motorji?condition=USED">
-              <Bike aria-hidden className="h-5 w-5 text-[#ec2336]" />
-              <span>
-                <strong>Rabljeni motorji</strong>
-                <small>Razišči ponudbo</small>
-              </span>
-              <ArrowRight aria-hidden className="h-4 w-4" />
-            </Link>
-            <Link href="/motorji?condition=NEW">
-              <Sparkles aria-hidden className="h-5 w-5 text-[#ec2336]" />
-              <span>
-                <strong>Novi motorji</strong>
-                <small>Poišči svoj model</small>
-              </span>
-              <ArrowRight aria-hidden className="h-4 w-4" />
-            </Link>
-            <Link href="/kontakt">
-              <MessageCircle aria-hidden className="h-5 w-5 text-[#ec2336]" />
-              <span>
-                <strong>Pogovorimo se</strong>
-                <small>Pomagamo pri izbiri</small>
-              </span>
-              <ArrowRight aria-hidden className="h-4 w-4" />
-            </Link>
-          </nav>
-        </div>
-      </section>
-
-      <section className="home-section bg-white text-[#171a1f]" aria-labelledby="o-nas-domov">
-        <div className="wrap grid gap-10 lg:grid-cols-[1.15fr_1fr] lg:items-start">
-          <div>
-            <p className="kicker uppercase tracking-[0.14em]">O podjetju EL-MOTO</p>
-            <h2 id="o-nas-domov" className="display mt-3 text-[clamp(1.8rem,3vw,2.6rem)]">
-              Več kot le prevozno sredstvo. Svoboda, strast in nove poti.
-            </h2>
-            <div className="mt-4 space-y-4 text-[17px] leading-7 text-[#5b616b]">
-              <p>
-                Pri <strong>EL-MOTO</strong> verjamemo, da je motor več kot le prevozno sredstvo — je svoboda, strast do vožnje in želja po odkrivanju novih poti. Naša ponudba združuje skrbno izbrana rabljena motorna kolesa z garancijo različnih znamk ter nova motorna kolesa znamke <strong>KOVE</strong>.
-              </p>
-              <p>
-                Poleg motornih koles iz naše ponudbe ti omogočamo tudi <strong>uvoz po naročilu</strong>, <strong>komisijsko prodajo</strong> ter <strong>odkup in menjavo</strong> motorja. Motor KOVE pa lahko tudi <strong>najameš</strong> – bodisi za preizkus pred nakupom bodisi preprosto za užitek v vožnji.
-              </p>
-              <p>
-                Za še več brezskrbnosti so na voljo možnost podaljšanja jamstva <strong>Bike PROTECTION by CarGarantie</strong> in prilagodljive možnosti financiranja (<strong>Leanpay</strong>, <strong>NLB Buy&amp;Go</strong>). Stavimo na kakovost, prilagodljivost in oseben pristop – od prvega vprašanja do končne odločitve.
-              </p>
-            </div>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link className="btn btn-primary" href="/o-nas">
-                Več o nas
-              </Link>
-              <Link className="btn btn-secondary" href="/kontakt">
-                Kontaktiraj nas
-              </Link>
-            </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[
-              {
-                title: "Prodaja motornih koles",
-                text: "Rabljena motorna kolesa z garancijo ter nova motorna kolesa znamke KOVE.",
-                href: "/motorji",
-              },
-              {
-                title: "Uvoz po naročilu",
-                text: "Iščeš točno določen model? Pomagamo ti poiskati motor po tvojih željah.",
-                href: "/uvoz",
-              },
-              {
-                title: "Komisijska prodaja",
-                text: "Svoj motor prepustiš nam, mi pa pomagamo pri njegovi varni prodaji.",
-                href: "/uvoz",
-              },
-              {
-                title: "Odkup in menjava",
-                text: "Zamenjaj svoj trenutni motor za drugega z možnostjo odkupa ali doplačila.",
-                href: "/uvoz",
-              },
-              {
-                title: "Najem in preizkus KOVE",
-                text: "Pred nakupom najemi motor KOVE in preveri, kako ti ustreza v praksi.",
-                href: "/najem",
-              },
-              {
-                title: "Jamstvo in financiranje",
-                text: "Podaljšano jamstvo CarGarantie ter obročno odplačevanje Leanpay in NLB Buy&Go.",
-                href: "/garancija-financiranje",
-              },
-            ].map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className="group rounded-[12px] border border-[#e2e5e9] bg-[#f7f8f9] p-4 transition hover:border-[#171a1f] hover:bg-white hover:shadow-xs"
-              >
-                <h3 className="font-semibold text-[#171a1f] group-hover:text-[#ec2336]">{item.title}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-[#5b616b]">{item.text}</p>
-              </Link>
-            ))}
           </div>
         </div>
       </section>
 
-      <MotoEquipmentSection />
+      {/* 2. TRAK S 6 KARTICAMI STORITEV */}
+      <section className="border-b border-white/10 bg-[#1B1D22] py-6 sm:py-8 lg:py-10" aria-label="Storitve in ponudba">
+        <div className="wrap">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
+            {serviceCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link
+                  key={card.title}
+                  href={card.href}
+                  className="group flex min-h-[6.25rem] flex-col items-center justify-center gap-2.5 rounded-[12px] border border-white/10 bg-[#25272D] px-2.5 py-4 text-center transition-all duration-200 hover:-translate-y-1 hover:border-[#E31B2B] hover:bg-[#2b2e36] hover:shadow-[0_12px_28px_rgba(227,27,43,0.16)] sm:min-h-[7.25rem] sm:gap-3 sm:px-3 sm:py-5"
+                >
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-[#1B1D22] text-[#F5F5F5] transition-colors group-hover:border-[#E31B2B]/50 group-hover:bg-[#E31B2B] group-hover:text-white sm:h-11 sm:w-11">
+                    <Icon aria-hidden className="h-5 w-5" />
+                  </span>
+                  <span className="display text-[0.98rem] font-bold leading-tight tracking-wider text-[#F5F5F5] transition-colors group-hover:text-white sm:text-[1.05rem]">
+                    {card.title}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-      <ReviewsMarquee extraReviews={extraReviews} />
-
-      <section className="home-section home-offer bg-white text-[#171a1f]" aria-labelledby="izbrani">
+      {/* 3. SEKCIJA "NOVO V PONUDBI" (PRED MNENJI KUPCEV) */}
+      <section className="home-section bg-[#111216] text-[#F5F5F5]" aria-labelledby="novo-v-ponudbi">
         <div className="wrap">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="kicker uppercase tracking-[0.14em]">Izbrano pri EL-MOTO</p>
-              <h2 id="izbrani" className="display mt-3 text-[clamp(1.8rem,3vw,2.6rem)]">
-                Poišči svoj naslednji motor.
+              <p className="kicker">Izbrani motorji</p>
+              <h2 id="novo-v-ponudbi" className="display mt-2.5 text-3xl text-white sm:text-4xl">
+                NOVO V PONUDBI
               </h2>
             </div>
-            <Link className="inline-flex min-h-11 items-center gap-2 font-semibold" href="/motorji">
-              Vsi motorji
-              <ArrowRight aria-hidden className="h-4 w-4" />
+            <Link
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-bold uppercase tracking-wider text-[#F5F5F5] transition-colors hover:text-[#E31B2B]"
+              href="/motorji"
+            >
+              <span>Poglej celotno ponudbo</span>
+              <ArrowRight aria-hidden className="h-4 w-4 text-[#E31B2B]" />
             </Link>
           </div>
+
           {bikes.length ? (
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div
+              className={`mt-8 grid gap-5 md:grid-cols-2 ${
+                bikes.length >= 4 ? "xl:grid-cols-4" : "xl:grid-cols-3"
+              }`}
+            >
               {bikes.map((bike) => (
                 <MotoCard key={bike.id} bike={bike} />
               ))}
             </div>
           ) : (
-            <div className="mt-8 rounded-[12px] border border-[#e2e5e9] bg-[#f5f6f7] p-6">
-              <p className="text-[17px] leading-7">Trenutno ni objavljenih motorjev. Pokliči nas ali preveri ponudbo na Avto.net.</p>
+            <div className="mt-8 rounded-[14px] border border-white/10 bg-[#25272D] p-6">
+              <p className="text-[17px] leading-7 text-[#B9BDC5]">
+                Trenutno ni objavljenih motorjev. Pokliči nas ali preveri ponudbo na Avto.net.
+              </p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <a className="btn btn-primary w-full sm:w-auto" href={`tel:${settings.phoneTel}`}>
                   Pokliči {settings.phoneDisplay}
@@ -246,162 +210,50 @@ export default async function HomePage() {
               </div>
             </div>
           )}
-          <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+
+          <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <Link className="btn btn-primary w-full sm:w-auto" href="/motorji">
-              Poglej celotno ponudbo
+              Vsi motorji v ponudbi
             </Link>
-            <ExternalLink href={avtoNetUrl} className="inline-flex min-h-12 items-center text-[17px] font-semibold underline decoration-[#ec2336] decoration-2 underline-offset-4">
-              Ponudba na Avto.net
+            <ExternalLink href={avtoNetUrl} className="btn btn-secondary w-full sm:w-auto">
+              Celotna zaloga na Avto.net ↗
             </ExternalLink>
           </div>
         </div>
       </section>
 
-      <section className="home-section bg-[#f5f6f7] text-[#171a1f]" aria-labelledby="kove-naslov">
-        <div className="wrap grid items-center gap-8 lg:grid-cols-2">
-          <div>
-            <p className="kicker">KOVE pri EL-MOTO</p>
-            <h2 id="kove-naslov" className="display mt-3 text-[clamp(1.8rem,3vw,2.6rem)]">
-              Nova pot se začne s KOVE.
-            </h2>
-            <p className="mt-4 max-w-xl text-[17px] leading-7 text-[#5b616b]">
-              Kot pooblaščeni prodajalec KOVE ti pomagamo spoznati modele in izbrati motor za tvoj način vožnje. Za ponudbo in dobavljivost se obrni na nas.
-            </p>
-            <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <Link className="btn btn-primary w-full sm:w-auto" href="/kove">
-                Spoznaj KOVE
-              </Link>
-              <Link className="inline-flex min-h-12 items-center font-semibold underline decoration-[#ec2336] decoration-2 underline-offset-4" href="/kontakt?vrsta=PURCHASE&model=KOVE">
-                Pošlji povpraševanje
-              </Link>
-            </div>
-          </div>
-          {kove ? (
-            <Image
-              src={kove.image}
-              alt={`Kataloška fotografija modela ${kove.name}. Ni dokaz zaloge EL-MOTO.`}
-              width={kove.imageWidth}
-              height={kove.imageHeight}
-              sizes="(min-width: 1024px) 560px, 100vw"
-              className="h-auto w-full rounded-[12px] border border-[#e2e5e9] bg-white object-contain"
-            />
-          ) : (
-            <p className="text-[17px] leading-7 text-[#5b616b]">Modele KOVE si ogledaš na strani znamke. To ni seznam zaloge.</p>
-          )}
-        </div>
-      </section>
+      {/* 4. SEKCIJA MNENJ STRANK */}
+      <ReviewsMarquee extraReviews={extraReviews} />
 
-      <section className="home-section bg-white text-[#171a1f]" aria-labelledby="partnerji">
+      {/* 5. SEKCIJA "SLEDI NAM" */}
+      <section className=" bg-[#111216] py-12 text-[#F5F5F5]" aria-labelledby="sledi-nam">
         <div className="wrap">
-          <h2 id="partnerji" className="display text-[clamp(1.8rem,3vw,2.6rem)]">
-            Pogovorimo se tudi o financiranju.
-          </h2>
-          <p className="mt-3 max-w-2xl text-[17px] leading-7 text-[#5b616b]">
-            Za možnosti financiranja in jamstva pri izbranem motorju nas kontaktiraj.
-          </p>
-          <ul className="mt-8 grid gap-4 md:grid-cols-3">
-            {partners.map((partner) => {
-              const isExternal = partner.href.startsWith("http");
-              const content = (
-                <>
-                  <p className="text-sm font-semibold text-[#5b616b]">{partner.role}</p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={partner.logo} alt={partner.name} width={partner.width} height={partner.height} className="partner-logo mt-4 transition-transform group-hover:scale-105" />
-                  <p className="mt-4 text-[17px] leading-7 text-[#5b616b]">{partner.text}</p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#ec2336]">
-                    {isExternal ? "Odpri kalkulator" : "Več informacij"}
-                    <ArrowRight aria-hidden className="h-4 w-4" />
-                  </span>
-                </>
-              );
-              return (
-                <li key={partner.name}>
-                  {isExternal ? (
-                    <ExternalLink
-                      href={partner.href}
-                      className="group flex h-full flex-col items-center rounded-[12px] border border-[#e2e5e9] bg-white px-6 py-8 text-center transition hover:border-[#171a1f] hover:shadow-md"
-                    >
-                      {content}
-                    </ExternalLink>
-                  ) : (
-                    <Link
-                      href={partner.href}
-                      className="group flex h-full flex-col items-center rounded-[12px] border border-[#e2e5e9] bg-white px-6 py-8 text-center transition hover:border-[#171a1f] hover:shadow-md"
-                    >
-                      {content}
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-          <Link className="btn btn-primary mt-8 w-full sm:w-auto" href="/garancija-financiranje">
-            Garancija in financiranje
-          </Link>
-        </div>
-      </section>
-
-      <section className="home-section bg-[#f5f6f7] text-[#171a1f]" aria-labelledby="pomoc">
-        <div className="wrap grid gap-8 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
-          <div>
-            <h2 id="pomoc" className="display text-[clamp(1.8rem,3vw,2.6rem)]">
-              Nisi prepričan, kateri motor je zate?
-            </h2>
-            <p className="mt-4 max-w-xl text-[17px] leading-7 text-[#5b616b]">
-              Povej nam, kako in kje želiš voziti. Pogovorimo se o možnostih in ti pomagamo pri izbiri.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <a className="btn btn-primary w-full sm:w-auto" href={`tel:${settings.phoneTel}`}>
-                Pokliči nas
-              </a>
-              <Link className="btn btn-secondary w-full sm:w-auto" href="/kontakt">
-                Pošlji povpraševanje
-              </Link>
+          <div className="flex flex-col items-start justify-between gap-6 rounded-[14px] border border-white/10 bg-[#25272D] p-6 sm:p-8 md:flex-row md:items-center">
+            <div>
+              <p className="kicker">Družbena omrežja</p>
+              <h2 id="sledi-nam" className="display mt-2 text-2xl text-white sm:text-3xl">
+                SLEDI NAM
+              </h2>
+              <p className="mt-2 max-w-xl text-base text-[#B9BDC5]">
+                Spremljaj novosti, nove motorje in utrinke iz EL-MOTO.
+              </p>
             </div>
-          </div>
-          <div className="rounded-[12px] border border-[#e2e5e9] bg-white p-5">
-            <h3 className="text-xl font-semibold">Bi motor najprej najel?</h3>
-            <p className="mt-2 text-[17px] leading-7 text-[#5b616b]">Najem je ločeno povpraševanje. Termini in cene niso potrjeni, dokler se ne dogovorimo.</p>
-            <Link className="mt-4 inline-flex min-h-12 items-center font-semibold underline decoration-[#ec2336] decoration-2 underline-offset-4" href="/najem">
-              Preveri možnosti najema
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {instagram.length ? (
-        <section className="home-section bg-white text-[#171a1f]" aria-labelledby="utrinki">
-          <div className="wrap">
-            <h2 id="utrinki" className="display text-[clamp(1.8rem,3vw,2.6rem)]">
-              Utrinki
-            </h2>
-            <p className="mt-3 max-w-2xl text-[17px] leading-7 text-[#5b616b]">
-              Javne objave s profila {site.instagramHandle}. Niso del prodajne ponudbe in ne potrjujejo današnje zaloge.
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {instagram.map((photo) => (
-                <ExternalLink key={photo.id} href={photo.linkUrl || settings.instagram} className="overflow-hidden rounded-[12px] border border-[#e2e5e9] bg-white">
-                  <span className="relative block aspect-square overflow-hidden">
-                    <Photo src={photo.url} alt={photo.alt || "Utrinek EL-MOTO"} sizes="(min-width: 768px) 30vw, 100vw" />
-                  </span>
-                </ExternalLink>
-              ))}
+            <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+              <ExternalLink
+                href={settings.facebook}
+                className="btn btn-secondary flex-1 gap-2.5 px-5 sm:flex-initial"
+              >
+                <Facebook aria-hidden className="h-5 w-5 text-[#E31B2B]" />
+                <span>Facebook</span>
+              </ExternalLink>
+              <ExternalLink
+                href={settings.instagram}
+                className="btn btn-secondary flex-1 gap-2.5 px-5 sm:flex-initial"
+              >
+                <Instagram aria-hidden className="h-5 w-5 text-[#E31B2B]" />
+                <span>Instagram</span>
+              </ExternalLink>
             </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="home-section bg-[#f5f6f7] text-[#171a1f]">
-        <div className="wrap">
-          <h2 className="display max-w-3xl text-[clamp(1.8rem,3vw,2.75rem)]">Naslednja vožnja se začne z izbiro.</h2>
-          <p className="mt-4 max-w-xl text-[17px] leading-7 text-[#5b616b]">Oglej si ponudbo ali se z nami dogovori za ogled.</p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn btn-primary w-full sm:w-auto" href="/motorji">
-              Oglej si ponudbo
-            </Link>
-            <a className="btn btn-secondary w-full sm:w-auto" href={`tel:${settings.phoneTel}`}>
-              {settings.phoneDisplay}
-            </a>
           </div>
         </div>
       </section>

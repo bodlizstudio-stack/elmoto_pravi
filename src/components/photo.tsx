@@ -42,12 +42,12 @@ export function PhotoFrame({
   fit?: "cover" | "contain";
 }) {
   return (
-    <div className={`card-media relative overflow-hidden bg-[#f5f6f7] ${className}`}>
+    <div className={`card-media relative overflow-hidden bg-[#181A1F] ${className}`}>
       {src ? (
         <Photo src={src} alt={alt} priority={priority} sizes={sizes} fit={fit} />
       ) : (
-        <div className="absolute inset-0 grid place-items-center bg-[#e7e7e4] px-4 text-center">
-          <span className="text-lg font-semibold text-ink/70">Fotografija sledi</span>
+        <div className="absolute inset-0 grid place-items-center bg-[#181A1F] px-4 text-center">
+          <span className="text-lg font-semibold text-[#B9BDC5]">Fotografija sledi</span>
         </div>
       )}
     </div>

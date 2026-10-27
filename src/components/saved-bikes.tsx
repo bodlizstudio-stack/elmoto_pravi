@@ -77,13 +77,13 @@ export function SavedBikes({ title, empty }: { title: string; empty: string }) {
             ← Nazaj na motorje
           </Link>
         </div>
-        {bikes == null ? <div className="mt-8 h-40 animate-pulse bg-white" /> : null}
+        {bikes == null ? <div className="mt-8 h-40 animate-pulse rounded-[14px] bg-[#25272D]" /> : null}
         {bikes && bikes.length ? (
-          <p className="mt-3 text-sm text-ink/60">
+          <p className="mt-3 text-sm text-[#B9BDC5]">
             V primerjavi: {Math.min(bikes.length, COMPARE_LIMIT)} od {COMPARE_LIMIT} motorjev.
           </p>
         ) : null}
-        {bikes?.length === 0 ? <p className="mt-6 max-w-xl leading-7">{empty}</p> : null}
+        {bikes?.length === 0 ? <p className="mt-6 max-w-xl leading-7 text-[#B9BDC5]">{empty}</p> : null}
         {bikes && bikes.length ? <CompareTable bikes={bikes} /> : null}
       </div>
     </section>
@@ -105,11 +105,11 @@ function CompareTable({ bikes }: { bikes: CompareBikeItem[] }) {
     ["Kategorija", (bike) => bike.category || "ni navedeno"],
   ];
   return (
-    <div className="mt-8 overflow-x-auto rounded-[12px] border border-black/10 bg-white">
-      <table className="w-full min-w-[40rem] border-collapse text-sm">
+    <div className="mt-8 overflow-x-auto rounded-[14px] border border-white/10 bg-[#25272D]">
+      <table className="w-full min-w-[40rem] border-collapse text-sm text-[#F5F5F5]">
         <thead>
-          <tr className="bg-[#f8f9fa]">
-            <th className="p-4 text-left font-semibold">Podatek</th>
+          <tr className="bg-[#1B1D22]">
+            <th className="p-4 text-left font-semibold text-white">Podatek</th>
             {bikes.map((bike) => (
               <th key={bike.id} className="p-4 text-left align-top">
                 {bike.image ? (
@@ -118,7 +118,7 @@ function CompareTable({ bikes }: { bikes: CompareBikeItem[] }) {
                     <img src={bike.image} alt={`${bike.brand} ${bike.model}`} className="h-32 w-48 object-cover" />
                   </Link>
                 ) : null}
-                <Link className="text-base font-bold underline hover:text-accent" href={`/motorji/${bike.slug}`}>
+                <Link className="text-base font-bold text-white underline hover:text-accent" href={`/motorji/${bike.slug}`}>
                   {bike.brand} {bike.model} {bike.variant}
                 </Link>
                 <div className="mt-2 flex flex-wrap gap-3">
@@ -127,7 +127,7 @@ function CompareTable({ bikes }: { bikes: CompareBikeItem[] }) {
                   </Link>
                   <button
                     type="button"
-                    className="text-xs uppercase tracking-[0.12em] text-ink/60 underline hover:text-accent"
+                    className="text-xs uppercase tracking-[0.12em] text-[#B9BDC5] underline hover:text-accent"
                     onClick={() => writeCompare(readCompare().filter((item) => item !== bike.id))}
                   >
                     Odstrani
@@ -139,10 +139,10 @@ function CompareTable({ bikes }: { bikes: CompareBikeItem[] }) {
         </thead>
         <tbody>
           {rows.map(([label, value]) => (
-            <tr key={label} className="border-t border-black/10">
-              <th className="p-3.5 text-left font-semibold text-ink/70">{label}</th>
+            <tr key={label} className="border-t border-white/10">
+              <th className="p-3.5 text-left font-semibold text-[#B9BDC5]">{label}</th>
               {bikes.map((bike) => (
-                <td key={bike.id} className="p-3.5 font-medium">
+                <td key={bike.id} className="p-3.5 font-medium text-white">
                   {value(bike)}
                 </td>
               ))}

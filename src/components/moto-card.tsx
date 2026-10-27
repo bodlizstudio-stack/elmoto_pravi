@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { PhotoFrame } from "@/components/photo";
 import { CompareToggle, type CompareBikeItem } from "@/components/compare-button";
 import type { PublicBike } from "@/lib/motorcycles";
@@ -7,9 +8,11 @@ import { conditionLabel, coverOf, displayName, formatCc, formatKm, formatPrice, 
 export function MotoCard({ bike, hrefBase = "/motorji" }: { bike: PublicBike; hrefBase?: string }) {
   const cover = coverOf(bike);
   const name = displayName(bike);
-  const href = `${hrefBase}/${bike.slug}`;
-  const specs = [bike.year ? String(bike.year) : "", formatKm(bike.mileageKm), formatCc(bike.engineCc)].filter(Boolean);
+  const internalHref = `${hrefBase}/${bike.slug}`;
   const externalUrl = (bike.sourceUrl || (bike.source?.startsWith("http") ? bike.source : "")).trim();
+  const primaryHref = externalUrl || internalHref;
+  const isExternal = Boolean(externalUrl);
+  const specs = [bike.year ? String(bike.year) : "", formatKm(bike.mileageKm), formatCc(bike.engineCc)].filter(Boolean);
 
   const compareItem: CompareBikeItem = {
     id: bike.id,
@@ -36,40 +39,80 @@ export function MotoCard({ bike, hrefBase = "/motorji" }: { bike: PublicBike; hr
   };
 
   return (
-    <article className="moto-card flex h-full flex-col rounded-[12px] border border-black/10 bg-white text-ink">
+    <article className="moto-card flex h-full flex-col rounded-[14px] border border-white/10 bg-[#25272D] text-[#F5F5F5]">
       <div className="relative">
-        <Link href={href} className="block">
-          <PhotoFrame src={cover?.url} alt={cover?.alt || name} sizes="(min-width: 1280px) 380px, (min-width: 640px) 50vw, 100vw" fit="contain" />
-        </Link>
+        {isExternal ? (
+          <a href={primaryHref} target="_blank" rel="noopener noreferrer" className="block">
+            <PhotoFrame
+              src={cover?.url}
+              alt={cover?.alt || name}
+              sizes="(min-width: 1280px) 380px, (min-width: 640px) 50vw, 100vw"
+              fit="cover"
+            />
+          </a>
+        ) : (
+          <Link href={primaryHref} className="block">
+            <PhotoFrame
+              src={cover?.url}
+              alt={cover?.alt || name}
+              sizes="(min-width: 1280px) 380px, (min-width: 640px) 50vw, 100vw"
+              fit="cover"
+            />
+          </Link>
+        )}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          {conditionLabel(bike.condition) ? <Badge>{conditionLabel(bike.condition)}</Badge> : null}
-          {bike.status === "RESERVED" || bike.status === "SOLD" ? <Badge>{statusLabel(bike.status)}</Badge> : null}
+          {conditionLabel(bike.condition) ? (
+            <Badge variant={bike.condition === "NEW" ? "red" : "dark"}>{conditionLabel(bike.condition)}</Badge>
+          ) : null}
+          {bike.status === "RESERVED" || bike.status === "SOLD" ? <Badge variant="dark">{statusLabel(bike.status)}</Badge> : null}
         </div>
       </div>
+
       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
         <div>
-          <h3 className="text-xl font-semibold leading-tight text-ink">
-            <Link href={href} className="hover:text-accent">
-              {name}
-            </Link>
+          <h3 className="display text-2xl font-bold leading-tight tracking-wide text-[#F5F5F5]">
+            {isExternal ? (
+              <a href={primaryHref} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#E31B2B]">
+                {name}
+              </a>
+            ) : (
+              <Link href={primaryHref} className="transition-colors hover:text-[#E31B2B]">
+                {name}
+              </Link>
+            )}
           </h3>
-          {bike.cardSummary ? <p className="mt-2 line-clamp-2 text-[15px] leading-6 text-ink/70">{bike.cardSummary}</p> : null}
-          {specs.length ? <p className="mt-2 text-[15px] leading-6 text-ink/70">{specs.join(" · ")}</p> : null}
+          {specs.length ? (
+            <p className="mt-2 text-sm font-medium text-[#B9BDC5]">{specs.join(" · ")}</p>
+          ) : null}
+          {bike.cardSummary ? (
+            <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#B9BDC5]">{bike.cardSummary}</p>
+          ) : null}
         </div>
-        <p className="text-lg font-semibold text-ink">{formatPrice(bike.priceCents, bike.priceConfirmed)}</p>
-        <div className="mt-auto grid gap-2">
-          <Link href={href} className="btn btn-primary min-h-11 w-full">
-            Ogled motorja
-          </Link>
-          {externalUrl ? (
+
+        <p className="display mt-1 text-2xl font-bold text-white">
+          {formatPrice(bike.priceCents, bike.priceConfirmed)}
+        </p>
+
+        <div className="mt-auto grid gap-2 pt-2">
+          {isExternal ? (
             <a
-              href={externalUrl}
+              href={primaryHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-secondary min-h-10 w-full text-sm font-semibold"
+              className="btn btn-primary min-h-11 w-full"
             >
-              Oglas na Avto.net ↗
+              <span>Ogled motorja</span>
+              <ArrowUpRight aria-hidden className="h-4 w-4" />
             </a>
+          ) : (
+            <Link href={primaryHref} className="btn btn-primary min-h-11 w-full">
+              Ogled motorja
+            </Link>
+          )}
+          {isExternal && hrefBase === "/motorji" ? (
+            <Link href={internalHref} className="btn btn-secondary min-h-10 w-full text-sm">
+              Podrobnosti in povpraševanje
+            </Link>
           ) : null}
           <CompareToggle id={bike.id} bike={compareItem} />
         </div>
@@ -78,6 +121,16 @@ export function MotoCard({ bike, hrefBase = "/motorji" }: { bike: PublicBike; hr
   );
 }
 
-function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-ink shadow-sm">{children}</span>;
+function Badge({ children, variant = "dark" }: { children: React.ReactNode; variant?: "dark" | "red" }) {
+  return (
+    <span
+      className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider shadow-sm ${
+        variant === "red"
+          ? "bg-[#E31B2B] text-white"
+          : "border border-white/15 bg-[#111216]/90 text-[#F5F5F5] backdrop-blur-xs"
+      }`}
+    >
+      {children}
+    </span>
+  );
 }

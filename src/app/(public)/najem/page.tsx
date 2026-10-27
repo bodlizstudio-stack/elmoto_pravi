@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Najem motorjev",
-  description: "Najem motorjev pri EL-MOTO v Trzinu, blizu Ljubljane. Pošljite povpraševanje za termin. Rezervacija je potrjena šele po potrditvi podjetja.",
+  description: "Najem motorjev pri EL-MOTO v Trzinu, blizu Ljubljane. Pošlji povpraševanje za termin. Rezervacija je potrjena šele po potrditvi podjetja.",
   alternates: { canonical: "/najem" },
 };
 
@@ -35,22 +35,22 @@ export default async function RentalPage() {
               const daily = lowestDailyCents(bike.rentalRates);
               const equipment = lines(bike.equipment).slice(0, 4);
               return (
-                <article key={bike.id} className="flex h-full flex-col border border-black/10 bg-white">
+                <article key={bike.id} className="moto-card flex h-full flex-col rounded-[14px] border border-white/10 bg-[#25272D]">
                   <PhotoFrame src={coverOf(bike)?.url} alt={displayName(bike)} sizes="(min-width: 1024px) 30vw, 100vw" />
-                  <div className="flex flex-1 flex-col p-4">
-                    <h2 className="display text-3xl">{displayName(bike)}</h2>
-                    <p className="mt-2 text-sm text-ink/70">{[bike.year, formatCc(bike.engineCc), bike.category].filter(Boolean).join(" · ")}</p>
-                    {bike.description ? <p className="mt-3 line-clamp-4 leading-7">{bike.description}</p> : null}
+                  <div className="flex flex-1 flex-col p-5">
+                    <h2 className="display text-3xl text-white">{displayName(bike)}</h2>
+                    <p className="mt-2 text-sm text-[#B9BDC5]">{[bike.year, formatCc(bike.engineCc), bike.category].filter(Boolean).join(" · ")}</p>
+                    {bike.description ? <p className="mt-3 line-clamp-4 leading-7 text-[#B9BDC5]">{bike.description}</p> : null}
                     {equipment.length ? (
-                      <ul className="mt-3 list-disc pl-5 text-sm leading-6">
+                      <ul className="mt-3 list-disc pl-5 text-sm leading-6 text-[#B9BDC5]">
                         {equipment.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
                     ) : null}
-                    <p className="mt-4">{daily ? `od ${formatPrice(daily, true)} / dan` : "Cena na povpraševanje"}</p>
-                    <p className="text-sm text-ink/60">Na voljo za povpraševanje</p>
-                    <Link className="btn btn-dark mt-4 w-full" href={`/najem/${bike.slug}`}>
+                    <p className="display mt-4 text-2xl text-white">{daily ? `od ${formatPrice(daily, true)} / dan` : "Cena na povpraševanje"}</p>
+                    <p className="text-sm text-[#B9BDC5]">Na voljo za povpraševanje</p>
+                    <Link className="btn btn-primary mt-4 w-full" href={`/najem/${bike.slug}`}>
                       Preveri termin
                     </Link>
                     <div className="mt-2">
@@ -62,10 +62,10 @@ export default async function RentalPage() {
             })}
           </div>
         ) : (
-          <div className="mt-8 border border-black/10 bg-white p-6">
-            <h2 className="display text-4xl">Najem trenutno ni objavljen</h2>
-            <p className="mt-3 leading-7">Ko bo motor označen za najem, se bo prikazal tukaj. Za informacijo nas lahko pokličeš ali pišeš.</p>
-            <Link className="btn btn-dark mt-5" href="/kontakt">Kontakt</Link>
+          <div className="mt-8 rounded-[14px] border border-white/10 bg-[#25272D] p-6">
+            <h2 className="display text-4xl text-white">Najem trenutno ni objavljen</h2>
+            <p className="mt-3 leading-7 text-[#B9BDC5]">Ko bo motor označen za najem, se bo prikazal tukaj. Za več informacij nas lahko pokličeš ali nam pišeš.</p>
+            <Link className="btn btn-primary mt-5" href="/kontakt">Kontakt</Link>
           </div>
         )}
       </div>

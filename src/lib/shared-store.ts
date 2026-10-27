@@ -390,3 +390,42 @@ export async function ensureDbSynced(): Promise<void> {
   });
   await globalSync.__elmotoSyncPromise;
 }
+
+// ---------------------------------------------------------------------------
+// Nastavitve strani (SiteSetting) – enaka trajna shramba kot za katalog, da so
+// spremembe naslovnice in podatkov podjetja vidne na vseh strežniških instancah.
+// ---------------------------------------------------------------------------
+
+const SETTINGS_KEY = "elmoto-shared-settings-v1";
+
+type SettingsSnapshot = { version: number; rows: { key: string; value: string }[] };
+
+const globalSettingsSync = globalThis as unknown as { __elmotoSettingsVersion?: number };
+
+const PRIVATE_SETTING_KEYS = new Set(["admin_reset"]);
+
+export async function persistSettingsSnapshot(): Promise<void> {
+  const cache = getIncrementalCache();
+  if (!cache) return;
+  const rows = (await prisma.siteSetting.findMany()).filter((row) => !PRIVATE_SETTING_KEYS.has(row.key));
+  const version = Date.now();
+  await cacheSet(SETTINGS_KEY, { version, rows });
+  globalSettingsSync.__elmotoSettingsVersion = version;
+}
+
+export async function ensureSettingsSynced(): Promise<void> {
+  const cache = getIncrementalCache();
+  if (!cache) return;
+  const snapshot = await cacheGet<SettingsSnapshot>(SETTINGS_KEY);
+  if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.rows)) return;
+  if (globalSettingsSync.__elmotoSettingsVersion === snapshot.version) return;
+  for (const row of snapshot.rows) {
+    if (!row?.key || PRIVATE_SETTING_KEYS.has(row.key)) continue;
+    await prisma.siteSetting.upsert({
+      where: { key: row.key },
+      update: { value: String(row.value ?? "") },
+      create: { key: row.key, value: String(row.value ?? "") },
+    });
+  }
+  globalSettingsSync.__elmotoSettingsVersion = snapshot.version;
+}

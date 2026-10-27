@@ -33,7 +33,20 @@ export function CatalogLiveFilter({
   const [sort, setSort] = useState<string>(initial.sort || "newest");
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
 
-  // Extract unique brands and categories from actual bikes
+  const [prevInitial, setPrevInitial] = useState(initial);
+  if (
+    prevInitial.condition !== initial.condition ||
+    prevInitial.brand !== initial.brand ||
+    prevInitial.model !== initial.model ||
+    prevInitial.category !== initial.category
+  ) {
+    setPrevInitial(initial);
+    setCondition(initial.condition || "");
+    setBrand(initial.brand || "");
+    setQuery(initial.model || "");
+    setCategory(initial.category || "");
+  }
+
   const brands = useMemo(() => {
     const set = new Set<string>();
     for (const bike of bikes) {
@@ -112,9 +125,9 @@ export function CatalogLiveFilter({
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-8">
       {/* Top Quick Bar: Novi / Rabljeni + Live Search + Quick Brand Pills */}
-      <div className="rounded-[14px] border border-black/10 bg-white p-4 shadow-2xs sm:p-5">
+      <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-4 shadow-sm sm:p-5">
         <div className="grid gap-4 lg:grid-cols-[auto_1fr_auto] lg:items-center">
           {/* Condition Tabs: Vsi / Rabljeni / Novi */}
           <div role="group" aria-label="Stanje motorja" className="flex flex-wrap gap-2">
@@ -129,10 +142,10 @@ export function CatalogLiveFilter({
                   key={tab.label}
                   type="button"
                   onClick={() => setCondition(tab.id)}
-                  className={`inline-flex min-h-11 items-center rounded-[10px] border px-4 text-sm font-semibold transition ${
+                  className={`inline-flex min-h-11 items-center rounded-[10px] border px-4 text-sm font-bold uppercase tracking-wider transition ${
                     selected
-                      ? "border-[#ec2336] bg-[#ec2336] text-white"
-                      : "border-black/15 bg-[#f6f6f4] text-ink hover:border-ink"
+                      ? "border-[#E31B2B] bg-[#E31B2B] text-white"
+                      : "border-white/15 bg-[#1B1D22] text-[#F5F5F5] hover:border-white/40"
                   }`}
                 >
                   {tab.label}
@@ -143,7 +156,7 @@ export function CatalogLiveFilter({
 
           {/* Instant Live Search Box */}
           <div className="relative">
-            <Search aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/50" />
+            <Search aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#B9BDC5]" />
             <input
               type="search"
               value={query}
@@ -157,7 +170,7 @@ export function CatalogLiveFilter({
                 type="button"
                 onClick={() => setQuery("")}
                 aria-label="Počisti iskanje"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-ink/60 hover:text-ink"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#B9BDC5] hover:text-white"
               >
                 <X aria-hidden className="h-4 w-4" />
               </button>
@@ -191,15 +204,15 @@ export function CatalogLiveFilter({
 
         {/* Quick Clickable Brand Pills */}
         {brands.length > 0 ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-black/10 pt-3.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-ink/60">Znamka:</span>
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#B9BDC5]">Znamka:</span>
             <button
               type="button"
               onClick={() => setBrand("")}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide transition ${
                 brand === ""
-                  ? "border-ink bg-ink text-white"
-                  : "border-black/15 bg-white text-ink hover:border-ink"
+                  ? "border-[#E31B2B] bg-[#E31B2B] text-white"
+                  : "border-white/15 bg-[#1B1D22] text-[#F5F5F5] hover:border-white/40"
               }`}
             >
               Vse znamke
@@ -211,10 +224,10 @@ export function CatalogLiveFilter({
                   key={b}
                   type="button"
                   onClick={() => setBrand(active ? "" : b)}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide transition ${
                     active
-                      ? "border-ink bg-ink text-white"
-                      : "border-black/15 bg-white text-ink hover:border-ink"
+                      ? "border-[#E31B2B] bg-[#E31B2B] text-white"
+                      : "border-white/15 bg-[#1B1D22] text-[#F5F5F5] hover:border-white/40"
                   }`}
                 >
                   {b}
@@ -227,14 +240,15 @@ export function CatalogLiveFilter({
 
       {/* Results counter + Reset */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold" aria-live="polite">
-          Prikazanih motorjev: {filtered.length} {bikes.length !== filtered.length ? `od ${bikes.length}` : ""}
+        <p className="text-sm font-semibold text-[#B9BDC5]" aria-live="polite">
+          Prikazanih motorjev: <strong className="text-white">{filtered.length}</strong>{" "}
+          {bikes.length !== filtered.length ? `od ${bikes.length}` : ""}
         </p>
         {hasActiveFilters ? (
           <button
             type="button"
             onClick={resetAll}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-[#ec2336] underline"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[#E31B2B] underline"
           >
             <X aria-hidden className="h-4 w-4" />
             Ponastavi vse filtre
@@ -245,11 +259,11 @@ export function CatalogLiveFilter({
       {/* Sidebar + Grid */}
       <div className="mt-4 grid gap-6 lg:grid-cols-[17rem_1fr]">
         <aside className={`${showMobileFilters ? "block" : "hidden"} lg:block`}>
-          <div className="grid gap-3.5 rounded-[12px] border border-black/10 bg-white p-4">
+          <div className="grid gap-3.5 rounded-[14px] border border-white/10 bg-[#25272D] p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold">Podrobni filtri</h2>
+              <h2 className="display text-xl text-white">Podrobni filtri</h2>
               {hasActiveFilters ? (
-                <button type="button" onClick={resetAll} className="text-xs font-semibold text-[#ec2336] underline">
+                <button type="button" onClick={resetAll} className="text-xs font-semibold text-[#E31B2B] underline">
                   Počisti
                 </button>
               ) : null}
@@ -334,7 +348,7 @@ export function CatalogLiveFilter({
               />
             </label>
 
-            <label className="flex min-h-10 items-center gap-2.5 text-sm">
+            <label className="flex min-h-10 items-center gap-2.5 text-sm text-[#B9BDC5]">
               <input
                 type="checkbox"
                 checked={includeSold}
@@ -347,15 +361,15 @@ export function CatalogLiveFilter({
 
         <div>
           {filtered.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((bike) => (
                 <MotoCard key={bike.id} bike={bike} />
               ))}
             </div>
           ) : (
-            <div className="rounded-[12px] border border-black/10 bg-white p-6">
-              <h2 className="display text-3xl">Ni zadetkov za izbrane filtre</h2>
-              <p className="mt-3 leading-7 text-ink/70">
+            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
+              <h2 className="display text-3xl text-white">Ni zadetkov za izbrane filtre</h2>
+              <p className="mt-3 leading-7 text-[#B9BDC5]">
                 Za izbrano kombinacijo filtrov trenutno ni motorjev. Ponastavi filtre ali preveri celotno ponudbo na Avto.net.
               </p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">

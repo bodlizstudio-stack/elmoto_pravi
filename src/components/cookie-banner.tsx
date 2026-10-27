@@ -38,9 +38,9 @@ export function CookieBanner() {
 
   return (
     <>
-      <div ref={bannerRef} className="dock fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white text-ink">
+      <div ref={bannerRef} className="dock fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#1B1D22] text-[#F5F5F5]">
         <div className="wrap flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm leading-5 text-ink/75">
+          <p className="text-sm leading-5 text-[#B9BDC5]">
             Uporabljamo samo nujne podatke v tem brskalniku: izbiro piškotkov in primerjavo motorjev. Analitika ni vklopljena.
           </p>
           <div className="flex gap-2">
@@ -69,7 +69,7 @@ function save(setVisible: (value: boolean) => void) {
 function CookieDialog({ onSave }: { onSave?: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   return (
-    <dialog id="cookie-dialog" ref={ref} className="w-[min(100%-1.5rem,32rem)] bg-paper p-5 text-ink">
+    <dialog id="cookie-dialog" ref={ref} className="w-[min(100%-1.5rem,32rem)] rounded-[14px] border border-white/15 bg-[#1B1D22] p-6 text-[#F5F5F5]">
       <h2 className="display text-4xl">Nastavitve piškotkov</h2>
       <p className="mt-3 text-sm leading-6">Nujni zapis v brskalniku je vedno vklopljen, ker shrani tvojo izbiro. Analitični in marketinški piškotki niso nameščeni.</p>
       <label className="mt-4 flex items-center gap-3 text-sm">

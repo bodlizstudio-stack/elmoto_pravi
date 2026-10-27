@@ -9,7 +9,7 @@ function ResetForm() {
   const token = params.get("token") ?? "";
   const [state, action, pending] = useActionState(resetPasswordWithToken, null as ActionState);
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#f6f6f4] px-6 py-10 text-[#16181c]">
+    <main className="admin-shell grid min-h-dvh place-items-center bg-[#f6f6f4] px-6 py-10 text-[#16181c]">
       <form action={action} className="grid w-full max-w-md gap-4 rounded-[12px] border border-black/10 bg-white p-6">
         <h1 className="text-2xl font-semibold">Ponastavitev gesla</h1>
         {token ? (

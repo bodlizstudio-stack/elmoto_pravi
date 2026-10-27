@@ -1,5 +1,5 @@
 export const site = {
-  brand: "EL-MOTO",
+  brand: "EL-MOTO d.o.o.",
   legalName: "EL-MOTO d.o.o.",
   registryName: "EL-MOTO, trgovina in posredništvo, d.o.o.",
   slogan: "Tvoja pot. Tvoj motor.",
@@ -14,7 +14,7 @@ export const site = {
   email: "info@elmoto.si",
   instagram: "https://www.instagram.com/elmoto.si/",
   instagramHandle: "@elmoto.si",
-  facebook: "https://www.facebook.com/profile.php?id=61583000308059&locale=en_GB",
+  facebook: "https://www.facebook.com/p/El-Moto-61587166702216/",
   lat: 46.11671,
   lng: 14.54729,
   taxNumber: "SI48944092",
@@ -73,14 +73,17 @@ export const saleLinks = [
 ] as const;
 
 export const ponudbaLinks = [
-  { href: "/motorji", label: "PRODAJA" },
-  { href: "/uvoz", label: "UVOZ" },
-  { href: "/najem", label: "NAJEM" },
-  { href: "/oprema", label: "OPREMA" },
+  { href: "/motorji", label: "VSI MOTORJI" },
+  { href: "/motorji?condition=NEW", label: "NOVI MOTORJI" },
+  { href: "/motorji?condition=USED", label: "RABLJENI MOTORJI" },
+  { href: "/kove", label: "KOVE" },
+  { href: "/uvoz", label: "UVOZ MOTORJEV" },
+  { href: "/najem", label: "NAJEM MOTORJEV" },
+  { href: "/oprema", label: "MOTO OPREMA" },
 ] as const;
 
 export const navItems = [
-  { href: "/kove", label: "KOVE" },
+  { href: "/o-nas", label: "O NAS" },
   { href: "/garancija-financiranje", label: "GARANCIJA & FINANCIRANJE" },
   { href: "/galerija", label: "GALERIJA" },
   { href: "/kontakt", label: "KONTAKT" },

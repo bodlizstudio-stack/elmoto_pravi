@@ -41,13 +41,13 @@ export function Gallery({ images, title }: { images: { url: string; alt: string 
   }, [images.length]);
 
   if (!current) {
-    return <div className="grid aspect-[4/3] place-items-center rounded-[12px] bg-[#f5f6f7] text-[#5b616b]">Fotografija še ni naložena.</div>;
+    return <div className="grid aspect-[4/3] place-items-center rounded-[14px] border border-white/10 bg-[#1B1D22] text-[#B9BDC5]">Fotografija še ni naložena.</div>;
   }
 
   return (
     <div ref={rootRef}>
       <div
-        className="relative aspect-[4/3] overflow-hidden rounded-[12px] bg-[#f5f6f7]"
+        className="relative aspect-[4/3] overflow-hidden rounded-[14px] border border-white/10 bg-[#1B1D22]"
         onTouchStart={(event) => {
           startX.current = event.changedTouches[0]?.clientX ?? null;
         }}
@@ -68,12 +68,12 @@ export function Gallery({ images, title }: { images: { url: string; alt: string 
             <button type="button" className="gallery-nav right-3" onClick={() => move(1)} aria-label="Naslednja fotografija">
               <ChevronRight aria-hidden className="h-6 w-6" />
             </button>
-            <p className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-semibold text-[#171a1f]" aria-live="polite">
+            <p className="absolute bottom-3 left-3 rounded-full border border-white/15 bg-[#111216]/90 px-3 py-1 text-sm font-semibold text-white" aria-live="polite">
               {safeIndex + 1} / {images.length}
             </p>
           </>
         ) : null}
-        <button type="button" className="absolute bottom-3 right-3 min-h-11 rounded-full bg-white/95 px-3 text-sm font-semibold text-[#171a1f]" onClick={() => dialogRef.current?.showModal()}>
+        <button type="button" className="absolute bottom-3 right-3 min-h-11 rounded-full border border-white/15 bg-[#111216]/90 px-3 text-sm font-semibold text-white hover:border-[#E31B2B]" onClick={() => dialogRef.current?.showModal()}>
           Povečaj
         </button>
       </div>
@@ -83,7 +83,7 @@ export function Gallery({ images, title }: { images: { url: string; alt: string 
             <button
               key={image.url + imageIndex}
               type="button"
-              className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-[8px] border-2 bg-[#f5f6f7] ${imageIndex === safeIndex ? "border-[#ec2336]" : "border-transparent"}`}
+              className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-[8px] border-2 bg-[#1B1D22] ${imageIndex === safeIndex ? "border-[#E31B2B]" : "border-white/10"}`}
               onClick={() => setIndex(imageIndex)}
               aria-label={`Fotografija ${imageIndex + 1}`}
               aria-current={imageIndex === safeIndex ? "true" : undefined}

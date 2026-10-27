@@ -16,7 +16,7 @@ import { findOverlap } from "@/lib/availability";
 import { parseInTimeZone } from "@/lib/time";
 import { removeUpload, saveImage, saveRemoteImage } from "@/lib/uploads";
 import { validateAvtoNetImageUrl } from "@/lib/avtonet-import";
-import { ensureDbSynced, persistDbSnapshot } from "@/lib/shared-store";
+import { ensureDbSynced, ensureSettingsSynced, persistDbSnapshot, persistSettingsSnapshot } from "@/lib/shared-store";
 
 export type ActionState = { error?: string; ok?: string } | null;
 
@@ -127,14 +127,32 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   const featuredOrder = optionalInt(formData, "featuredOrder");
   const price = euroToCents(text(formData, "priceEur"));
   if ("error" in price && price.error) return { error: price.error };
-  const powerKw = optionalNumber(text(formData, "powerKw"));
-  const powerHp = optionalNumber(text(formData, "powerHp"));
+  const powerKwRaw = optionalNumber(text(formData, "powerKw"));
+  const powerHpRaw = optionalNumber(text(formData, "powerHp"));
+  const powerKw =
+    powerKwRaw && powerKwRaw > 0
+      ? powerKwRaw
+      : powerHpRaw && powerHpRaw > 0
+        ? Math.round((powerHpRaw / 1.35962) * 10) / 10
+        : null;
+  const powerHp =
+    powerHpRaw && powerHpRaw > 0
+      ? powerHpRaw
+      : powerKwRaw && powerKwRaw > 0
+        ? Math.round(powerKwRaw * 1.35962)
+        : null;
   const description = text(formData, "description").slice(0, 8000);
   const conditionRaw = text(formData, "condition");
   const condition = conditionRaw === "NEW" || conditionRaw === "USED" ? conditionRaw : "";
+  const statusRaw = text(formData, "status");
   const existing = id
     ? await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } })
     : null;
+  const status = ["AVAILABLE", "RESERVED", "SOLD"].includes(statusRaw)
+    ? statusRaw
+    : existing?.status && existing.status !== "UNKNOWN"
+      ? existing.status
+      : "AVAILABLE";
   const problem = canPublish({ brand, model });
   if (problem) return { error: problem };
   const publication = "PUBLISHED";
@@ -177,7 +195,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     licenseCategory,
     category,
     condition,
-    status: existing?.status || "UNKNOWN",
+    status,
     publication,
     forSale: existing?.forSale ?? true,
     forRent: existing?.forRent ?? false,
@@ -188,7 +206,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
     description,
     equipment,
     serviceHistory,
-    featured: true,
+    featured: checked(formData, "featured"),
     featuredOrder: featuredOrder ?? existing?.featuredOrder ?? 0,
     seoTitle: existing?.seoTitle ?? "",
     seoDescription: existing?.seoDescription ?? "",
@@ -457,8 +475,14 @@ export async function setOfferAction(formData: FormData) {
     await prisma.motorcycle.update({ where: { id }, data: { publication: "DRAFT" } });
   } else if (offerAction === "sold") {
     await prisma.motorcycle.update({ where: { id }, data: { status: "SOLD" } });
+  } else if (offerAction === "reserved") {
+    await prisma.motorcycle.update({ where: { id }, data: { status: "RESERVED" } });
   } else if (offerAction === "available") {
     await prisma.motorcycle.update({ where: { id }, data: { status: "AVAILABLE" } });
+  } else if (offerAction === "feature") {
+    await prisma.motorcycle.update({ where: { id }, data: { featured: true } });
+  } else if (offerAction === "unfeature") {
+    await prisma.motorcycle.update({ where: { id }, data: { featured: false } });
   } else if (offerAction === "delete") {
     const images = bike.images;
     await prisma.motorcycle.delete({ where: { id } });
@@ -741,12 +765,55 @@ export async function updateInquiry(formData: FormData) {
   redirect(`/admin/povprasevanja/${id}?saved=1`);
 }
 
+export async function saveHeroSettings(formData: FormData) {
+  const admin = await requireAdmin();
+  await ensureSettingsSynced();
+
+  let heroImage = text(formData, "heroImage") || "/images/hero/hero-elmoto.webp";
+  let heroImageMobile = text(formData, "heroImageMobile") || "/images/hero/hero-elmoto-mobile.webp";
+
+  const desktopFile = formData.get("heroImageFile");
+  if (desktopFile instanceof File && desktopFile.size > 0) {
+    heroImage = await saveImage(desktopFile);
+  }
+
+  const mobileFile = formData.get("heroImageMobileFile");
+  if (mobileFile instanceof File && mobileFile.size > 0) {
+    heroImageMobile = await saveImage(mobileFile);
+  }
+
+  const entries = [
+    ["hero_image", heroImage],
+    ["hero_image_mobile", heroImageMobile],
+    ["hero_kicker", text(formData, "heroKicker")],
+    ["hero_title", text(formData, "heroTitle")],
+    ["hero_text", text(formData, "heroText")],
+    ["hero_button", text(formData, "heroButton")],
+    ["hero_focus_x", String(optionalInt(formData, "heroFocusX") ?? 68)],
+    ["hero_focus_y", String(optionalInt(formData, "heroFocusY") ?? 28)],
+    ["hero_overlay", String(optionalInt(formData, "heroOverlay") ?? 72)],
+  ] as const;
+
+  for (const [key, value] of entries) {
+    await prisma.siteSetting.upsert({ where: { key }, update: { value }, create: { key, value } });
+  }
+  await persistSettingsSnapshot();
+  await audit(admin.id, "HERO_SETTINGS", "SiteSetting");
+  revalidatePath("/", "layout");
+  redirect("/admin/vsebina?saved=1");
+}
+
 export async function saveSettings(formData: FormData) {
   const admin = await requireAdmin();
+  await ensureSettingsSynced();
   const entries = [
     ["phone", text(formData, "phone")],
     ["email", text(formData, "email")],
+    ["facebook", text(formData, "facebook")],
     ["instagram", text(formData, "instagram")],
+    ["street", text(formData, "street")],
+    ["postal_code", text(formData, "postalCode")],
+    ["city", text(formData, "city")],
     ["hours", text(formData, "hours")],
     ["notify_email", text(formData, "notifyEmail")],
     ["newsletter_enabled", checked(formData, "newsletter") ? "true" : "false"],
@@ -756,6 +823,7 @@ export async function saveSettings(formData: FormData) {
   for (const [key, value] of entries) {
     await prisma.siteSetting.upsert({ where: { key }, update: { value }, create: { key, value } });
   }
+  await persistSettingsSnapshot();
   await audit(admin.id, "SETTINGS", "SiteSetting");
   revalidatePath("/", "layout");
   redirect("/admin/vsebina?saved=1");

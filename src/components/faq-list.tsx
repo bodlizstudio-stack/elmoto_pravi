@@ -8,8 +8,8 @@ export function FaqList({ items }: { items: { id: string; category: string; ques
     <div className="grid gap-8">
       {categories.map((category) => (
         <section key={category}>
-          <h2 className="display text-4xl text-ink">{category}</h2>
-          <div className="mt-4 divide-y divide-black/10 border-y border-black/10">
+          <h2 className="display text-4xl text-white">{category}</h2>
+          <div className="mt-4 divide-y divide-white/10 border-y border-white/10">
             {items
               .filter((item) => item.category === category)
               .map((item) => (

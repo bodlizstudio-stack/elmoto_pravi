@@ -94,7 +94,7 @@ export const googleReviews: ReviewItem[] = [
 
 function GoogleBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5b616b]">
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B9BDC5]">
       <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
         <path
           fill="#4285F4"
@@ -130,19 +130,22 @@ export function ReviewsMarquee({ extraReviews = [] }: { extraReviews?: ReviewIte
   }
 
   return (
-    <section className="overflow-hidden border-b border-[#e2e5e9] bg-[#f8f9fa] pb-10 pt-12 text-[#171a1f] lg:pt-14" aria-label="Mnenja strank Google">
-      <div className="wrap mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+    <section
+      className="overflow-hidden border-y border-white/10 bg-[#1B1D22] pb-12 pt-14 text-[#F5F5F5]"
+      aria-label="Mnenja strank Google"
+    >
+      <div className="wrap mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="kicker uppercase tracking-[0.12em]">Mnenja strank</p>
-          <h2 className="display mt-2 text-2xl sm:text-3xl">Kaj o EL-MOTO pravijo kupci</h2>
+          <p className="kicker">Mnenja strank</p>
+          <h2 className="display mt-2.5 text-3xl text-white sm:text-4xl">KAJ O NAS PRAVIJO KUPCI</h2>
         </div>
-        <div className="inline-flex items-center gap-2 self-start rounded-full border border-[#e2e5e9] bg-white px-4 py-2 text-sm font-semibold shadow-2xs">
+        <div className="inline-flex items-center gap-2.5 self-start rounded-full border border-white/12 bg-[#25272D] px-4 py-2 text-sm font-bold text-white shadow-sm">
           <div className="flex items-center text-[#fbbc04]" aria-hidden="true">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} className="h-4 w-4 fill-current" />
             ))}
           </div>
-          <span>5.0 / 5 na Google</span>
+          <span>5,0 / 5 na Googlu</span>
         </div>
       </div>
 
@@ -155,20 +158,20 @@ export function ReviewsMarquee({ extraReviews = [] }: { extraReviews?: ReviewIte
               <article
                 key={`${review.id}-${index}`}
                 aria-hidden={isDuplicate ? "true" : undefined}
-                className="flex w-[20rem] shrink-0 flex-col justify-between rounded-[14px] border border-[#e2e5e9] bg-white p-5 shadow-[0_6px_20px_rgba(23,26,31,0.05)] sm:w-[23rem]"
+                className="flex w-[20rem] shrink-0 flex-col justify-between rounded-[14px] border border-white/10 bg-[#25272D] p-5 shadow-[0_10px_28px_rgba(0,0,0,0.3)] sm:w-[23rem]"
               >
                 <div>
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#171a1f] text-sm font-bold text-white">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#E31B2B] text-sm font-bold text-white">
                         {initial}
                       </span>
                       <div>
-                        <h3 className="text-[15px] font-semibold leading-5 text-[#171a1f]">{review.authorName}</h3>
+                        <h3 className="text-[15px] font-bold leading-5 text-[#F5F5F5]">{review.authorName}</h3>
                         <GoogleBadge />
                       </div>
                     </div>
-                    <span className="rounded-md bg-[#f5f6f7] px-2 py-1 text-xs font-bold text-[#171a1f]">
+                    <span className="rounded-md border border-white/10 bg-[#111216] px-2.5 py-1 text-xs font-bold text-[#F5F5F5]">
                       {review.rating}/5
                     </span>
                   </div>
@@ -177,10 +180,10 @@ export function ReviewsMarquee({ extraReviews = [] }: { extraReviews?: ReviewIte
                     {Array.from({ length: review.rating || 5 }).map((_, starIdx) => (
                       <Star key={starIdx} className="h-4 w-4 fill-current" />
                     ))}
-                    {review.timeAgo ? <span className="ml-2 text-xs text-[#5b616b]">{review.timeAgo}</span> : null}
+                    {review.timeAgo ? <span className="ml-2 text-xs text-[#B9BDC5]">{review.timeAgo}</span> : null}
                   </div>
 
-                  <p className="mt-3 text-[15px] leading-6 text-[#3a414a]">{review.text}</p>
+                  <p className="mt-3 text-[15px] leading-6 text-[#B9BDC5]">{review.text}</p>
                 </div>
               </article>
             );

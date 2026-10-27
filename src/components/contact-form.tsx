@@ -27,10 +27,10 @@ export function ContactForm({
 
   if (state?.ok) {
     return (
-      <div className="border border-black/10 bg-white p-5 text-ink" role="status">
-        <h2 className="display text-4xl">Povpraševanje je shranjeno</h2>
-        <p className="mt-3 leading-7">{state.message}</p>
-        <a className="btn btn-dark mt-5" href="/kontakt">
+      <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6 text-[#F5F5F5]" role="status">
+        <h2 className="display text-4xl text-white">Povpraševanje je shranjeno</h2>
+        <p className="mt-3 leading-7 text-[#B9BDC5]">{state.message}</p>
+        <a className="btn btn-primary mt-5" href="/kontakt">
           Pošlji novo sporočilo
         </a>
       </div>
@@ -67,7 +67,7 @@ export function ContactForm({
         {shown.email ? <em className="text-sm text-accent not-italic">{shown.email}</em> : null}
       </label>
       <label className="field">
-        <span>Telefon, ni obvezno</span>
+        <span>Telefon (ni obvezno)</span>
         <input name="phone" type="tel" autoComplete="tel" inputMode="tel" />
         {shown.phone ? <em className="text-sm text-accent not-italic">{shown.phone}</em> : null}
       </label>
@@ -82,11 +82,11 @@ export function ContactForm({
         </select>
       </label>
       <label className="field">
-        <span>Model ali kategorija, ni obvezno</span>
+        <span>Model ali kategorija (ni obvezno)</span>
         <input name="interest" defaultValue={initialInterest} maxLength={160} />
       </label>
       <label className="field" data-moto hidden={!relevant.includes(initialType)}>
-        <span>Motor, če je relevantno</span>
+        <span>Izbrani motor (če je relevantno)</span>
         <select name="motorcycleId" defaultValue={initialMotorcycleId}>
           <option value="">Ni vezano na določen motor</option>
           {motorcycles.map((bike) => (
@@ -114,7 +114,7 @@ export function ContactForm({
         </p>
       ) : null}
       <button className="btn btn-primary w-full sm:w-auto" disabled={pending} aria-busy={pending}>
-        {pending ? "Pošiljanje..." : "Pošlji povpraševanje"}
+        {pending ? "Pošiljam ..." : "Pošlji povpraševanje"}
       </button>
       {mailto ? (
         <p className="text-sm leading-6 text-ink/70">

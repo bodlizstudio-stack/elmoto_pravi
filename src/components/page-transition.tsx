@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Logo } from "@/components/logo";
 import "./page-transition.css";
 
 type Phase = "idle" | "exiting" | "covered" | "returning" | "entering";
@@ -267,7 +268,7 @@ export function PageTransition() {
             <span key={index} className={"elmoto-ride-puff"} />
           ))}
         </div>
-        <img className={"elmoto-ride-logo"} src="/logo.png" alt="" width={947} height={235} />
+        <Logo className={"elmoto-ride-logo"} ariaHidden />
       </div>
     </>
   );
