@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { Photo } from "@/components/photo";
+import { EquipmentView } from "@/components/equipment-view";
 import { prisma } from "@/lib/db";
 import { avtoNetOpremaUrl, site } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
+import { ensureEquipmentSynced } from "@/lib/shared-store";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +17,22 @@ export const metadata: Metadata = {
 };
 
 export default async function OpremaPage() {
-  const items = await prisma.equipment.findMany({
+  await ensureEquipmentSynced();
+  const rawItems = await prisma.equipment.findMany({
     where: { published: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
+
+  const items = rawItems.map((item) => ({
+    id: item.id,
+    title: item.title,
+    priceCents: item.priceCents,
+    formattedPrice: item.priceCents ? formatPrice(item.priceCents, true) : "Cena po dogovoru",
+    description: item.description,
+    category: item.category,
+    imageUrl: item.imageUrl,
+    avtonetUrl: item.avtonetUrl,
+  }));
 
   return (
     <div className="bg-[#F6F6F4] py-10 text-[#16181C] md:py-14">
@@ -32,7 +45,7 @@ export default async function OpremaPage() {
           <h1 className="display mt-2.5 text-4xl text-[#16181C] sm:text-6xl">MOTO OPREMA</h1>
           <p className="mt-4 text-[17px] leading-7 text-[#5B616B]">
             Odkrij kakovostno motoristično opremo, čelade, jakne, hlače, rokavice in zaščitne dodatke priznanih proizvajalcev.
-            Celotno aktualno zalogo z vsemi podrobnostmi in cenami lahko preveriš tudi neposredno v naši uradni trgovini na portalu Avto.net.
+            Klikni na katerikoli artikel za ogled podrobnosti, ali preveri celotno aktualno ponudbo v naši uradni trgovini na portalu Avto.net.
           </p>
         </div>
 
@@ -77,74 +90,14 @@ export default async function OpremaPage() {
               <h2 className="display text-2xl text-[#16181C] sm:text-3xl">Izbrana ponudba v salonu</h2>
               <p className="mt-1 text-sm text-[#5B616B]">
                 {items.length > 0
-                  ? `Prikazanih je ${items.length} kosov opreme. Za celotno zalogo obiščite Avto.net ali nas obiščite v salonu.`
+                  ? `Prikazanih je ${items.length} kosov opreme. Klikni na artikel za ogled podrobnosti ali obišči Avto.net.`
                   : "Za pregled celotne opreme na zalogi kliknite na gumb zgoraj za ogled na portalu Avto.net."}
               </p>
             </div>
           </div>
 
           {items.length > 0 ? (
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {items.map((item) => (
-                <article
-                  key={item.id}
-                  className="group flex flex-col overflow-hidden rounded-[14px] border border-[#E2E5E9] bg-white shadow-2xs transition duration-200 hover:border-black/20 hover:shadow-md"
-                >
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F6F6F4]">
-                    {item.imageUrl ? (
-                      <Photo
-                        src={item.imageUrl}
-                        alt={item.title}
-                        sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className="transition duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-[#888]">
-                        Slika artikla kmalu
-                      </div>
-                    )}
-                    <span className="absolute left-3 top-3 rounded-md bg-[#16181c]/80 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs">
-                      {item.category}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
-                    <div>
-                      <h3 className="text-lg font-bold text-[#16181C] group-hover:text-[#E31B2B] transition-colors">
-                        {item.title}
-                      </h3>
-                      <p className="mt-2 text-xl font-extrabold text-[#E31B2B]">
-                        {item.priceCents ? formatPrice(item.priceCents, true) : "Cena po dogovoru"}
-                      </p>
-                      {item.description ? (
-                        <p className="mt-2.5 line-clamp-3 text-sm leading-relaxed text-[#5B616B]">
-                          {item.description}
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <div className="mt-5 flex flex-col gap-2 border-t border-[#F0F2F5] pt-4">
-                      {item.avtonetUrl ? (
-                        <a
-                          href={item.avtonetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-secondary w-full text-center text-xs"
-                        >
-                          Poglej na Avto.net ↗
-                        </a>
-                      ) : null}
-                      <Link
-                        href={`/kontakt?vrsta=GENERAL&model=${encodeURIComponent(item.title)}#kontaktni-obrazec`}
-                        className="btn btn-primary w-full text-center text-xs"
-                      >
-                        Povprašaj za artikel
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <EquipmentView items={items} />
           ) : (
             <div className="mt-8 rounded-[16px] border border-dashed border-[#D0D4DC] bg-white p-8 text-center sm:p-12 shadow-2xs">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#E31B2B]/10 text-[#E31B2B]">

@@ -429,3 +429,160 @@ export async function ensureSettingsSynced(): Promise<void> {
   }
   globalSettingsSync.__elmotoSettingsVersion = snapshot.version;
 }
+
+// ---------------------------------------------------------------------------
+// MediaAsset (Galerija in slike)
+// ---------------------------------------------------------------------------
+
+const MEDIA_KEY = "elmoto-shared-media-v1";
+type MediaSnapshot = {
+  version: number;
+  items: {
+    id: string;
+    url: string;
+    alt: string;
+    kind: string;
+    linkUrl: string;
+    sortOrder: number;
+    published: boolean;
+    createdAt: string;
+  }[];
+};
+const globalMediaSync = globalThis as unknown as { __elmotoMediaVersion?: number };
+
+export async function persistMediaSnapshot(): Promise<void> {
+  const cache = getIncrementalCache();
+  if (!cache) return;
+  const items = await prisma.mediaAsset.findMany();
+  const version = Date.now();
+  await cacheSet(MEDIA_KEY, {
+    version,
+    items: items.map((m) => ({
+      ...m,
+      createdAt: m.createdAt.toISOString(),
+    })),
+  });
+  globalMediaSync.__elmotoMediaVersion = version;
+}
+
+export async function ensureMediaSynced(): Promise<void> {
+  const cache = getIncrementalCache();
+  if (!cache) return;
+  const snapshot = await cacheGet<MediaSnapshot>(MEDIA_KEY);
+  if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.items)) return;
+  if (globalMediaSync.__elmotoMediaVersion === snapshot.version) return;
+
+  const currentIds = snapshot.items.map((i) => i.id);
+  await prisma.$transaction(async (tx) => {
+    await tx.mediaAsset.deleteMany({
+      where: { id: { notIn: currentIds } },
+    });
+    for (const item of snapshot.items) {
+      await tx.mediaAsset.upsert({
+        where: { id: item.id },
+        update: {
+          url: item.url,
+          alt: item.alt,
+          kind: item.kind,
+          linkUrl: item.linkUrl,
+          sortOrder: item.sortOrder,
+          published: item.published,
+        },
+        create: {
+          id: item.id,
+          url: item.url,
+          alt: item.alt,
+          kind: item.kind,
+          linkUrl: item.linkUrl,
+          sortOrder: item.sortOrder,
+          published: item.published,
+          createdAt: new Date(item.createdAt),
+        },
+      });
+    }
+  });
+  globalMediaSync.__elmotoMediaVersion = snapshot.version;
+}
+
+// ---------------------------------------------------------------------------
+// Equipment (Moto oprema)
+// ---------------------------------------------------------------------------
+
+const EQUIPMENT_KEY = "elmoto-shared-equipment-v1";
+type EquipmentSnapshot = {
+  version: number;
+  items: {
+    id: string;
+    title: string;
+    priceCents: number | null;
+    description: string;
+    category: string;
+    imageUrl: string;
+    avtonetUrl: string;
+    published: boolean;
+    sortOrder: number;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+};
+const globalEquipmentSync = globalThis as unknown as { __elmotoEquipmentVersion?: number };
+
+export async function persistEquipmentSnapshot(): Promise<void> {
+  const cache = getIncrementalCache();
+  if (!cache) return;
+  const items = await prisma.equipment.findMany();
+  const version = Date.now();
+  await cacheSet(EQUIPMENT_KEY, {
+    version,
+    items: items.map((e) => ({
+      ...e,
+      createdAt: e.createdAt.toISOString(),
+      updatedAt: e.updatedAt.toISOString(),
+    })),
+  });
+  globalEquipmentSync.__elmotoEquipmentVersion = version;
+}
+
+export async function ensureEquipmentSynced(): Promise<void> {
+  const cache = getIncrementalCache();
+  if (!cache) return;
+  const snapshot = await cacheGet<EquipmentSnapshot>(EQUIPMENT_KEY);
+  if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.items)) return;
+  if (globalEquipmentSync.__elmotoEquipmentVersion === snapshot.version) return;
+
+  const currentIds = snapshot.items.map((i) => i.id);
+  await prisma.$transaction(async (tx) => {
+    await tx.equipment.deleteMany({
+      where: { id: { notIn: currentIds } },
+    });
+    for (const item of snapshot.items) {
+      await tx.equipment.upsert({
+        where: { id: item.id },
+        update: {
+          title: item.title,
+          priceCents: item.priceCents,
+          description: item.description,
+          category: item.category,
+          imageUrl: item.imageUrl,
+          avtonetUrl: item.avtonetUrl,
+          published: item.published,
+          sortOrder: item.sortOrder,
+        },
+        create: {
+          id: item.id,
+          title: item.title,
+          priceCents: item.priceCents,
+          description: item.description,
+          category: item.category,
+          imageUrl: item.imageUrl,
+          avtonetUrl: item.avtonetUrl,
+          published: item.published,
+          sortOrder: item.sortOrder,
+          createdAt: new Date(item.createdAt),
+          updatedAt: new Date(item.updatedAt),
+        },
+      });
+    }
+  });
+  globalEquipmentSync.__elmotoEquipmentVersion = snapshot.version;
+}

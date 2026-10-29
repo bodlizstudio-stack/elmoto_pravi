@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { AdminDeleteButton } from "@/components/admin-delete-button";
 import { deleteMedia, uploadMedia } from "@/lib/actions/admin";
 import { prisma } from "@/lib/db";
+import { ensureMediaSynced } from "@/lib/shared-store";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,7 @@ export default async function AdminGalerijaPage({
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   const query = await searchParams;
+  await ensureMediaSynced();
   const photos = await prisma.mediaAsset.findMany({
     where: { kind: "gallery" },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
@@ -40,7 +43,7 @@ export default async function AdminGalerijaPage({
       ) : null}
       {query.error ? (
         <p className="rounded-[10px] border border-[#E31B2B]/40 bg-red-50 px-4 py-3 text-sm font-semibold text-[#E31B2B]">
-          Pri nalaganju je prišlo do napake ({query.error}). Preveri datoteko (dovoljeni so JPG, PNG, WebP do 10 MB).
+          Pri nalaganju je prišlo do napake ({decodeURIComponent(query.error)}). Preveri datoteko ali povezavo do slike.
         </p>
       ) : null}
 
@@ -48,22 +51,28 @@ export default async function AdminGalerijaPage({
       <form action={uploadMedia} className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6 shadow-2xs">
         <div>
           <h2 className="display text-2xl text-[#16181c]">Dodaj novo sliko v galerijo</h2>
-          <p className="mt-1 text-xs text-[#5B616B]">Izberi sliko iz računalnika in vpiši morebiten opis.</p>
+          <p className="mt-1 text-xs text-[#5B616B]">
+            Naloži sliko iz računalnika (JPG, PNG, WebP) ali prilepi spletno povezavo (URL) do slike.
+          </p>
         </div>
 
         <input type="hidden" name="returnTo" value="/admin/galerija" />
         <input type="hidden" name="kind" value="gallery" />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="field sm:col-span-2">
-            <span>Izberi sliko *</span>
+          <label className="field">
+            <span>Izberi sliko iz računalnika</span>
             <input
               name="file"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              required
               className="file:mr-4 file:rounded-md file:border-0 file:bg-[#16181c] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E31B2B]"
             />
+          </label>
+
+          <label className="field">
+            <span>Ali prilepi URL povezavo do slike</span>
+            <input name="imageUrl" type="url" placeholder="https://..." />
           </label>
 
           <label className="field">
@@ -121,17 +130,10 @@ export default async function AdminGalerijaPage({
                     <form action={deleteMedia}>
                       <input type="hidden" name="returnTo" value="/admin/galerija" />
                       <input type="hidden" name="id" value={item.id} />
-                      <button
-                        type="submit"
-                        className="text-xs font-semibold text-[#E31B2B] transition hover:underline"
-                        onClick={(e) => {
-                          if (!confirm("Ali ste prepričani, da želite odstraniti to sliko iz galerije?")) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        Odstrani sliko
-                      </button>
+                      <AdminDeleteButton
+                        confirmMessage="Ali ste prepričani, da želite odstraniti to sliko iz galerije?"
+                        label="Odstrani sliko"
+                      />
                     </form>
                   </div>
                 </div>

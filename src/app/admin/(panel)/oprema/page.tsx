@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { AdminDeleteButton } from "@/components/admin-delete-button";
 import { deleteEquipment, saveEquipment } from "@/lib/actions/admin";
 import { prisma } from "@/lib/db";
 import { avtoNetOpremaUrl } from "@/lib/site";
 import { formatPrice } from "@/lib/utils";
+import { ensureEquipmentSynced } from "@/lib/shared-store";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,7 @@ export default async function AdminOpremaPage({
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   const query = await searchParams;
+  await ensureEquipmentSynced();
   const items = await prisma.equipment.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
@@ -63,7 +66,7 @@ export default async function AdminOpremaPage({
       ) : null}
       {query.error ? (
         <p className="rounded-[10px] border border-[#E31B2B]/40 bg-red-50 px-4 py-3 text-sm font-semibold text-[#E31B2B]">
-          Pri shranjevanju je prišlo do napake ({query.error}). Preverite vnesene podatke.
+          Pri shranjevanju je prišlo do napake ({decodeURIComponent(query.error)}). Preverite vnesene podatke.
         </p>
       ) : null}
 
@@ -103,14 +106,19 @@ export default async function AdminOpremaPage({
             <input name="avtonetUrl" type="url" placeholder="https://www.avto.net/..." />
           </label>
 
-          <label className="field sm:col-span-2">
-            <span>Izberi sliko artikla</span>
+          <label className="field">
+            <span>Izberi sliko artikla iz računalnika</span>
             <input
               name="file"
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="file:mr-4 file:rounded-md file:border-0 file:bg-[#16181c] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E31B2B]"
             />
+          </label>
+
+          <label className="field">
+            <span>Ali prilepi URL povezavo do slike</span>
+            <input name="imageUrl" type="url" placeholder="https://..." />
           </label>
 
           <label className="field sm:col-span-2">
@@ -198,17 +206,10 @@ export default async function AdminOpremaPage({
                     </span>
                     <form action={deleteEquipment}>
                       <input type="hidden" name="id" value={item.id} />
-                      <button
-                        type="submit"
-                        className="text-xs font-semibold text-[#E31B2B] transition hover:underline"
-                        onClick={(e) => {
-                          if (!confirm(`Ali ste prepričani, da želite izbrisati "${item.title}"?`)) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        Izbriši
-                      </button>
+                      <AdminDeleteButton
+                        confirmMessage={`Ali ste prepričani, da želite izbrisati "${item.title}"?`}
+                        label="Izbriši"
+                      />
                     </form>
                   </div>
                 </div>

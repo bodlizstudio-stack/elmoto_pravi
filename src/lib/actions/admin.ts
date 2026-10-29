@@ -16,7 +16,7 @@ import { findOverlap } from "@/lib/availability";
 import { parseInTimeZone } from "@/lib/time";
 import { removeUpload, saveImage, saveRemoteImage } from "@/lib/uploads";
 import { validateAvtoNetImageUrl } from "@/lib/avtonet-import";
-import { ensureDbSynced, ensureSettingsSynced, persistDbSnapshot, persistSettingsSnapshot } from "@/lib/shared-store";
+import { ensureDbSynced, ensureSettingsSynced, persistDbSnapshot, persistSettingsSnapshot, ensureMediaSynced, persistMediaSnapshot, ensureEquipmentSynced, persistEquipmentSnapshot } from "@/lib/shared-store";
 
 export type ActionState = { error?: string; ok?: string } | null;
 
@@ -942,11 +942,24 @@ export async function deleteTestimonial(formData: FormData) {
 
 export async function uploadMedia(formData: FormData) {
   const admin = await requireAdmin();
-  const returnTo = text(formData, "returnTo") || "/admin/vsebina";
+  const returnTo = text(formData, "returnTo") || "/admin/galerija";
   const kind = text(formData, "kind") || "gallery";
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) redirect(`${returnTo}?error=datoteka`);
-  const url = await saveImage(file);
+  let url = text(formData, "imageUrl");
+
+  if (file instanceof File && file.size > 0) {
+    try {
+      url = await saveImage(file);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "datoteka";
+      redirect(`${returnTo}?error=${encodeURIComponent(msg)}`);
+    }
+  }
+
+  if (!url) {
+    redirect(`${returnTo}?error=datoteka`);
+  }
+
   const count = await prisma.mediaAsset.count({ where: { kind } });
   await prisma.mediaAsset.create({
     data: {
@@ -958,23 +971,28 @@ export async function uploadMedia(formData: FormData) {
       published: true,
     },
   });
+  await persistMediaSnapshot();
   await audit(admin.id, "UPLOAD", "MediaAsset", kind);
   revalidatePath("/", "layout");
   revalidatePath("/galerija");
+  revalidatePath("/admin/galerija");
   redirect(`${returnTo}?saved=1`);
 }
 
 export async function deleteMedia(formData: FormData) {
   const admin = await requireAdmin();
-  const returnTo = text(formData, "returnTo") || "/admin/vsebina";
+  const returnTo = text(formData, "returnTo") || "/admin/galerija";
   const id = text(formData, "id");
+  if (!id) redirect(`${returnTo}?saved=1`);
   const asset = await prisma.mediaAsset.findUnique({ where: { id } });
-  if (!asset) return;
+  if (!asset) redirect(`${returnTo}?saved=1`);
   await prisma.mediaAsset.delete({ where: { id } });
   await removeUpload(asset.url);
+  await persistMediaSnapshot();
   await audit(admin.id, "DELETE", "MediaAsset", id);
   revalidatePath("/", "layout");
   revalidatePath("/galerija");
+  revalidatePath("/admin/galerija");
   redirect(`${returnTo}?saved=1`);
 }
 
@@ -996,7 +1014,12 @@ export async function saveEquipment(formData: FormData) {
   let imageUrl = text(formData, "imageUrl");
   const file = formData.get("file");
   if (file instanceof File && file.size > 0) {
-    imageUrl = await saveImage(file);
+    try {
+      imageUrl = await saveImage(file);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "slika";
+      redirect(`/admin/oprema?error=${encodeURIComponent(msg)}`);
+    }
   }
 
   const data = {
@@ -1016,6 +1039,7 @@ export async function saveEquipment(formData: FormData) {
     await prisma.equipment.create({ data });
   }
 
+  await persistEquipmentSnapshot();
   await audit(admin.id, id ? "UPDATE" : "CREATE", "Equipment", id || title);
   revalidatePath("/oprema");
   revalidatePath("/admin/oprema");
@@ -1025,14 +1049,16 @@ export async function saveEquipment(formData: FormData) {
 export async function deleteEquipment(formData: FormData) {
   const admin = await requireAdmin();
   const id = text(formData, "id");
+  if (!id) redirect("/admin/oprema");
   const item = await prisma.equipment.findUnique({ where: { id } });
-  if (!item) redirect("/admin/oprema");
+  if (!item) redirect("/admin/oprema?saved=1");
 
   if (item.imageUrl && item.imageUrl.startsWith("/uploads/")) {
     await removeUpload(item.imageUrl);
   }
 
   await prisma.equipment.delete({ where: { id } });
+  await persistEquipmentSnapshot();
   await audit(admin.id, "DELETE", "Equipment", id);
   revalidatePath("/oprema");
   revalidatePath("/admin/oprema");
