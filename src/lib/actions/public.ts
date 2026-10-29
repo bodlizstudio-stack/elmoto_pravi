@@ -10,7 +10,13 @@ import { findOverlap } from "@/lib/availability";
 import { quoteCents, rentalDays, selectRate } from "@/lib/rental";
 import { parseInTimeZone } from "@/lib/time";
 import { displayName } from "@/lib/utils";
-import { site } from "@/lib/site";
+import { inquiryTypes, site } from "@/lib/site";
+import {
+  buildRecipientInquiryEmail,
+  buildRecipientRentalEmail,
+  buildSenderInquiryEmail,
+  buildSenderRentalEmail,
+} from "@/lib/email-templates";
 
 export type FormState = {
   ok: boolean;
@@ -56,27 +62,40 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
       },
     });
     const settings = await getSettings();
-    const bikeName = motorcycle ? displayName(motorcycle) : "ni vezano na motor";
-    const text = [
-      "Novo povpraševanje na spletni strani EL-MOTO.",
-      `Številka: ${inquiry.id}`,
-      `Ime: ${data.name}`,
-      `E-pošta: ${data.email}`,
-      `Telefon: ${data.phone || "ni naveden"}`,
-      `Vrsta: ${data.type}`,
-      `Motor: ${bikeName}`,
-      "",
+    const bikeName = motorcycle ? displayName(motorcycle) : null;
+    const typeLabel = inquiryTypes.find((t) => t.value === data.type)?.label || data.type;
+
+    const recipientEmail = buildRecipientInquiryEmail({
+      inquiryId: inquiry.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      typeLabel,
+      motorcycleName: bikeName,
       message,
-    ].join("\n");
+    });
+
+    const senderEmail = buildSenderInquiryEmail({
+      inquiryId: inquiry.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      typeLabel,
+      motorcycleName: bikeName,
+      message,
+    });
+
     const companyMail = await sendMail({
       to: settings.notifyEmail,
-      subject: `Novo povpraševanje: ${data.name}`,
-      text,
+      subject: recipientEmail.subject,
+      text: recipientEmail.text,
+      html: recipientEmail.html,
     });
     const visitorMail = await sendMail({
       to: data.email,
-      subject: "Prejeli smo tvoje povpraševanje | EL-MOTO",
-      text: `Živjo ${data.name},\n\ntvoje povpraševanje je shranjeno. To še ni potrditev nakupa, ogleda ali najema. Odgovorili ti bomo na navedeni kontakt.\n\nEL-MOTO\n${site.street}, ${site.postalCode} ${site.city}\n${settings.phoneDisplay}`,
+      subject: senderEmail.subject,
+      text: senderEmail.text,
+      html: senderEmail.html,
     });
     const mailed = companyMail.sent || visitorMail.sent;
     return {
@@ -149,28 +168,51 @@ export async function submitRental(_prev: FormState, formData: FormData): Promis
       },
     });
     const settings = await getSettings();
-    const text = [
-      "Novo povpraševanje za najem.",
-      `Številka: ${booking.id}`,
-      `Motor: ${displayName(bike)}`,
-      `Stranka: ${data.name}`,
-      `E-pošta: ${data.email}`,
-      `Telefon: ${data.phone}`,
-      `Dovoljenje: ${data.licenseCategory}`,
-      `Prevzem: ${data.pickupDate} ${data.pickupTime}`,
-      `Vračilo: ${data.returnDate} ${data.returnTime}`,
-      `Dni: ${days}`,
-      `Okvirna cena: ${quote == null ? "ni potrjena" : `${quote / 100} EUR`}`,
-      "",
-      data.message || "",
-      "",
-      "Povpraševanje ni potrjena rezervacija.",
-    ].join("\n");
-    await sendMail({ to: settings.notifyEmail, subject: `Najem: ${displayName(bike)}`, text });
+    const bikeDisplayName = displayName(bike);
+
+    const recipientRental = buildRecipientRentalEmail({
+      bookingId: booking.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      licenseCategory: data.licenseCategory,
+      motorcycleName: bikeDisplayName,
+      pickupDate: data.pickupDate,
+      pickupTime: data.pickupTime,
+      returnDate: data.returnDate,
+      returnTime: data.returnTime,
+      days,
+      quotedCents: quote,
+      message: data.message,
+    });
+
+    const senderRental = buildSenderRentalEmail({
+      bookingId: booking.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      licenseCategory: data.licenseCategory,
+      motorcycleName: bikeDisplayName,
+      pickupDate: data.pickupDate,
+      pickupTime: data.pickupTime,
+      returnDate: data.returnDate,
+      returnTime: data.returnTime,
+      days,
+      quotedCents: quote,
+      message: data.message,
+    });
+
+    await sendMail({
+      to: settings.notifyEmail,
+      subject: recipientRental.subject,
+      text: recipientRental.text,
+      html: recipientRental.html,
+    });
     const visitor = await sendMail({
       to: data.email,
-      subject: "Prejeli smo povpraševanje za najem | EL-MOTO",
-      text: `Živjo ${data.name},\n\npovpraševanje za najem motorja ${displayName(bike)} je shranjeno. Rezervacija je potrjena šele, ko jo potrdi EL-MOTO.\n\n${site.street}, ${site.postalCode} ${site.city}\n${settings.phoneDisplay}`,
+      subject: senderRental.subject,
+      text: senderRental.text,
+      html: senderRental.html,
     });
     return {
       ok: true,

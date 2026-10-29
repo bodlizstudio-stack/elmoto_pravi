@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Facebook, Instagram } from "lucide-react";
 import { LogoLink } from "@/components/logo";
+import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
 import { avtoNetUrl, site } from "@/lib/site";
 import { CookieSettingsButton } from "@/components/cookie-banner";
 import { ExternalLink } from "@/components/external-link";
@@ -49,18 +49,25 @@ export function SiteFooter({
           </p>
           <div className="mt-5 flex items-center gap-3">
             <ExternalLink
+              href={site.whatsappUrl}
+              aria-label="WhatsApp EL-MOTO"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#1B1D22] transition-colors hover:border-[#25D366] hover:bg-[#25272D]"
+            >
+              <WhatsAppIcon className="h-5 w-5 text-[#25D366]" />
+            </ExternalLink>
+            <ExternalLink
               href={facebook}
               aria-label="Facebook EL-MOTO"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#1B1D22] text-white transition-colors hover:border-[#E31B2B] hover:bg-[#E31B2B]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#1B1D22] transition-colors hover:border-[#1877F2] hover:bg-[#25272D]"
             >
-              <Facebook aria-hidden className="h-5 w-5" />
+              <FacebookIcon className="h-5 w-5 text-[#1877F2]" />
             </ExternalLink>
             <ExternalLink
               href={instagram}
               aria-label="Instagram @elmoto.si"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#1B1D22] text-white transition-colors hover:border-[#E31B2B] hover:bg-[#E31B2B]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#1B1D22] transition-colors hover:border-[#E1306C] hover:bg-[#25272D]"
             >
-              <Instagram aria-hidden className="h-5 w-5" />
+              <InstagramIcon className="h-5 w-5" />
             </ExternalLink>
           </div>
         </div>
@@ -69,6 +76,7 @@ export function SiteFooter({
           <Link className="hover:text-white" href="/motorji">Vsi motorji</Link>
           <Link className="hover:text-white" href="/motorji?condition=NEW">Novi motorji</Link>
           <Link className="hover:text-white" href="/motorji?condition=USED">Rabljeni motorji</Link>
+          <Link className="hover:text-white" href="/primerjava">Primerjava motorjev</Link>
           <Link className="hover:text-white" href="/kove">KOVE</Link>
           <Link className="hover:text-white" href="/uvoz">Uvoz motorjev</Link>
           <Link className="hover:text-white" href="/najem">Najem motorjev</Link>
@@ -89,18 +97,25 @@ export function SiteFooter({
           </a>
           <div className="my-1 flex items-center gap-2.5">
             <ExternalLink
+              href={site.whatsappUrl}
+              aria-label="WhatsApp EL-MOTO"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-[#1B1D22] hover:border-[#25D366]"
+            >
+              <WhatsAppIcon className="h-4 w-4 text-[#25D366]" />
+            </ExternalLink>
+            <ExternalLink
               href={facebook}
               aria-label="Facebook EL-MOTO"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-[#1B1D22] text-white hover:border-[#E31B2B]"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-[#1B1D22] hover:border-[#1877F2]"
             >
-              <Facebook aria-hidden className="h-4 w-4" />
+              <FacebookIcon className="h-4 w-4 text-[#1877F2]" />
             </ExternalLink>
             <ExternalLink
               href={instagram}
               aria-label="Instagram @elmoto.si"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-[#1B1D22] text-white hover:border-[#E31B2B]"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-[#1B1D22] hover:border-[#E1306C]"
             >
-              <Instagram aria-hidden className="h-4 w-4" />
+              <InstagramIcon className="h-4 w-4" />
             </ExternalLink>
           </div>
           <Link className="hover:text-white" href="/pogosta-vprasanja">Pogosta vprašanja</Link>

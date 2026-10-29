@@ -6,7 +6,7 @@ export function mailConfigured() {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
-export async function sendMail(input: { to: string; subject: string; text: string }) {
+export async function sendMail(input: { to: string; subject: string; text: string; html?: string }) {
   if (!mailConfigured()) return { sent: false as const, reason: "unconfigured" as const };
   try {
     if (process.env.RESEND_API_KEY) {
@@ -21,6 +21,7 @@ export async function sendMail(input: { to: string; subject: string; text: strin
           to: [input.to],
           subject: input.subject,
           text: input.text,
+          html: input.html,
         }),
       });
       if (!response.ok) return { sent: false as const, reason: "failed" as const };
@@ -37,6 +38,7 @@ export async function sendMail(input: { to: string; subject: string; text: strin
       to: input.to,
       subject: input.subject,
       text: input.text,
+      html: input.html,
     });
     return { sent: true as const };
   } catch (error) {
