@@ -39,7 +39,7 @@ export function MotoCard({ bike, hrefBase = "/motorji" }: { bike: PublicBike; hr
   };
 
   return (
-    <article className="moto-card flex h-full flex-col rounded-[14px] border border-white/10 bg-[#25272D] text-[#F5F5F5]">
+    <article className="moto-card flex h-full flex-col rounded-[14px] border border-[#E2E5E9] bg-white text-[#16181C]">
       <div className="relative">
         {isExternal ? (
           <a href={primaryHref} target="_blank" rel="noopener noreferrer" className="block">
@@ -70,7 +70,7 @@ export function MotoCard({ bike, hrefBase = "/motorji" }: { bike: PublicBike; hr
 
       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
         <div>
-          <h3 className="display text-2xl font-bold leading-tight tracking-wide text-[#F5F5F5]">
+          <h3 className="display text-2xl font-bold leading-tight tracking-wide text-[#16181C]">
             {isExternal ? (
               <a href={primaryHref} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#E31B2B]">
                 {name}
@@ -82,14 +82,14 @@ export function MotoCard({ bike, hrefBase = "/motorji" }: { bike: PublicBike; hr
             )}
           </h3>
           {specs.length ? (
-            <p className="mt-2 text-sm font-medium text-[#B9BDC5]">{specs.join(" · ")}</p>
+            <p className="mt-2 text-sm font-medium text-[#5B616B]">{specs.join(" · ")}</p>
           ) : null}
           {bike.cardSummary ? (
-            <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#B9BDC5]">{bike.cardSummary}</p>
+            <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#5B616B]">{bike.cardSummary}</p>
           ) : null}
         </div>
 
-        <p className="display mt-1 text-2xl font-bold text-white">
+        <p className="display mt-1 text-2xl font-bold text-[#16181C]">
           {formatPrice(bike.priceCents, bike.priceConfirmed)}
         </p>
 
@@ -127,7 +127,7 @@ function Badge({ children, variant = "dark" }: { children: React.ReactNode; vari
       className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider shadow-sm ${
         variant === "red"
           ? "bg-[#E31B2B] text-white"
-          : "border border-white/15 bg-[#111216]/90 text-[#F5F5F5] backdrop-blur-xs"
+          : "border border-[#E2E5E9] bg-white/95 text-[#16181C] backdrop-blur-xs"
       }`}
     >
       {children}

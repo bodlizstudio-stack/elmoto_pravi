@@ -6,7 +6,25 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const staticPaths = ["", "/motorji", "/kove", "/najem", "/o-nas", "/pogosta-vprasanja", "/kontakt", "/zasebnost", "/piskotki", "/pogoji", "/pogoji-najema", "/podjetje"];
+  const staticPaths = [
+    "",
+    "/motorji",
+    "/oprema",
+    "/najem",
+    "/komisijska-prodaja",
+    "/uvoz",
+    "/garancija-financiranje",
+    "/kove",
+    "/galerija",
+    "/o-nas",
+    "/pogosta-vprasanja",
+    "/kontakt",
+    "/zasebnost",
+    "/piskotki",
+    "/pogoji",
+    "/pogoji-najema",
+    "/podjetje",
+  ];
   const bikes = await prisma.motorcycle.findMany({
     where: { publication: "PUBLISHED" },
     select: { slug: true, updatedAt: true, forSale: true, forRent: true, status: true },

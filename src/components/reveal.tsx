@@ -9,7 +9,7 @@ export function Reveal({ children, className = "" }: { children: React.ReactNode
   useEffect(() => {
     if (!node) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setShown(true);
+      queueMicrotask(() => setShown(true));
       return;
     }
     const observer = new IntersectionObserver(

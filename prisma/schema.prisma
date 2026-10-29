@@ -294,3 +294,19 @@ model Subscriber {
   consent   Boolean
   createdAt DateTime @default(now())
 }
+
+model Equipment {
+  id          String   @id @default(cuid())
+  title       String
+  priceCents  Int?
+  description String   @default("")
+  category    String   @default("Splošno")
+  imageUrl    String   @default("")
+  avtonetUrl  String   @default("")
+  published   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, sortOrder])
+}

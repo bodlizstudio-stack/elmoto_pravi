@@ -27,12 +27,12 @@ const services = [
   {
     title: "Komisijska prodaja",
     text: "Svoj motor prepustiš nam, mi pa poskrbimo za celoten postopek predstavitve in varne prodaje.",
-    href: "/kontakt?vrsta=OTHER&model=Komisijska%20prodaja",
+    href: "/komisijska-prodaja",
   },
   {
     title: "Odkup in menjava",
     text: "Zamenjaj svoj trenutni motor za drugega — nudimo možnost odkupa oziroma doplačila ob menjavi za novega ali drugega rabljenega.",
-    href: "/kontakt?vrsta=OTHER&model=Odkup%20in%20menjava",
+    href: "/komisijska-prodaja#menjava",
   },
   {
     title: "Najem in preizkus motorjev KOVE",
@@ -77,23 +77,23 @@ export default async function AboutPage() {
   });
 
   return (
-    <section className="bg-[#111216] py-10 text-[#F5F5F5] sm:py-14">
+    <section className="bg-[#F6F6F4] py-10 text-[#16181C] sm:py-14">
       <div className="wrap max-w-5xl">
         <Breadcrumbs items={[{ href: "/", label: "Domov" }, { label: "O nas" }]} />
         <p className="kicker mt-4">EL-MOTO d.o.o. — Tvoja pot, tvoj motor</p>
-        <h1 className="display mt-2.5 text-5xl text-white sm:text-7xl">O NAS</h1>
+        <h1 className="display mt-2.5 text-5xl text-[#16181C] sm:text-7xl">O NAS</h1>
 
-        {/* Glavna vsebina z natančno zahtevanim poudarjanjem (bold samo EL-MOTO in ključna ponudba v srednjem odstavku) */}
-        <div className="mt-7 grid gap-5 rounded-[14px] border border-white/10 bg-[#1B1D22] p-6 text-[17px] leading-8 text-[#B9BDC5] sm:p-8">
-          <p className="text-xl leading-8 text-[#F5F5F5]">
-            Pri <strong className="font-bold text-white">EL-MOTO</strong> verjamemo, da je motor več kot le prevozno sredstvo. Je svoboda, strast do vožnje in želja po odkrivanju novih poti.
+        {/* Glavna vsebina z natančno zahtevanim poudarjanjem */}
+        <div className="mt-7 grid gap-5 rounded-[14px] border border-[#E2E5E9] bg-white p-6 shadow-sm text-[17px] leading-8 text-[#5B616B] sm:p-8">
+          <p className="text-xl leading-8 text-[#16181C]">
+            Pri <strong className="font-bold text-[#16181C]">EL-MOTO</strong> verjamemo, da je motor več kot le prevozno sredstvo. Je svoboda, strast do vožnje in želja po odkrivanju novih poti.
           </p>
           <p>
             Naša ponudba združuje skrbno izbrana rabljena motorna kolesa z garancijo različnih znamk ter nova motorna kolesa znamke KOVE, za katero smo pooblaščeni prodajalec.
           </p>
           <p>
             Poleg motornih koles iz naše redne zaloge ti omogočamo tudi{" "}
-            <strong className="font-bold text-white">
+            <strong className="font-bold text-[#16181C]">
               uvoz po naročilu, komisijsko prodajo ter odkup in menjavo motorja, motor KOVE pa lahko tudi najameš za preizkus pred nakupom ali užitek v vožnji
             </strong>
             .
@@ -102,27 +102,27 @@ export default async function AboutPage() {
             Za še več brezskrbnosti na cesti so na voljo podaljšano jamstvo pri nakupu novega ali rabljenega motornega kolesa Bike PROTECTION by CarGarantie ter prilagodljive možnosti financiranja prek Leanpay, NLB Buy&amp;Go in NLB Lease&amp;Go.
           </p>
           <p>
-            Pri <strong className="font-bold text-white">EL-MOTO</strong> stavimo na kakovost, prilagodljivost in oseben pristop – od prvega vprašanja do končne odločitve. Nahajamo se na naslovu {site.street}, {site.postalCode} {site.city}.
+            Pri <strong className="font-bold text-[#16181C]">EL-MOTO</strong> stavimo na kakovost, prilagodljivost in oseben pristop – od prvega vprašanja do končne odločitve. Nahajamo se na naslovu {site.street}, {site.postalCode} {site.city}.
           </p>
         </div>
 
         {/* Naša ponudba in storitve */}
         <div className="mt-12">
           <p className="kicker">Celovite storitve</p>
-          <h2 className="display mt-2 text-3xl text-white sm:text-4xl">NAŠA PONUDBA IN STORITVE</h2>
+          <h2 className="display mt-2 text-3xl text-[#16181C] sm:text-4xl">NAŠA PONUDBA IN STORITVE</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
               <Link
                 key={service.title}
                 href={service.href}
-                className="group flex flex-col justify-between rounded-[14px] border border-white/10 bg-[#25272D] p-5 transition-all hover:-translate-y-0.5 hover:border-[#E31B2B]"
+                className="group flex flex-col justify-between rounded-[14px] border border-[#E2E5E9] bg-white p-5 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-[#E31B2B] hover:shadow-md"
               >
                 <div>
-                  <h3 className="flex items-center gap-2.5 text-lg font-bold text-[#F5F5F5]">
+                  <h3 className="flex items-center gap-2.5 text-lg font-bold text-[#16181C]">
                     <CheckCircle2 aria-hidden className="h-5 w-5 shrink-0 text-[#E31B2B]" />
                     <span>{service.title}</span>
                   </h3>
-                  <p className="mt-2.5 text-sm leading-6 text-[#B9BDC5]">{service.text}</p>
+                  <p className="mt-2.5 text-sm leading-6 text-[#5B616B]">{service.text}</p>
                 </div>
                 <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#E31B2B]">
                   Več o tem
@@ -133,17 +133,17 @@ export default async function AboutPage() {
           </div>
         </div>
 
-        {/* Financiranje in podaljšano jamstvo (Leanpay, NLB Buy&Go, NLB Lease&Go, Bike PROTECTION by CarGarantie) */}
+        {/* Financiranje in podaljšano jamstvo */}
         <div className="mt-12">
           <p className="kicker">Financiranje in jamstvo</p>
-          <h2 className="display mt-2 text-3xl text-white sm:text-4xl">
+          <h2 className="display mt-2 text-3xl text-[#16181C] sm:text-4xl">
             FINANCIRANJE IN PODALJŠANO JAMSTVO
           </h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {financingAndWarranty.map((item) => (
               <div
                 key={item.title}
-                className="flex flex-col justify-between rounded-[14px] border border-white/10 bg-[#25272D] p-6"
+                className="flex flex-col justify-between rounded-[14px] border border-[#E2E5E9] bg-white p-6 shadow-2xs text-[#16181C]"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2">
@@ -156,8 +156,8 @@ export default async function AboutPage() {
                       <Wallet aria-hidden className="h-5 w-5 text-[#E31B2B]" />
                     )}
                   </div>
-                  <h3 className="display mt-2 text-2xl text-white">{item.title}</h3>
-                  <p className="mt-2.5 text-sm leading-6 text-[#B9BDC5]">{item.text}</p>
+                  <h3 className="display mt-2 text-2xl text-[#16181C]">{item.title}</h3>
+                  <p className="mt-2.5 text-sm leading-6 text-[#5B616B]">{item.text}</p>
                 </div>
               </div>
             ))}
@@ -180,7 +180,7 @@ export default async function AboutPage() {
                     <Photo src={photo.url} alt={photo.alt || "EL-MOTO"} sizes="(min-width: 640px) 45vw, 100vw" />
                   </span>
                   {photo.alt ? (
-                    <span className="block px-4 py-3 text-sm leading-5 text-[#B9BDC5]">{photo.alt}</span>
+                    <span className="block px-4 py-3 text-sm leading-5 text-[#5B616B]">{photo.alt}</span>
                   ) : null}
                 </>
               );
@@ -188,12 +188,12 @@ export default async function AboutPage() {
                 <Link
                   key={photo.id}
                   href={photo.linkUrl}
-                  className="overflow-hidden rounded-[14px] border border-white/10 bg-[#25272D]"
+                  className="overflow-hidden rounded-[14px] border border-[#E2E5E9] bg-white shadow-2xs"
                 >
                   {frame}
                 </Link>
               ) : (
-                <div key={photo.id} className="overflow-hidden rounded-[14px] border border-white/10 bg-[#25272D]">
+                <div key={photo.id} className="overflow-hidden rounded-[14px] border border-[#E2E5E9] bg-white shadow-2xs">
                   {frame}
                 </div>
               );

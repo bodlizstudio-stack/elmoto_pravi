@@ -14,7 +14,7 @@ export const site = {
   email: "info@elmoto.si",
   instagram: "https://www.instagram.com/elmoto.si/",
   instagramHandle: "@elmoto.si",
-  facebook: "https://www.facebook.com/p/El-Moto-61587166702216/",
+  facebook: "https://www.facebook.com/profile.php?id=61583000308059",
   lat: 46.11671,
   lng: 14.54729,
   taxNumber: "SI48944092",
@@ -37,6 +37,8 @@ export const osmUrl =
 export const productionOrigin = "https://www.elmoto.si";
 
 export const avtoNetUrl = "https://www.avto.net/EL-MOTO";
+export const avtoNetOpremaUrl =
+  "https://www.avto.net/Ads/results.asp?znamka=&model=&modelID=&tip=&znamka2=&model2=&tip2=&znamka3=&model3=&tip3=&cenaMin=0&cenaMax=999999&letnikMin=0&letnikMax=2090&bencin=0&starost2=999&oblika=0&ccmMin=0&ccmMax=99999&mocMin=0&mocMax=999999&kmMin=0&kmMax=9999999&kwMin=0&kwMax=999999&motortakt=0&motorvalji=0&lokacija=0&sirina=0&dolzina=&dolzinaMIN=0&dolzinaMAX=100&nosilnostMIN=0&nosilnostMAX=999999&sedezevMIN=0&sedezevMAX=9&lezisc=&presek=0&premer=0&col=0&vijakov=0&EToznaka=0&vozilo=0&airbag=&barva=&barvaint=&doseg=0&BkType=0&BkOkvir=0&BkOkvirType=0&Bk4=0&EQ1=1000000000&EQ2=1000000000&EQ3=1000000000&EQ4=100000000&EQ5=1000000000&EQ6=1000001000&EQ7=1110100122&EQ8=1010000000&EQ9=1000000020&EQ10=1000000000&EQ11=1000000000&EQ12=120000000&KAT=1070000000&PIA=&PIAzero=&PIAOut=&PSLO=&akcija=0&paketgarancije=&broker=21407&prikazkategorije=0&kategorija=0&ONLvid=0&ONLnak=0&zaloga=10&arhiv=0&presort=&tipsort=&stran=";
 export const koveCatalogUrl = "https://kove.si/ponudba-motociklov/";
 
 export function siteUrl() {
@@ -68,23 +70,23 @@ export const inquiryStatuses = [
 
 export const saleLinks = [
   { href: "/motorji", label: "Vsi motorji", condition: "" },
-  { href: "/motorji?condition=USED", label: "Rabljeni motorji", condition: "USED" },
   { href: "/motorji?condition=NEW", label: "Novi motorji", condition: "NEW" },
+  { href: "/motorji?condition=USED", label: "Rabljeni motorji", condition: "USED" },
 ] as const;
 
 export const ponudbaLinks = [
-  { href: "/motorji", label: "VSI MOTORJI" },
-  { href: "/motorji?condition=NEW", label: "NOVI MOTORJI" },
-  { href: "/motorji?condition=USED", label: "RABLJENI MOTORJI" },
+  { href: "/motorji", label: "RAZIŠČI MOTORJE" },
   { href: "/kove", label: "KOVE" },
-  { href: "/uvoz", label: "UVOZ MOTORJEV" },
-  { href: "/najem", label: "NAJEM MOTORJEV" },
   { href: "/oprema", label: "MOTO OPREMA" },
+  { href: "/najem", label: "NAJEM" },
+  { href: "/uvoz", label: "UVOZ" },
+  { href: "/komisijska-prodaja", label: "KOMISIJSKA PRODAJA" },
 ] as const;
 
+export const ponudbaMotorjevLinks = ponudbaLinks;
+
 export const navItems = [
+  { href: "/garancija-financiranje", label: "GARANCIJA IN FINANCIRANJE" },
   { href: "/o-nas", label: "O NAS" },
-  { href: "/garancija-financiranje", label: "GARANCIJA & FINANCIRANJE" },
-  { href: "/galerija", label: "GALERIJA" },
   { href: "/kontakt", label: "KONTAKT" },
 ] as const;

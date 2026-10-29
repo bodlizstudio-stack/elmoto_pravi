@@ -27,9 +27,9 @@ export function ContactForm({
 
   if (state?.ok) {
     return (
-      <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6 text-[#F5F5F5]" role="status">
-        <h2 className="display text-4xl text-white">Povpraševanje je shranjeno</h2>
-        <p className="mt-3 leading-7 text-[#B9BDC5]">{state.message}</p>
+      <div className="rounded-[14px] border border-[#E2E5E9] bg-white p-6 text-[#16181C] shadow-sm" role="status">
+        <h2 className="display text-4xl text-[#16181C]">Povpraševanje je shranjeno</h2>
+        <p className="mt-3 leading-7 text-[#5B616B]">{state.message}</p>
         <a className="btn btn-primary mt-5" href="/kontakt">
           Pošlji novo sporočilo
         </a>

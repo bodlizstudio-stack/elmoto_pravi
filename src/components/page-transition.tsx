@@ -62,7 +62,10 @@ export function PageTransition() {
   const pendingCommit = useRef<(() => void) | null>(null);
   const scrollLock = useRef<string | null>(null);
   const seenRoute = useRef(false);
-  routerRef.current = router;
+
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
 
   const setPhaseSafe = (next: Phase) => {
     phaseRef.current = next;
@@ -103,7 +106,9 @@ export function PageTransition() {
     setPhaseSafe("entering");
     later(finish, REVEAL_MS);
   };
-  revealRef.current = reveal;
+  useEffect(() => {
+    revealRef.current = reveal;
+  });
 
   useEffect(() => {
     const key = routeKey(pathname, search);

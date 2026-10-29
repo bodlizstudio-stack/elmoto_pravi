@@ -4,7 +4,6 @@ import { ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ExternalLink } from "@/components/external-link";
 import { partners } from "@/lib/partners";
-import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Garancija in financiranje | EL-MOTO d.o.o.",
@@ -86,15 +85,15 @@ const carGarantieBenefits = [
 
 export default function GarancijaFinanciranjePage() {
   return (
-    <div className="bg-[#111216] py-10 text-[#F5F5F5] md:py-14">
+    <div className="bg-[#F6F6F4] py-10 text-[#16181C] md:py-14">
       <div className="wrap">
         <Breadcrumbs items={[{ href: "/", label: "Domov" }, { label: "Garancija & financiranje" }]} />
         <p className="kicker mt-4">Brezskrben nakup pri EL-MOTO</p>
-        <h1 className="display mt-2.5 text-4xl text-white sm:text-6xl">GARANCIJA IN FINANCIRANJE</h1>
-        <p className="mt-4 max-w-2xl text-[17px] leading-7 text-[#B9BDC5]">
-          Za še več brezskrbnosti so pri EL-MOTO na voljo različne možnosti financiranja (<strong className="text-white">Leanpay</strong>,{" "}
-          <strong className="text-white">NLB Buy&amp;Go</strong> in <strong className="text-white">NLB Lease&amp;Go</strong>) ter specializirano podaljšano jamstvo{" "}
-          <strong className="text-white">Bike PROTECTION by CarGarantie</strong> za nova in rabljena motorna kolesa.
+        <h1 className="display mt-2.5 text-4xl text-[#16181C] sm:text-6xl">GARANCIJA IN FINANCIRANJE</h1>
+        <p className="mt-4 max-w-2xl text-[17px] leading-7 text-[#5B616B]">
+          Za še več brezskrbnosti so pri EL-MOTO na voljo različne možnosti financiranja (<strong className="text-[#16181C]">Leanpay</strong>,{" "}
+          <strong className="text-[#16181C]">NLB Buy&amp;Go</strong> in <strong className="text-[#16181C]">NLB Lease&amp;Go</strong>) ter specializirano podaljšano jamstvo{" "}
+          <strong className="text-[#16181C]">Bike PROTECTION by CarGarantie</strong> za nova in rabljena motorna kolesa.
         </p>
 
         {/* Klikabilne kartice partnerjev */}
@@ -104,7 +103,7 @@ export default function GarancijaFinanciranjePage() {
             const inner = (
               <>
                 <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#E31B2B]">{partner.role}</span>
-                <div className="mt-4 flex h-14 w-full items-center justify-center rounded-xl bg-white px-4 py-2">
+                <div className="mt-4 flex h-14 w-full items-center justify-center rounded-xl bg-[#F6F6F4] border border-[#E2E5E9] px-4 py-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={partner.logo}
@@ -114,8 +113,8 @@ export default function GarancijaFinanciranjePage() {
                     className="max-h-9 w-auto object-contain transition-transform group-hover:scale-105"
                   />
                 </div>
-                <h2 className="display mt-4 text-2xl text-white">{partner.name}</h2>
-                <p className="mt-2 text-sm leading-6 text-[#B9BDC5]">{partner.text}</p>
+                <h2 className="display mt-4 text-2xl text-[#16181C]">{partner.name}</h2>
+                <p className="mt-2 text-sm leading-6 text-[#5B616B]">{partner.text}</p>
                 <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#E31B2B]">
                   Poglej {partner.name}
                   <ArrowUpRight aria-hidden className="h-4 w-4" />
@@ -126,7 +125,7 @@ export default function GarancijaFinanciranjePage() {
               <ExternalLink
                 key={partner.id}
                 href={partner.href}
-                className="group flex flex-col items-center rounded-[14px] border border-white/10 bg-[#25272D] px-5 py-6 text-center transition hover:-translate-y-1 hover:border-[#E31B2B]"
+                className="group flex flex-col items-center rounded-[14px] border border-[#E2E5E9] bg-white px-5 py-6 text-center shadow-2xs transition hover:-translate-y-1 hover:border-[#E31B2B] hover:shadow-md"
               >
                 {inner}
               </ExternalLink>
@@ -134,7 +133,7 @@ export default function GarancijaFinanciranjePage() {
               <a
                 key={partner.id}
                 href={partner.href}
-                className="group flex flex-col items-center rounded-[14px] border border-white/10 bg-[#25272D] px-5 py-6 text-center transition hover:-translate-y-1 hover:border-[#E31B2B]"
+                className="group flex flex-col items-center rounded-[14px] border border-[#E2E5E9] bg-white px-5 py-6 text-center shadow-2xs transition hover:-translate-y-1 hover:border-[#E31B2B] hover:shadow-md"
               >
                 {inner}
               </a>
@@ -145,19 +144,19 @@ export default function GarancijaFinanciranjePage() {
         {/* 1. LEANPAY */}
         <section
           id="leanpay"
-          className="mt-12 scroll-mt-28 overflow-hidden rounded-[16px] border border-white/10 bg-[#1B1D22] p-6 text-[#F5F5F5] sm:p-10"
+          className="mt-12 scroll-mt-28 overflow-hidden rounded-[16px] border border-[#E2E5E9] bg-white p-6 text-[#16181C] shadow-sm sm:p-10"
         >
-          <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 border-b border-[#E2E5E9] pb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="inline-block rounded-full border border-[#E31B2B]/40 bg-[#E31B2B]/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#F5F5F5]">
+              <span className="inline-block rounded-full border border-[#E31B2B]/30 bg-[#E31B2B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#E31B2B]">
                 Enostavna plačila na obroke · Avto-Moto
               </span>
-              <h2 className="display mt-3 text-3xl text-white sm:text-4xl">
+              <h2 className="display mt-3 text-3xl text-[#16181C] sm:text-4xl">
                 Leanpay – Najenostavnejši način plačevanja na obroke!
               </h2>
-              <p className="mt-2 max-w-2xl text-[16px] leading-6 text-[#B9BDC5]">
+              <p className="mt-2 max-w-2xl text-[16px] leading-6 text-[#5B616B]">
                 Vse urediš na mobilnem telefonu, brez obiska banke in odvečne papirologije. Preveri več na uradni strani{" "}
-                <ExternalLink href="https://www.leanpay.si/avto-moto/" className="font-semibold text-white underline decoration-[#E31B2B]">
+                <ExternalLink href="https://www.leanpay.si/avto-moto/" className="font-semibold text-[#16181C] underline decoration-[#E31B2B]">
                   leanpay.si/avto-moto
                 </ExternalLink>
                 .
@@ -166,7 +165,7 @@ export default function GarancijaFinanciranjePage() {
             <div className="flex flex-wrap items-center gap-3 self-start">
               <ExternalLink
                 href="https://www.leanpay.si/avto-moto/"
-                className="inline-flex shrink-0 items-center gap-2 rounded-[12px] bg-white px-4 py-3 shadow-sm transition hover:opacity-90"
+                className="inline-flex shrink-0 items-center gap-2 rounded-[12px] bg-[#F6F6F4] border border-[#E2E5E9] px-4 py-3 shadow-xs transition hover:opacity-90"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/images/partners/leanpay_logo2.png" alt="Leanpay" width={150} height={38} className="h-8 w-auto object-contain" />
@@ -174,7 +173,7 @@ export default function GarancijaFinanciranjePage() {
               </ExternalLink>
               <ExternalLink
                 href="https://www.leanpay.si/avto-moto/"
-                className="inline-flex shrink-0 items-center overflow-hidden rounded-[12px] shadow-sm transition hover:opacity-90"
+                className="inline-flex shrink-0 items-center overflow-hidden rounded-[12px] border border-[#E2E5E9] shadow-xs transition hover:opacity-90"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/images/partners/Leanpay-logo.png" alt="Leanpay Avto-Moto" width={120} height={51} className="h-12 w-auto object-contain" />
@@ -186,7 +185,7 @@ export default function GarancijaFinanciranjePage() {
             {leanpayBadges.map((badge) => (
               <span
                 key={badge}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-[#25272D] px-3.5 py-1.5 text-xs font-bold text-[#F5F5F5]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E5E9] bg-[#F6F6F4] px-3.5 py-1.5 text-xs font-bold text-[#16181C]"
               >
                 <CheckCircle2 aria-hidden className="h-3.5 w-3.5 text-[#E31B2B]" />
                 {badge}
@@ -195,9 +194,9 @@ export default function GarancijaFinanciranjePage() {
           </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-              <h3 className="display text-2xl text-white">Kakšni so pogoji za nakup na obroke?</h3>
-              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#B9BDC5]">
+            <div className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+              <h3 className="display text-2xl text-[#16181C]">Kakšni so pogoji za nakup na obroke?</h3>
+              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#5B616B]">
                 {leanpayConditions.map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <CheckCircle2 aria-hidden className="mt-1 h-4 w-4 shrink-0 text-[#E31B2B]" />
@@ -205,41 +204,40 @@ export default function GarancijaFinanciranjePage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-[14px] leading-6 text-[#B9BDC5]">
+              <p className="mt-4 text-[14px] leading-6 text-[#5B616B]">
                 Ko v postopku prijave prejmeš ponudbo izbrane trgovine, lahko preveriš mesečni znesek obroka in število obrokov ter izbereš po svojih željah.
               </p>
             </div>
 
-            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-              <h3 className="display text-2xl text-white">Kako poteka prvi nakup prek Leanpaya?</h3>
-              <p className="mt-2 text-[14px] text-[#B9BDC5]">Prvi nakup prek Leanpaya poteka v nekaj preprostih korakih:</p>
-              <ol className="mt-4 space-y-3 text-[15px] leading-6 text-[#B9BDC5]">
+            <div className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+              <h3 className="display text-2xl text-[#16181C]">Kako poteka prvi nakup prek Leanpaya?</h3>
+              <p className="mt-2 text-[14px] text-[#5B616B]">Prvi nakup prek Leanpaya poteka v nekaj preprostih korakih:</p>
+              <ol className="mt-4 space-y-3 text-[15px] leading-6 text-[#5B616B]">
                 {leanpayFirstPurchaseSteps.map((item) => (
                   <li key={item.step}>
-                    <strong className="font-bold text-white">{item.step}:</strong> {item.text}
+                    <strong className="font-bold text-[#16181C]">{item.step}:</strong> {item.text}
                   </li>
                 ))}
               </ol>
-              <p className="mt-4 rounded-[10px] border border-white/10 bg-[#1B1D22] p-3 text-xs leading-5 text-[#B9BDC5]">
-                <strong className="text-white">Opomba:</strong> Verifikacija poteka digitalno, vendar si Leanpay pridržuje pravico do zahtevanja dodatnih dokumentov ali informacij. Identifikacijski dokument mora biti v trenutku postopka veljaven.
+              <p className="mt-4 rounded-[10px] border border-[#E2E5E9] bg-white p-3 text-xs leading-5 text-[#5B616B]">
+                <strong className="text-[#16181C]">Opomba:</strong> Verifikacija poteka digitalno, vendar si Leanpay pridržuje pravico do zahtevanja dodatnih dokumentov ali informacij. Identifikacijski dokument mora biti v trenutku postopka veljaven.
               </p>
             </div>
           </div>
 
-          <div className="mt-6 rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-            <h3 className="display text-2xl text-white">Kakšni so stroški?</h3>
-            <p className="mt-2 text-[15px] leading-6 text-[#B9BDC5]">
+          <div className="mt-6 rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+            <h3 className="display text-2xl text-[#16181C]">Kakšni so stroški?</h3>
+            <p className="mt-2 text-[15px] leading-6 text-[#5B616B]">
               Leanpay se zavzema za preglednost in omogoča enostaven dostop do vseh informacij o transakciji, vključno s stroški, obrestmi, datumi zapadlosti in več. Te podatke lahko preveri vsak potencialni uporabnik v razdelku &quot;Standardne predhodne informacije&quot; na prvem zaslonu postopka prijave. Leanpay uporablja letno obrestno mero in stroške ocene tveganja, ki so natančno opredeljeni v ceniku Leanpay.
             </p>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <ExternalLink href="https://www.leanpay.si/avto-moto/" className="btn btn-primary">
-              <span>Leanpay Avto-Moto – preveri svoj limit</span>
-              <ArrowUpRight aria-hidden className="h-4 w-4" />
-            </ExternalLink>
-            <Link href="/kontakt?vrsta=PURCHASE&model=Leanpay%20financiranje" className="btn btn-secondary">
-              Povprašaj za Leanpay pri EL-MOTO
+            <Link
+              href="/kontakt?vrsta=PURCHASE&model=Leanpay%20financiranje#kontaktni-obrazec"
+              className="btn btn-primary"
+            >
+              <span>Kontaktiraj</span>
             </Link>
           </div>
         </section>
@@ -247,20 +245,20 @@ export default function GarancijaFinanciranjePage() {
         {/* 2. NLB BUY&GO IN NLB LEASE&GO */}
         <section
           id="nlb"
-          className="mt-10 scroll-mt-28 rounded-[16px] border border-white/10 bg-[#1B1D22] p-6 text-[#F5F5F5] sm:p-10"
+          className="mt-10 scroll-mt-28 rounded-[16px] border border-[#E2E5E9] bg-white p-6 text-[#16181C] shadow-sm sm:p-10"
         >
-          <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 border-b border-[#E2E5E9] pb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="inline-block rounded-full border border-[#E31B2B]/40 bg-[#E31B2B]/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-white">
+              <span className="inline-block rounded-full border border-[#E31B2B]/30 bg-[#E31B2B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#E31B2B]">
                 NLB Buy&amp;Go &amp; NLB Lease&amp;Go · Do 15.000 € · Do 84 obrokov · Za stranke vseh bank
               </span>
-              <h2 className="display mt-3 text-3xl text-white sm:text-4xl">
+              <h2 className="display mt-3 text-3xl text-[#16181C] sm:text-4xl">
                 NLB Buy&amp;Go in NLB Lease&amp;Go – Financiranje po tvoji meri
               </h2>
             </div>
             <ExternalLink
               href="https://www.nlbbuygo.si/"
-              className="inline-flex shrink-0 items-center gap-2 self-start rounded-[12px] bg-white px-4 py-3 shadow-sm transition hover:opacity-90"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-[12px] bg-[#F6F6F4] border border-[#E2E5E9] px-4 py-3 shadow-xs transition hover:opacity-90"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/partners/nlb-buy-go.png" alt="NLB Buy&Go" width={160} height={32} className="h-7 w-auto object-contain" />
@@ -268,14 +266,14 @@ export default function GarancijaFinanciranjePage() {
             </ExternalLink>
           </div>
 
-          <p className="mt-5 max-w-3xl text-[16px] leading-7 text-[#B9BDC5]">
-            <strong className="text-white">NLB Buy&amp;Go</strong> je hitro obročno financiranje na prodajnem mestu, ki ti omogoča, da nakup v vrednosti <strong className="text-white">do 15.000 evrov</strong> razdeliš na <strong className="text-white">do 84 enakovrednih obrokov</strong>. Poleg tega nudimo tudi finančni lizing <strong className="text-white">NLB Lease&amp;Go</strong> za fizične in pravne osebe.
+          <p className="mt-5 max-w-3xl text-[16px] leading-7 text-[#5B616B]">
+            <strong className="text-[#16181C]">NLB Buy&amp;Go</strong> je hitro obročno financiranje na prodajnem mestu, ki ti omogoča, da nakup v vrednosti <strong className="text-[#16181C]">do 15.000 evrov</strong> razdeliš na <strong className="text-[#16181C]">do 84 enakovrednih obrokov</strong>. Poleg tega nudimo tudi finančni lizing <strong className="text-[#16181C]">NLB Lease&amp;Go</strong> za fizične in pravne osebe.
           </p>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-              <h3 className="display text-2xl text-white">Prednosti NLB Buy&amp;Go in NLB Lease&amp;Go</h3>
-              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#B9BDC5]">
+            <div className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+              <h3 className="display text-2xl text-[#16181C]">Prednosti NLB Buy&amp;Go in NLB Lease&amp;Go</h3>
+              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#5B616B]">
                 {nlbAdvantages.map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <CheckCircle2 aria-hidden className="mt-1 h-4 w-4 shrink-0 text-[#E31B2B]" />
@@ -285,9 +283,9 @@ export default function GarancijaFinanciranjePage() {
               </ul>
             </div>
 
-            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-              <h3 className="display text-2xl text-white">Kaj potrebujem za sklenitev financiranja?</h3>
-              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#B9BDC5]">
+            <div className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+              <h3 className="display text-2xl text-[#16181C]">Kaj potrebujem za sklenitev financiranja?</h3>
+              <ul className="mt-4 space-y-3 text-[15px] leading-6 text-[#5B616B]">
                 {nlbRequirements.map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <CheckCircle2 aria-hidden className="mt-1 h-4 w-4 shrink-0 text-[#E31B2B]" />
@@ -299,16 +297,11 @@ export default function GarancijaFinanciranjePage() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <ExternalLink href="https://www.nlbbuygo.si/" className="btn btn-primary">
-              <span>Odpri NLB Buy&amp;Go (nlbbuygo.si)</span>
-              <ArrowUpRight aria-hidden className="h-4 w-4" />
-            </ExternalLink>
-            <ExternalLink href="https://www.nlbleasego.si/fizicne-osebe" className="btn btn-secondary">
-              <span>NLB Lease&amp;Go za fizične osebe</span>
-              <ArrowUpRight aria-hidden className="h-4 w-4" />
-            </ExternalLink>
-            <Link href="/kontakt?vrsta=PURCHASE&model=NLB%20financiranje" className="btn btn-secondary">
-              Povprašaj za NLB ponudbo pri EL-MOTO
+            <Link
+              href="/kontakt?vrsta=PURCHASE&model=NLB%20financiranje#kontaktni-obrazec"
+              className="btn btn-primary"
+            >
+              <span>Kontaktiraj</span>
             </Link>
           </div>
         </section>
@@ -316,20 +309,20 @@ export default function GarancijaFinanciranjePage() {
         {/* 3. BIKE PROTECTION BY CARGARANTIE */}
         <section
           id="cargarantie"
-          className="mt-10 scroll-mt-28 rounded-[16px] border border-white/10 bg-[#1B1D22] p-6 text-[#F5F5F5] sm:p-10"
+          className="mt-10 scroll-mt-28 rounded-[16px] border border-[#E2E5E9] bg-white p-6 text-[#16181C] shadow-sm sm:p-10"
         >
-          <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 border-b border-[#E2E5E9] pb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="inline-block rounded-full border border-[#E31B2B]/40 bg-[#E31B2B]/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-white">
+              <span className="inline-block rounded-full border border-[#E31B2B]/30 bg-[#E31B2B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#E31B2B]">
                 Bike PROTECTION by CarGarantie
               </span>
-              <h2 className="display mt-3 text-3xl text-white sm:text-4xl">
+              <h2 className="display mt-3 text-3xl text-[#16181C] sm:text-4xl">
                 Bike PROTECTION by CarGarantie – Specializirano jamstvo za nova in rabljena motorna kolesa
               </h2>
             </div>
             <ExternalLink
               href="https://www.cargarantie.com/si/lastnik-vozila/katera-jamstva-so-na-voljo/"
-              className="inline-flex shrink-0 items-center gap-2 self-start rounded-[12px] bg-white px-4 py-3 transition hover:opacity-90"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-[12px] bg-[#F6F6F4] border border-[#E2E5E9] px-4 py-3 transition hover:opacity-90"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/partners/cargarantie.png" alt="CarGarantie" width={180} height={90} className="h-11 w-auto object-contain" />
@@ -337,53 +330,53 @@ export default function GarancijaFinanciranjePage() {
             </ExternalLink>
           </div>
 
-          <div className="mt-6 space-y-4 text-[16px] leading-7 text-[#B9BDC5]">
+          <div className="mt-6 space-y-4 text-[16px] leading-7 text-[#5B616B]">
             <p>
-              <strong className="text-white">Bike PROTECTION by CarGarantie</strong> je specializirano jamstvo za nova in rabljena motorna kolesa, ki ščiti lastnike pred nepričakovanimi stroški popravil po izteku tovarniške garancije.
+              <strong className="text-[#16181C]">Bike PROTECTION by CarGarantie</strong> je specializirano jamstvo za nova in rabljena motorna kolesa, ki ščiti lastnike pred nepričakovanimi stroški popravil po izteku tovarniške garancije.
             </p>
             <p>
-              <strong className="text-white">CarGarantie</strong> je ena vodilnih specializiranih zavarovalnic v Evropi, ki ponuja podaljšana jamstva in garancije za nova ter rabljena vozila. Deluje kot zanesljiv partner za več kot 40 proizvajalcev vozil in okoli 23.000 avto-moto prodajalcev po Evropi.
+              <strong className="text-[#16181C]">CarGarantie</strong> je ena vodilnih specializiranih zavarovalnic v Evropi, ki ponuja podaljšana jamstva in garancije za nova ter rabljena vozila. Deluje kot zanesljiv partner za več kot 40 proizvajalcev vozil in okoli 23.000 avto-moto prodajalcev po Evropi.
             </p>
           </div>
 
-          <h3 className="display mt-8 text-2xl text-white">Ključne značilnosti jamstva CarGarantie</h3>
+          <h3 className="display mt-8 text-2xl text-[#16181C]">Ključne značilnosti jamstva CarGarantie</h3>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {carGarantieKeyFeatures.map((feature) => (
-              <div key={feature.title} className="rounded-[14px] border border-white/10 bg-[#25272D] p-5">
-                <h4 className="flex items-center gap-2 text-base font-bold text-white">
+              <div key={feature.title} className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-5">
+                <h4 className="flex items-center gap-2 text-base font-bold text-[#16181C]">
                   <CheckCircle2 aria-hidden className="h-5 w-5 shrink-0 text-[#E31B2B]" />
                   <span>{feature.title}</span>
                 </h4>
-                <p className="mt-2 text-[15px] leading-6 text-[#B9BDC5]">{feature.text}</p>
+                <p className="mt-2 text-[15px] leading-6 text-[#5B616B]">{feature.text}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-              <h3 className="display text-2xl text-white">
+            <div className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+              <h3 className="display text-2xl text-[#16181C]">
                 Jamstvo za voznike rabljenih motornih koles – Varni med vožnjo
               </h3>
-              <p className="mt-3 text-[15px] leading-6 text-[#B9BDC5]">
-                Tvoje motorno kolo je bilo temeljito pregledano in strokovno pripravljeno. S sklenitvijo paketa <strong className="text-white">Bike PROTECTION by CarGarantie</strong> boš najmanj 6 oz. 12 mesecev zaščiten pred tem, da bi te morebitni stroški popravil prehudo udarili po žepu. Jamstvo je popolno, kar pomeni, da velja skoraj za vse sestavne dele in za večkratno škodo, razen za obrabne dele (zavorne obloge, gume, žarnice). Možnost podaljšanja velja za 6 ali 12 mesecev do največ 10 let od datuma prve registracije ali do 80.000 prevoženih km.
+              <p className="mt-3 text-[15px] leading-6 text-[#5B616B]">
+                Tvoje motorno kolo je bilo temeljito pregledano in strokovno pripravljeno. S sklenitvijo paketa <strong className="text-[#16181C]">Bike PROTECTION by CarGarantie</strong> boš najmanj 6 oz. 12 mesecev zaščiten pred tem, da bi te morebitni stroški popravil prehudo udarili po žepu. Jamstvo je popolno, kar pomeni, da velja skoraj za vse sestavne dele in za večkratno škodo, razen za obrabne dele (zavorne obloge, gume, žarnice). Možnost podaljšanja velja za 6 ali 12 mesecev do največ 10 let od datuma prve registracije ali do 80.000 prevoženih km.
               </p>
             </div>
 
-            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-              <h3 className="display text-2xl text-white">
+            <div className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+              <h3 className="display text-2xl text-[#16181C]">
                 Podaljšano jamstvo pri nakupu novega motornega kolesa – Svoboda na dveh kolesih
               </h3>
-              <p className="mt-3 text-[15px] leading-6 text-[#B9BDC5]">
-                Želimo, da bi se tvoj utrip pospešil samo med vožnjo in ne ob prejemu računa za nepredvidena popravila. S paketom <strong className="text-white">Bike PROTECTION by CarGarantie</strong> se lahko na terenu in cesti popolnoma prepustiš ritmu motorja — jamstvo bo 12 do 24 mesecev po preteku tovarniške veljavnosti krilo nepredvidene stroške popravil novega motornega kolesa.
+              <p className="mt-3 text-[15px] leading-6 text-[#5B616B]">
+                Želimo, da bi se tvoj utrip pospešil samo med vožnjo in ne ob prejemu računa za nepredvidena popravila. S paketom <strong className="text-[#16181C]">Bike PROTECTION by CarGarantie</strong> se lahko na terenu in cesti popolnoma prepustiš ritmu motorja — jamstvo bo 12 do 24 mesecev po preteku tovarniške veljavnosti krilo nepredvidene stroške popravil novega motornega kolesa.
               </p>
             </div>
           </div>
 
-          <div className="mt-6 rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-            <h4 className="display text-xl text-white">Ugodne storitve, ki se splačajo:</h4>
+          <div className="mt-6 rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
+            <h4 className="display text-xl text-[#16181C]">Ugodne storitve, ki se splačajo:</h4>
             <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
               {carGarantieBenefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-2.5 text-[15px] leading-6 text-[#B9BDC5]">
+                <li key={benefit} className="flex items-start gap-2.5 text-[15px] leading-6 text-[#5B616B]">
                   <CheckCircle2 aria-hidden className="mt-1 h-4 w-4 shrink-0 text-[#E31B2B]" />
                   <span>{benefit}</span>
                 </li>
@@ -392,18 +385,31 @@ export default function GarancijaFinanciranjePage() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <ExternalLink
-              href="https://www.cargarantie.com/si/lastnik-vozila/katera-jamstva-so-na-voljo/"
+            <Link
+              href="/kontakt?vrsta=PURCHASE&model=Jamstvo%20CarGarantie#kontaktni-obrazec"
               className="btn btn-primary"
             >
-              <span>Uradna stran CarGarantie Slovenija</span>
-              <ArrowUpRight aria-hidden className="h-4 w-4" />
-            </ExternalLink>
-            <a href={`tel:${site.phoneTel}`} className="btn btn-secondary">
-              Pokliči {site.phoneDisplay}
-            </a>
+              <span>Kontaktiraj</span>
+            </Link>
           </div>
         </section>
+
+        <div className="mt-10 flex flex-col items-start justify-between gap-6 rounded-[14px] border border-[#E2E5E9] bg-white p-6 shadow-2xs sm:p-8 md:flex-row md:items-center">
+          <div>
+            <h2 className="display text-2xl text-[#16181C] sm:text-3xl">
+              ŽELIŠ INFORMATIVNI IZRAČUN FINANCIRANJA?
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-[#5B616B] sm:text-base">
+              Pošlji nam povpraševanje za financiranje ali podaljšano jamstvo in skupaj bomo poiskali optimalno rešitev obročnega odplačevanja za tvoj motor.
+            </p>
+          </div>
+          <Link
+            href="/kontakt?vrsta=PURCHASE&model=Financiranje#kontaktni-obrazec"
+            className="btn btn-primary w-full sm:w-auto"
+          >
+            <span>Kontaktiraj</span>
+          </Link>
+        </div>
       </div>
     </div>
   );

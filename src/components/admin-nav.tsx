@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/admin", label: "Ponudba motorjev", exact: true },
-  { href: "/admin/motorji/nov", label: "+ Dodaj motor", exact: false },
+  { href: "/admin/motorji/nov", label: "+ Dodaj motor", exact: true },
+  { href: "/admin/oprema", label: "Moto oprema", exact: false },
+  { href: "/admin/galerija", label: "Galerija", exact: false },
   { href: "/admin/vsebina", label: "Urejanje naslovne strani & podatkov", exact: false },
 ] as const;
 
@@ -16,7 +18,7 @@ export function AdminNav() {
     <nav className="mx-auto flex w-full max-w-6xl gap-2 overflow-x-auto px-5 pb-3" aria-label="Administracija">
       {links.map((item) => {
         const isActive = item.exact
-          ? pathname === item.href || (pathname.startsWith("/admin/motorji/") && pathname !== "/admin/motorji/nov")
+          ? pathname === item.href || (item.href === "/admin" && pathname.startsWith("/admin/motorji/") && pathname !== "/admin/motorji/nov")
           : pathname.startsWith(item.href);
 
         return (

@@ -30,9 +30,9 @@ export const heroDefaults = {
   kicker: "Novi in rabljeni motorji z garancijo",
   title: "Tvoja pot. Tvoj motor.",
   text: "Odkrij skrbno izbrano ponudbo novih in rabljenih motornih koles. Pri EL-MOTO ti pomagamo najti motor za tvojo naslednjo pustolovščino.",
-  button: "Preveri ponudbo",
-  focusX: 72,
-  focusY: 30,
+  button: "Razišči motorje",
+  focusX: 82,
+  focusY: 26,
   overlay: 80,
 };
 
@@ -61,7 +61,10 @@ export async function getSettings() {
     whatsappUrl: whatsappFromTel(phone.phoneTel),
     email: !storedEmail || storedEmail === "info@elmoto.si" ? site.email : storedEmail,
     instagram: map.get("instagram") || site.instagram,
-    facebook: map.get("facebook") || site.facebook,
+    facebook:
+      !map.get("facebook") || map.get("facebook")?.includes("61587166702216")
+        ? site.facebook
+        : map.get("facebook")!,
     street: map.get("street") || site.street,
     postalCode: map.get("postal_code") || site.postalCode,
     city: map.get("city") || site.city,

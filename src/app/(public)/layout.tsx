@@ -34,7 +34,7 @@ export default async function PublicLayout({ children }: { children: React.React
   };
 
   return (
-    <div className="public-site min-h-screen bg-[#111216] text-[#F5F5F5]">
+    <div className="public-site min-h-screen bg-[#F6F6F4] text-[#16181C]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <SiteHeader
         phoneDisplay={settings.phoneDisplay}

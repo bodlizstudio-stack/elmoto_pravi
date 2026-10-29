@@ -108,6 +108,19 @@ export function CatalogLiveFilter({
       });
   }, [bikes, condition, brand, category, query, priceMax, yearMin, mileageMax, includeSold, sort]);
 
+  const counts = useMemo(() => {
+    let all = 0;
+    let u = 0;
+    let n = 0;
+    for (const b of bikes) {
+      if (!includeSold && b.status === "SOLD") continue;
+      all++;
+      if (b.condition === "USED") u++;
+      else if (b.condition === "NEW") n++;
+    }
+    return { all, USED: u, NEW: n };
+  }, [bikes, includeSold]);
+
   const hasActiveFilters = Boolean(
     condition || brand || category || query || priceMax || yearMin || mileageMax || includeSold,
   );
@@ -127,14 +140,31 @@ export function CatalogLiveFilter({
   return (
     <div className="mt-8">
       {/* Top Quick Bar: Novi / Rabljeni + Live Search + Quick Brand Pills */}
-      <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-4 shadow-sm sm:p-5">
+      <div className="rounded-[14px] border border-[#E2E5E9] bg-white p-4 shadow-sm sm:p-5 text-[#16181C]">
         <div className="grid gap-4 lg:grid-cols-[auto_1fr_auto] lg:items-center">
-          {/* Condition Tabs: Vsi / Rabljeni / Novi */}
-          <div role="group" aria-label="Stanje motorja" className="flex flex-wrap gap-2">
+          {/* Mobile Category Dropdown Selector (< sm) */}
+          <div className="block sm:hidden">
+            <label className="text-xs font-bold uppercase tracking-wider text-[#5B616B]">
+              Kategorija motorjev:
+            </label>
+            <select
+              value={condition}
+              onChange={(e) => setCondition(e.target.value)}
+              aria-label="Kategorija motorjev"
+              className="mt-1 font-semibold text-[#16181C] border-[#D0D4DC] bg-white"
+            >
+              <option value="">Vsi motorji ({counts.all})</option>
+              <option value="NEW">Novi motorji ({counts.NEW})</option>
+              <option value="USED">Rabljeni motorji ({counts.USED})</option>
+            </select>
+          </div>
+
+          {/* Condition Tabs: Vsi / Novi / Rabljeni (sm and up) */}
+          <div role="group" aria-label="Stanje motorja" className="hidden sm:flex flex-wrap gap-2">
             {[
-              { id: "", label: "Vsi motorji" },
-              { id: "USED", label: "Rabljeni motorji" },
-              { id: "NEW", label: "Novi motorji" },
+              { id: "", label: "Vsi motorji", count: counts.all },
+              { id: "NEW", label: "Novi motorji", count: counts.NEW },
+              { id: "USED", label: "Rabljeni motorji", count: counts.USED },
             ].map((tab) => {
               const selected = condition === tab.id;
               return (
@@ -142,13 +172,20 @@ export function CatalogLiveFilter({
                   key={tab.label}
                   type="button"
                   onClick={() => setCondition(tab.id)}
-                  className={`inline-flex min-h-11 items-center rounded-[10px] border px-4 text-sm font-bold uppercase tracking-wider transition ${
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-[10px] border px-4 text-sm font-bold uppercase tracking-wider transition-all duration-200 ${
                     selected
-                      ? "border-[#E31B2B] bg-[#E31B2B] text-white"
-                      : "border-white/15 bg-[#1B1D22] text-[#F5F5F5] hover:border-white/40"
+                      ? "border-[#E31B2B] bg-[#E31B2B] text-white shadow-[0_4px_16px_rgba(227,27,43,0.35)]"
+                      : "border-[#E2E5E9] bg-[#F6F6F4] text-[#16181C] hover:border-[#16181C] hover:bg-white"
                   }`}
                 >
-                  {tab.label}
+                  <span>{tab.label}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                      selected ? "bg-black/25 text-white" : "bg-black/5 text-[#5B616B]"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
                 </button>
               );
             })}
@@ -156,21 +193,21 @@ export function CatalogLiveFilter({
 
           {/* Instant Live Search Box */}
           <div className="relative">
-            <Search aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#B9BDC5]" />
+            <Search aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5B616B]" />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Sproti išči po znamki, modelu ali opisu ..."
               aria-label="Išči motor"
-              className="pl-10 pr-9"
+              className="pl-10 pr-9 bg-[#F6F6F4] border-[#E2E5E9] text-[#16181C] focus:bg-white"
             />
             {query ? (
               <button
                 type="button"
                 onClick={() => setQuery("")}
                 aria-label="Počisti iskanje"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#B9BDC5] hover:text-white"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#5B616B] hover:text-[#16181C]"
               >
                 <X aria-hidden className="h-4 w-4" />
               </button>
@@ -183,7 +220,7 @@ export function CatalogLiveFilter({
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               aria-label="Razvrsti motorje"
-              className="min-w-44"
+              className="min-w-44 bg-white border-[#D0D4DC] text-[#16181C]"
             >
               <option value="newest">Najnovejši najprej</option>
               <option value="price_asc">Cena: od najnižje</option>
@@ -204,15 +241,15 @@ export function CatalogLiveFilter({
 
         {/* Quick Clickable Brand Pills */}
         {brands.length > 0 ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#B9BDC5]">Znamka:</span>
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#E2E5E9] pt-3.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#5B616B]">Znamka:</span>
             <button
               type="button"
               onClick={() => setBrand("")}
               className={`rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide transition ${
                 brand === ""
                   ? "border-[#E31B2B] bg-[#E31B2B] text-white"
-                  : "border-white/15 bg-[#1B1D22] text-[#F5F5F5] hover:border-white/40"
+                  : "border-[#E2E5E9] bg-[#F6F6F4] text-[#16181C] hover:border-[#16181C] hover:bg-white"
               }`}
             >
               Vse znamke
@@ -227,7 +264,7 @@ export function CatalogLiveFilter({
                   className={`rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide transition ${
                     active
                       ? "border-[#E31B2B] bg-[#E31B2B] text-white"
-                      : "border-white/15 bg-[#1B1D22] text-[#F5F5F5] hover:border-white/40"
+                      : "border-[#E2E5E9] bg-[#F6F6F4] text-[#16181C] hover:border-[#16181C] hover:bg-white"
                   }`}
                 >
                   {b}
@@ -240,8 +277,8 @@ export function CatalogLiveFilter({
 
       {/* Results counter + Reset */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-[#B9BDC5]" aria-live="polite">
-          Prikazanih motorjev: <strong className="text-white">{filtered.length}</strong>{" "}
+        <p className="text-sm font-semibold text-[#5B616B]" aria-live="polite">
+          Prikazanih motorjev: <strong className="text-[#16181C]">{filtered.length}</strong>{" "}
           {bikes.length !== filtered.length ? `od ${bikes.length}` : ""}
         </p>
         {hasActiveFilters ? (
@@ -259,9 +296,9 @@ export function CatalogLiveFilter({
       {/* Sidebar + Grid */}
       <div className="mt-4 grid gap-6 lg:grid-cols-[17rem_1fr]">
         <aside className={`${showMobileFilters ? "block" : "hidden"} lg:block`}>
-          <div className="grid gap-3.5 rounded-[14px] border border-white/10 bg-[#25272D] p-4 sm:p-5">
+          <div className="grid gap-3.5 rounded-[14px] border border-[#E2E5E9] bg-white p-4 sm:p-5 text-[#16181C]">
             <div className="flex items-center justify-between">
-              <h2 className="display text-xl text-white">Podrobni filtri</h2>
+              <h2 className="display text-xl text-[#16181C]">Podrobni filtri</h2>
               {hasActiveFilters ? (
                 <button type="button" onClick={resetAll} className="text-xs font-semibold text-[#E31B2B] underline">
                   Počisti
@@ -348,7 +385,7 @@ export function CatalogLiveFilter({
               />
             </label>
 
-            <label className="flex min-h-10 items-center gap-2.5 text-sm text-[#B9BDC5]">
+            <label className="flex min-h-10 items-center gap-2.5 text-sm text-[#5B616B]">
               <input
                 type="checkbox"
                 checked={includeSold}
@@ -367,17 +404,21 @@ export function CatalogLiveFilter({
               ))}
             </div>
           ) : (
-            <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-              <h2 className="display text-3xl text-white">Ni zadetkov za izbrane filtre</h2>
-              <p className="mt-3 leading-7 text-[#B9BDC5]">
-                Za izbrano kombinacijo filtrov trenutno ni motorjev. Ponastavi filtre ali preveri celotno ponudbo na Avto.net.
+            <div className="rounded-[14px] border border-[#E2E5E9] bg-white p-6 sm:p-8 text-[#16181C]">
+              <h2 className="display text-3xl text-[#16181C]">Ni zadetkov za izbrane filtre</h2>
+              <p className="mt-3 max-w-xl text-base leading-7 text-[#5B616B]">
+                {condition === "NEW"
+                  ? "V kategoriji novih motorjev trenutno ni zadetkov z izbranimi parametri. Preveri ponudbo rabljenih motorjev ali celotno zalogo na Avto.net."
+                  : condition === "USED"
+                    ? "V kategoriji rabljenih motorjev trenutno ni zadetkov z izbranimi parametri. Preveri ponudbo novih motorjev ali povprašaj za uvoz po naročilu."
+                    : "Za izbrano kombinacijo filtrov trenutno ni motorjev. Ponastavi filtre ali preveri celotno ponudbo na Avto.net."}
               </p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <button type="button" onClick={resetAll} className="btn btn-primary w-full sm:w-auto">
-                  Pokaži vse motorje
+                  Prikaži vse motorje
                 </button>
                 <ExternalLink href={avtoNetUrl} className="btn btn-secondary w-full sm:w-auto">
-                  Preveri aktualno ponudbo na Avto.net
+                  Preveri aktualno ponudbo na Avto.net ↗
                 </ExternalLink>
               </div>
             </div>

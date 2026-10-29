@@ -24,15 +24,15 @@ export default async function MotorcyclesPage({
   const canonical = new URL("/motorji", siteUrl());
 
   return (
-    <section className="bg-[#111216] py-10 text-[#F5F5F5] sm:py-14">
+    <section className="bg-[#F6F6F4] py-10 text-[#16181C] sm:py-14">
       <div className="wrap">
         <Breadcrumbs items={[{ href: "/", label: "Domov" }, { label: "Motorji za prodajo" }]} />
         <div className="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="kicker">Aktualna ponudba</p>
-            <h1 className="display mt-2.5 text-5xl text-white sm:text-6xl">NOVI IN RABLJENI MOTORJI</h1>
-            <p className="mt-3 max-w-2xl text-[17px] leading-7 text-[#B9BDC5]">
-              Izberi <strong className="text-white">Novi</strong> ali <strong className="text-white">Rabljeni motorji</strong>, klikni na znamko ali vtipkaj model — motorji se filtrirajo takoj.
+            <h1 className="display mt-2.5 text-5xl text-[#16181C] sm:text-6xl">NOVI IN RABLJENI MOTORJI</h1>
+            <p className="mt-3 max-w-2xl text-[17px] leading-7 text-[#5B616B]">
+              Izberi <strong className="text-[#16181C]">Novi</strong> ali <strong className="text-[#16181C]">Rabljeni motorji</strong>, klikni na znamko ali vtipkaj model — motorji se filtrirajo takoj.
             </p>
           </div>
           <ExternalLink

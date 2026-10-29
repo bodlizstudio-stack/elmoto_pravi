@@ -35,21 +35,21 @@ export default async function RentalPage() {
               const daily = lowestDailyCents(bike.rentalRates);
               const equipment = lines(bike.equipment).slice(0, 4);
               return (
-                <article key={bike.id} className="moto-card flex h-full flex-col rounded-[14px] border border-white/10 bg-[#25272D]">
+                <article key={bike.id} className="moto-card flex h-full flex-col rounded-[14px] border border-[#E2E5E9] bg-white text-[#16181C] shadow-2xs">
                   <PhotoFrame src={coverOf(bike)?.url} alt={displayName(bike)} sizes="(min-width: 1024px) 30vw, 100vw" />
                   <div className="flex flex-1 flex-col p-5">
-                    <h2 className="display text-3xl text-white">{displayName(bike)}</h2>
-                    <p className="mt-2 text-sm text-[#B9BDC5]">{[bike.year, formatCc(bike.engineCc), bike.category].filter(Boolean).join(" · ")}</p>
-                    {bike.description ? <p className="mt-3 line-clamp-4 leading-7 text-[#B9BDC5]">{bike.description}</p> : null}
+                    <h2 className="display text-3xl text-[#16181C]">{displayName(bike)}</h2>
+                    <p className="mt-2 text-sm text-[#5B616B]">{[bike.year, formatCc(bike.engineCc), bike.category].filter(Boolean).join(" · ")}</p>
+                    {bike.description ? <p className="mt-3 line-clamp-4 leading-7 text-[#5B616B]">{bike.description}</p> : null}
                     {equipment.length ? (
-                      <ul className="mt-3 list-disc pl-5 text-sm leading-6 text-[#B9BDC5]">
+                      <ul className="mt-3 list-disc pl-5 text-sm leading-6 text-[#5B616B]">
                         {equipment.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
                     ) : null}
-                    <p className="display mt-4 text-2xl text-white">{daily ? `od ${formatPrice(daily, true)} / dan` : "Cena na povpraševanje"}</p>
-                    <p className="text-sm text-[#B9BDC5]">Na voljo za povpraševanje</p>
+                    <p className="display mt-4 text-2xl text-[#16181C]">{daily ? `od ${formatPrice(daily, true)} / dan` : "Cena na povpraševanje"}</p>
+                    <p className="text-sm text-[#5B616B]">Na voljo za povpraševanje</p>
                     <Link className="btn btn-primary mt-4 w-full" href={`/najem/${bike.slug}`}>
                       Preveri termin
                     </Link>
@@ -62,9 +62,9 @@ export default async function RentalPage() {
             })}
           </div>
         ) : (
-          <div className="mt-8 rounded-[14px] border border-white/10 bg-[#25272D] p-6">
-            <h2 className="display text-4xl text-white">Najem trenutno ni objavljen</h2>
-            <p className="mt-3 leading-7 text-[#B9BDC5]">Ko bo motor označen za najem, se bo prikazal tukaj. Za več informacij nas lahko pokličeš ali nam pišeš.</p>
+          <div className="mt-8 rounded-[14px] border border-[#E2E5E9] bg-white p-6 shadow-2xs text-[#16181C]">
+            <h2 className="display text-4xl text-[#16181C]">Najem trenutno ni objavljen</h2>
+            <p className="mt-3 leading-7 text-[#5B616B]">Ko bo motor označen za najem, se bo prikazal tukaj. Za več informacij nas lahko pokličeš ali nam pišeš.</p>
             <Link className="btn btn-primary mt-5" href="/kontakt">Kontakt</Link>
           </div>
         )}

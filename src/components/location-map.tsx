@@ -8,13 +8,13 @@ const googleMapsEmbedUrl =
 export function LocationMap() {
   return (
     <section className="mt-10" aria-labelledby="map-heading" data-testid="location-map">
-      <h2 id="map-heading" className="display text-3xl text-white sm:text-4xl">
+      <h2 id="map-heading" className="display text-3xl text-[#16181C] sm:text-4xl">
         Kje nas najdeš
       </h2>
-      <p className="mt-2 text-[#B9BDC5]">
+      <p className="mt-2 text-[#5B616B]">
         {site.brand}, {site.street}, {site.postalCode} {site.city}
       </p>
-      <div className="mt-4 h-80 overflow-hidden rounded-[14px] border border-white/10 bg-[#1B1D22] sm:h-[420px]">
+      <div className="mt-4 h-80 overflow-hidden rounded-[14px] border border-[#E2E5E9] bg-white sm:h-[420px]">
         <iframe
           title="Google Maps lokacija EL-MOTO d.o.o., Špruha 33, 1236 Trzin"
           src={googleMapsEmbedUrl}

@@ -43,14 +43,6 @@ export const googleReviews: ReviewItem[] = [
     timeAgo: "pred 3 meseci",
   },
   {
-    id: "rev-5",
-    authorName: "Andrea Prando",
-    text: "Ho venduto la mia moto in Italia, puntuale e preciso, pagamento immediato, nessuna problematica.",
-    rating: 5,
-    source: "Google",
-    timeAgo: "pred 4 meseci",
-  },
-  {
     id: "rev-6",
     authorName: "Dejan Košir",
     text: "Zelo sem zadovoljen z nakupom motorja. 😊 Na vsa vprašanja sem dobil odgovor. 👍",
@@ -94,8 +86,8 @@ export const googleReviews: ReviewItem[] = [
 
 function GoogleBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B9BDC5]">
-      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
+    <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#5B616B]">
+      <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" aria-hidden="true">
         <path
           fill="#4285F4"
           d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.54-5.17 3.54-8.97Z"
@@ -122,6 +114,8 @@ export function ReviewsMarquee({ extraReviews = [] }: { extraReviews?: ReviewIte
   const seen = new Set<string>();
   const allReviews: ReviewItem[] = [];
   for (const item of [...extraReviews, ...googleReviews]) {
+    // Explicitly exclude Andreas / Andrea Prando if present anywhere
+    if (item.authorName.toLowerCase().includes("prando")) continue;
     const key = `${item.authorName.toLowerCase()}::${item.text.slice(0, 30).toLowerCase()}`;
     if (!seen.has(key)) {
       seen.add(key);
@@ -131,26 +125,29 @@ export function ReviewsMarquee({ extraReviews = [] }: { extraReviews?: ReviewIte
 
   return (
     <section
-      className="overflow-hidden border-y border-white/10 bg-[#1B1D22] pb-12 pt-14 text-[#F5F5F5]"
+      className="overflow-hidden border-y border-[#E2E5E9] bg-white py-3 text-[#16181C] sm:py-5 lg:py-6"
       aria-label="Mnenja strank Google"
     >
-      <div className="wrap mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="kicker">Mnenja strank</p>
-          <h2 className="display mt-2.5 text-3xl text-white sm:text-4xl">KAJ O NAS PRAVIJO KUPCI</h2>
+      <div className="wrap mb-2.5 flex items-center justify-between gap-2 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <span className="h-0.5 w-4 rounded-full bg-[#E31B2B] sm:w-6" aria-hidden="true" />
+          <h2 className="display text-base font-bold uppercase tracking-wider text-[#16181C] sm:text-2xl">
+            MNENJA STRANK
+          </h2>
         </div>
-        <div className="inline-flex items-center gap-2.5 self-start rounded-full border border-white/12 bg-[#25272D] px-4 py-2 text-sm font-bold text-white shadow-sm">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E5E9] bg-[#F6F6F4] px-2.5 py-1 text-[11px] font-bold text-[#16181C] shadow-2xs sm:gap-2 sm:px-3.5 sm:py-1.5 sm:text-xs">
           <div className="flex items-center text-[#fbbc04]" aria-hidden="true">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="h-4 w-4 fill-current" />
+              <Star key={i} className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
             ))}
           </div>
-          <span>5,0 / 5 na Googlu</span>
+          <span className="sm:hidden">5,0 / 5</span>
+          <span className="hidden sm:inline">5,0 / 5 na Googlu</span>
         </div>
       </div>
 
       <div className="reviews-marquee-mask relative w-full overflow-hidden">
-        <div className="reviews-marquee-track flex w-max gap-4 px-2">
+        <div className="reviews-marquee-track flex w-max gap-2 px-2 sm:gap-3">
           {[...allReviews, ...allReviews].map((review, index) => {
             const initial = review.authorName.trim().charAt(0).toUpperCase() || "E";
             const isDuplicate = index >= allReviews.length;
@@ -158,32 +155,45 @@ export function ReviewsMarquee({ extraReviews = [] }: { extraReviews?: ReviewIte
               <article
                 key={`${review.id}-${index}`}
                 aria-hidden={isDuplicate ? "true" : undefined}
-                className="flex w-[20rem] shrink-0 flex-col justify-between rounded-[14px] border border-white/10 bg-[#25272D] p-5 shadow-[0_10px_28px_rgba(0,0,0,0.3)] sm:w-[23rem]"
+                className="flex w-[12rem] shrink-0 flex-col justify-between rounded-[10px] border border-[#E2E5E9] bg-white p-2.5 shadow-2xs transition-transform sm:w-[17.5rem] lg:w-[18.5rem] sm:rounded-[12px] sm:p-3.5 sm:px-4 text-[#16181C]"
               >
                 <div>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#E31B2B] text-sm font-bold text-white">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#E31B2B] text-[10px] font-bold text-white sm:h-8 sm:w-8 sm:text-xs">
                         {initial}
                       </span>
                       <div>
-                        <h3 className="text-[15px] font-bold leading-5 text-[#F5F5F5]">{review.authorName}</h3>
-                        <GoogleBadge />
+                        <h3 className="text-xs font-bold leading-tight text-[#16181C] sm:text-[13.5px] sm:leading-snug">
+                          {review.authorName}
+                        </h3>
+                        <div className="hidden sm:block">
+                          <GoogleBadge />
+                        </div>
                       </div>
                     </div>
-                    <span className="rounded-md border border-white/10 bg-[#111216] px-2.5 py-1 text-xs font-bold text-[#F5F5F5]">
+                    <span className="rounded border border-[#E2E5E9] bg-[#F6F6F4] px-1.5 py-0.5 text-[10px] font-bold text-[#16181C] sm:rounded-md sm:px-2 sm:py-0.5 sm:text-[11px]">
                       {review.rating}/5
                     </span>
                   </div>
 
-                  <div className="mt-3 flex items-center gap-1 text-[#fbbc04]" aria-label={`Ocena ${review.rating} od 5`}>
+                  <div
+                    className="mt-1 flex items-center gap-1 text-[#fbbc04] sm:mt-2"
+                    aria-label={`Ocena ${review.rating} od 5`}
+                  >
                     {Array.from({ length: review.rating || 5 }).map((_, starIdx) => (
-                      <Star key={starIdx} className="h-4 w-4 fill-current" />
+                      <Star key={starIdx} className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
                     ))}
-                    {review.timeAgo ? <span className="ml-2 text-xs text-[#B9BDC5]">{review.timeAgo}</span> : null}
+                    {review.timeAgo ? (
+                      <span className="ml-1 text-[10px] text-[#5B616B] sm:ml-1.5 sm:text-[11px]">
+                        {review.timeAgo}
+                      </span>
+                    ) : null}
                   </div>
 
-                  <p className="mt-3 text-[15px] leading-6 text-[#B9BDC5]">{review.text}</p>
+                  <p className="mt-1 line-clamp-3 text-[11px] leading-snug text-[#5B616B] sm:mt-2 sm:line-clamp-4 sm:text-[13px] sm:leading-relaxed">
+                    {review.text}
+                  </p>
                 </div>
               </article>
             );

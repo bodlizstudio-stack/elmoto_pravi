@@ -12,7 +12,7 @@ export function CookieBanner() {
 
   useEffect(() => {
     const stored = localStorage.getItem(KEY);
-    setVisible(!stored);
+    queueMicrotask(() => setVisible(!stored));
     const open = () => {
       const dialog = document.getElementById("cookie-dialog") as HTMLDialogElement | null;
       dialog?.showModal();
@@ -38,9 +38,9 @@ export function CookieBanner() {
 
   return (
     <>
-      <div ref={bannerRef} className="dock fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#1B1D22] text-[#F5F5F5]">
+      <div ref={bannerRef} className="dock fixed inset-x-0 bottom-0 z-40 border-t border-[#E2E5E9] bg-white text-[#16181C] shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         <div className="wrap flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm leading-5 text-[#B9BDC5]">
+          <p className="text-sm leading-5 text-[#5B616B]">
             Uporabljamo samo nujne podatke v tem brskalniku: izbiro piškotkov in primerjavo motorjev. Analitika ni vklopljena.
           </p>
           <div className="flex gap-2">
@@ -69,22 +69,22 @@ function save(setVisible: (value: boolean) => void) {
 function CookieDialog({ onSave }: { onSave?: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   return (
-    <dialog id="cookie-dialog" ref={ref} className="w-[min(100%-1.5rem,32rem)] rounded-[14px] border border-white/15 bg-[#1B1D22] p-6 text-[#F5F5F5]">
-      <h2 className="display text-4xl">Nastavitve piškotkov</h2>
-      <p className="mt-3 text-sm leading-6">Nujni zapis v brskalniku je vedno vklopljen, ker shrani tvojo izbiro. Analitični in marketinški piškotki niso nameščeni.</p>
-      <label className="mt-4 flex items-center gap-3 text-sm">
+    <dialog id="cookie-dialog" ref={ref} className="w-[min(100%-1.5rem,32rem)] rounded-[14px] border border-[#E2E5E9] bg-white p-6 text-[#16181C] shadow-xl backdrop:bg-black/50">
+      <h2 className="display text-4xl text-[#16181C]">Nastavitve piškotkov</h2>
+      <p className="mt-3 text-sm leading-6 text-[#5B616B]">Nujni zapis v brskalniku je vedno vklopljen, ker shrani tvojo izbiro. Analitični in marketinški piškotki niso nameščeni.</p>
+      <label className="mt-4 flex items-center gap-3 text-sm font-semibold text-[#16181C]">
         <input type="checkbox" checked readOnly className="h-5 w-5" />
         Nujno
       </label>
-      <label className="mt-2 flex items-center gap-3 text-sm text-ink/60">
+      <label className="mt-2 flex items-center gap-3 text-sm text-[#5B616B]/60">
         <input type="checkbox" disabled className="h-5 w-5" />
         Analitika, trenutno ni na voljo
       </label>
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        <button type="button" className="btn btn-dark" onClick={() => { save(onSave ?? (() => undefined)); }}>
+        <button type="button" className="btn btn-primary" onClick={() => { save(onSave ?? (() => undefined)); }}>
           Shrani izbiro
         </button>
-        <button type="button" className="btn btn-line btn-ink" onClick={() => ref.current?.close()}>
+        <button type="button" className="btn btn-secondary" onClick={() => ref.current?.close()}>
           Zapri
         </button>
       </div>

@@ -942,9 +942,10 @@ export async function deleteTestimonial(formData: FormData) {
 
 export async function uploadMedia(formData: FormData) {
   const admin = await requireAdmin();
+  const returnTo = text(formData, "returnTo") || "/admin/vsebina";
   const kind = text(formData, "kind") || "gallery";
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) redirect("/admin/vsebina?error=datoteka");
+  if (!(file instanceof File) || file.size === 0) redirect(`${returnTo}?error=datoteka`);
   const url = await saveImage(file);
   const count = await prisma.mediaAsset.count({ where: { kind } });
   await prisma.mediaAsset.create({
@@ -959,11 +960,13 @@ export async function uploadMedia(formData: FormData) {
   });
   await audit(admin.id, "UPLOAD", "MediaAsset", kind);
   revalidatePath("/", "layout");
-  redirect("/admin/vsebina?saved=1");
+  revalidatePath("/galerija");
+  redirect(`${returnTo}?saved=1`);
 }
 
 export async function deleteMedia(formData: FormData) {
   const admin = await requireAdmin();
+  const returnTo = text(formData, "returnTo") || "/admin/vsebina";
   const id = text(formData, "id");
   const asset = await prisma.mediaAsset.findUnique({ where: { id } });
   if (!asset) return;
@@ -971,7 +974,69 @@ export async function deleteMedia(formData: FormData) {
   await removeUpload(asset.url);
   await audit(admin.id, "DELETE", "MediaAsset", id);
   revalidatePath("/", "layout");
-  redirect("/admin/vsebina?saved=1");
+  revalidatePath("/galerija");
+  redirect(`${returnTo}?saved=1`);
+}
+
+export async function saveEquipment(formData: FormData) {
+  const admin = await requireAdmin();
+  const id = text(formData, "id");
+  const title = text(formData, "title");
+  if (!title) redirect("/admin/oprema?error=naziv");
+
+  const priceEurStr = text(formData, "priceEur");
+  let priceCents: number | null = null;
+  if (priceEurStr) {
+    const priceParsed = euroToCents(priceEurStr);
+    if (!("error" in priceParsed)) {
+      priceCents = priceParsed.cents;
+    }
+  }
+
+  let imageUrl = text(formData, "imageUrl");
+  const file = formData.get("file");
+  if (file instanceof File && file.size > 0) {
+    imageUrl = await saveImage(file);
+  }
+
+  const data = {
+    title,
+    priceCents,
+    description: text(formData, "description"),
+    category: text(formData, "category") || "Splošno",
+    imageUrl: imageUrl || "",
+    avtonetUrl: text(formData, "avtonetUrl"),
+    sortOrder: optionalInt(formData, "sortOrder") ?? 0,
+    published: checked(formData, "published"),
+  };
+
+  if (id) {
+    await prisma.equipment.update({ where: { id }, data });
+  } else {
+    await prisma.equipment.create({ data });
+  }
+
+  await audit(admin.id, id ? "UPDATE" : "CREATE", "Equipment", id || title);
+  revalidatePath("/oprema");
+  revalidatePath("/admin/oprema");
+  redirect("/admin/oprema?saved=1");
+}
+
+export async function deleteEquipment(formData: FormData) {
+  const admin = await requireAdmin();
+  const id = text(formData, "id");
+  const item = await prisma.equipment.findUnique({ where: { id } });
+  if (!item) redirect("/admin/oprema");
+
+  if (item.imageUrl && item.imageUrl.startsWith("/uploads/")) {
+    await removeUpload(item.imageUrl);
+  }
+
+  await prisma.equipment.delete({ where: { id } });
+  await audit(admin.id, "DELETE", "Equipment", id);
+  revalidatePath("/oprema");
+  revalidatePath("/admin/oprema");
+  redirect("/admin/oprema?saved=1");
 }
 
 export async function createManualBooking(formData: FormData) {

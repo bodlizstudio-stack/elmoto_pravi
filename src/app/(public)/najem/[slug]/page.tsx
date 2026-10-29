@@ -73,8 +73,8 @@ export default async function RentalDetail({ params }: { params: Promise<{ slug:
               </div>
             ) : null}
           </div>
-          <div className="rounded-[14px] border border-white/10 bg-[#25272D] p-5 sm:p-6">
-            <h2 className="display text-4xl text-white">Preveri termin</h2>
+          <div className="rounded-[14px] border border-[#E2E5E9] bg-white p-5 shadow-2xs sm:p-6 text-[#16181C]">
+            <h2 className="display text-4xl text-[#16181C]">Preveri termin</h2>
             <RentalForm
               initialMotorcycleId={bike.id}
               motorcycles={bikes.map((item) => ({ id: item.id, label: displayName(item) }))}

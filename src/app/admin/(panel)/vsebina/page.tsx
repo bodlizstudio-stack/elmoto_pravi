@@ -88,7 +88,15 @@ export default async function ContentPage({
 
       {/* 3. FOTOGRAFIJE STRANI IN GALERIJA */}
       <form action={uploadMedia} className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6">
-        <h2 className="display text-3xl text-[#16181c]">Dodaj fotografijo v galerijo</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="display text-3xl text-[#16181c]">Dodaj fotografijo v galerijo ali stran</h2>
+          <a
+            href="/admin/galerija"
+            className="text-xs font-semibold text-[#E31B2B] hover:underline"
+          >
+            Odpri namenski urejevalnik galerije →
+          </a>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="field">
             <span>Mesto prikaza</span>
@@ -132,7 +140,7 @@ export default async function ContentPage({
       {/* 4. OCENE STRANK */}
       <div className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6">
         <h2 className="display text-3xl text-[#16181c]">Mnenja strank</h2>
-        <p className="text-sm text-[#4e555d]">Dodatna mnenja se prikažejo v drsniku »KAJ O NAS PRAVIJO KUPCI«.</p>
+        <p className="text-sm text-[#4e555d]">Dodatna mnenja se prikažejo v drsniku »MNENJA STRANK«.</p>
         <form action={saveTestimonial} className="grid gap-3">
           <div className="grid gap-3 sm:grid-cols-3">
             <Text name="authorName" label="Ime in priimek stranke" />

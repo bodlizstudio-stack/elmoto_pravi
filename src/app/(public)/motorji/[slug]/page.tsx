@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ContactForm } from "@/components/contact-form";
 import { CompareActions, type CompareBikeItem } from "@/components/compare-button";
+import { ExternalLink } from "@/components/external-link";
 import { Gallery } from "@/components/gallery";
 import { MotoCard } from "@/components/moto-card";
-import { ShareButton } from "@/components/share-button";
 import { getBikeBySlug, publicChoices, relatedBikes } from "@/lib/motorcycles";
 import { getSettings } from "@/lib/settings";
 import { siteUrl } from "@/lib/site";
@@ -170,28 +170,28 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
             <h1 className="display mt-2 text-5xl sm:text-6xl">{name}</h1>
             <p className="mt-4 display text-4xl">{formatPrice(bike.priceCents, bike.priceConfirmed)}</p>
             {sold ? (
-              <p className="mt-4 rounded-[12px] border border-white/10 bg-[#25272D] p-4 leading-7 text-[#B9BDC5]">
+              <p className="mt-4 rounded-[12px] border border-[#E2E5E9] bg-white p-4 leading-7 text-[#5B616B]">
                 To vozilo je prodano in ni več na voljo za nakup.
               </p>
             ) : bike.status === "RESERVED" ? (
-              <p className="mt-4 rounded-[12px] border border-white/10 bg-[#25272D] p-4 leading-7 text-[#B9BDC5]">
+              <p className="mt-4 rounded-[12px] border border-[#E2E5E9] bg-white p-4 leading-7 text-[#5B616B]">
                 Vozilo je označeno kot rezervirano. Povpraševanje lahko vseeno pošlješ.
               </p>
             ) : null}
 
             {specRows.length > 0 ? (
-              <div className="mt-6 overflow-hidden rounded-[12px] border border-white/10 bg-[#25272D]">
-                <div className="border-b border-white/10 bg-[#1B1D22] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white">
+              <div className="mt-6 overflow-hidden rounded-[12px] border border-[#E2E5E9] bg-white shadow-2xs">
+                <div className="border-b border-[#E2E5E9] bg-[#F6F6F4] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#16181C]">
                   Osnovni podatki in specifikacije
                 </div>
-                <dl className="divide-y divide-white/10 text-sm">
+                <dl className="divide-y divide-[#E2E5E9] text-sm">
                   {specRows.map((spec, idx) => (
                     <div
                       key={`${spec.label}-${idx}`}
                       className="grid grid-cols-[7.75rem_1fr] gap-2.5 px-3.5 py-2.5 sm:grid-cols-[11.5rem_1fr] sm:gap-3 sm:px-4"
                     >
-                      <dt className="font-semibold text-[#B9BDC5]">{spec.label}:</dt>
-                      <dd className="break-words font-medium text-white">{spec.value}</dd>
+                      <dt className="font-semibold text-[#5B616B]">{spec.label}:</dt>
+                      <dd className="break-words font-medium text-[#16181C]">{spec.value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -203,19 +203,9 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
             </div>
 
             <div className="mt-6 flex flex-col gap-3">
-              {externalUrl ? (
-                <a
-                  href={externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary w-full"
-                >
-                  Poglej oglas na Avto.net ↗
-                </a>
-              ) : null}
               {!sold ? (
                 <>
-                  <a className={`btn ${externalUrl ? "btn-dark" : "btn-primary"} w-full`} href="#povprasevanje">
+                  <a className="btn btn-primary w-full" href="#povprasevanje">
                     Pošlji povpraševanje
                   </a>
                   <a className="btn btn-dark w-full" href="#povprasevanje">
@@ -227,10 +217,18 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
                   Poglej druge motorje
                 </Link>
               )}
+              {externalUrl ? (
+                <ExternalLink
+                  href={externalUrl}
+                  className="btn btn-secondary w-full justify-center"
+                >
+                  <span>Poglej na Avto.net</span>
+                  <span aria-hidden className="text-[#E31B2B]">↗</span>
+                </ExternalLink>
+              ) : null}
               <a className="btn btn-dark w-full" href={`tel:${settings.phoneTel}`}>
                 Pokliči prodajalca ({settings.phoneDisplay})
               </a>
-              <ShareButton title={name} />
             </div>
           </div>
         </div>
@@ -261,13 +259,13 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
         </section>
 
         {!sold ? (
-          <section id="povprasevanje" className="mt-12 max-w-2xl scroll-mt-24 rounded-[14px] border border-white/10 bg-[#1B1D22] p-5 sm:p-7">
-            <h2 className="display text-4xl text-white">Povpraševanje</h2>
-            <p className="mt-2 mb-5 text-sm leading-6 text-[#B9BDC5]">
+          <section id="povprasevanje" className="mt-12 max-w-2xl scroll-mt-24 rounded-[14px] border border-[#E2E5E9] bg-white p-5 shadow-2xs sm:p-7">
+            <h2 className="display text-4xl text-[#16181C]">Povpraševanje</h2>
+            <p className="mt-2 mb-5 text-sm leading-6 text-[#5B616B]">
               Obrazec je izpolnjen za ta motor. Oddaja ni potrditev nakupa.
             </p>
             <ContactForm
-              dark
+              dark={false}
               initialType="PURCHASE"
               initialMotorcycleId={bike.id}
               motorcycles={choices.map((item) => ({ id: item.id, label: displayName(item) }))}
@@ -277,7 +275,7 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
 
         {related.length ? (
           <section className="mt-14">
-            <h2 className="display text-4xl text-white">Podobni motorji</h2>
+            <h2 className="display text-4xl text-[#16181C]">Podobni motorji</h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {related.map((item) => (
                 <MotoCard key={item.id} bike={item} />
@@ -286,7 +284,7 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
           </section>
         ) : null}
       </div>
-      <div className="dock fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#111216] p-3 text-[#F5F5F5] md:hidden">
+      <div className="dock fixed inset-x-0 bottom-0 z-30 border-t border-[#E2E5E9] bg-white p-3 text-[#16181C] shadow-lg md:hidden">
         <div className="grid grid-cols-2 gap-2">
           <a className="btn btn-primary" href={`tel:${settings.phoneTel}`}>
             Pokliči
