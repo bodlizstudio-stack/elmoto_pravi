@@ -80,7 +80,7 @@ export default async function AboutPage() {
     <section className="bg-[#F6F6F4] py-10 text-[#16181C] sm:py-14">
       <div className="wrap max-w-5xl">
         <Breadcrumbs items={[{ href: "/", label: "Domov" }, { label: "O nas" }]} />
-        <p className="kicker mt-4">EL-MOTO d.o.o. — Tvoja pot, tvoj motor</p>
+        <p className="kicker mt-4">EL-MOTO <span className="lowercase font-sans text-xs font-semibold">d.o.o.</span> — Tvoja pot, tvoj motor</p>
         <h1 className="display mt-2.5 text-5xl text-[#16181C] sm:text-7xl">O NAS</h1>
 
         {/* Glavna vsebina z natančno zahtevanim poudarjanjem */}

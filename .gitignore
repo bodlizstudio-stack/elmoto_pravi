@@ -19,3 +19,6 @@ prisma/*.db-journal
 prisma/backups/
 playwright-report
 test-results
+
+.vercel
+.env*

@@ -76,7 +76,7 @@ export default function KomisijskaProdajaPage() {
 
         {/* HERO SEKCIJA */}
         <header className="mt-6 rounded-[16px] border border-[#E2E5E9] bg-white p-6 shadow-sm sm:p-10 lg:p-12">
-          <p className="kicker">Storitve EL-MOTO d.o.o.</p>
+          <p className="kicker">Storitve EL-MOTO <span className="lowercase font-sans text-xs font-semibold">d.o.o.</span></p>
           <h1 className="display mt-3 text-4xl text-[#16181C] sm:text-6xl lg:text-7xl">
             KOMISIJSKA PRODAJA, ODKUP IN MENJAVA
           </h1>

@@ -49,7 +49,9 @@ export default async function ContactPage({
           {/* Leva kolona: Podatki podjetja, salon, e-pošta, družbena omrežja in navigacija */}
           <div className="grid content-start gap-6 rounded-[14px] border border-[#E2E5E9] bg-white p-6 shadow-sm sm:p-7 text-[#16181C]">
             <div>
-              <p className="display text-3xl text-[#16181C] sm:text-4xl">{site.brand}</p>
+              <p className="display text-3xl text-[#16181C] sm:text-4xl">
+                EL-MOTO <span className="lowercase text-xl font-sans font-bold text-[#5B616B] sm:text-2xl">d.o.o.</span>
+              </p>
               <p className="mt-1 text-sm text-[#5B616B]">{site.slogan}</p>
 
               <div className="mt-5 grid gap-3.5 text-base text-[#16181C]">

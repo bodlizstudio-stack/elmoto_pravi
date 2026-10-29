@@ -54,7 +54,7 @@ export default async function ContentPage({
       {/* 2. PODATKI PODJETJA IN KONTAKT */}
       <form action={saveSettings} className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6">
         <div>
-          <h2 className="display text-3xl text-[#16181c]">Podatki podjetja EL-MOTO d.o.o. in kontakt</h2>
+          <h2 className="display text-3xl text-[#16181c]">Podatki podjetja EL-MOTO <span className="lowercase font-sans text-xl font-bold">d.o.o.</span> in kontakt</h2>
           <p className="mt-1 text-sm text-[#4e555d]">
             Ti podatki se samodejno prikazujejo v glavi (Header), nogi (Footer) in na podstrani Kontakt.
           </p>

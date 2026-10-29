@@ -34,7 +34,7 @@ export default function UvozPage() {
     <div className="bg-[#F6F6F4] py-10 text-[#16181C] md:py-14">
       <div className="wrap">
         <Breadcrumbs items={[{ label: "Domov", href: "/" }, { label: "Uvoz" }]} />
-        <p className="kicker mt-4">Storitve EL-MOTO d.o.o.</p>
+        <p className="kicker mt-4">Storitve EL-MOTO <span className="lowercase font-sans text-xs font-semibold">d.o.o.</span></p>
         <h1 className="display mt-2.5 text-4xl text-[#16181C] sm:text-6xl">
           UVOZ MOTORJEV PO NAROČILU
         </h1>

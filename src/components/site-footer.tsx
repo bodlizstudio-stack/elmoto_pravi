@@ -35,8 +35,8 @@ export function SiteFooter({
       <div className="wrap grid grid-cols-2 gap-8 py-12 sm:gap-10 md:grid-cols-4 md:py-14">
         <div className="col-span-2">
           <LogoLink className="h-11 w-auto sm:h-14" theme="light" />
-          <p className="mt-4 text-base font-bold uppercase tracking-wider text-[#16181C]">
-            {site.brand}
+          <p className="mt-4 text-base font-bold tracking-wider text-[#16181C]">
+            EL-MOTO <span className="text-sm font-semibold text-[#5B616B]">d.o.o.</span>
           </p>
           <p className="mt-1 max-w-md text-sm text-[#5B616B]">{site.slogan}</p>
           <p className="mt-4 text-sm leading-6 text-[#16181C]">
