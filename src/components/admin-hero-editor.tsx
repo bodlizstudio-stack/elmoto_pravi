@@ -57,12 +57,12 @@ export function AdminHeroEditor({ hero }: { hero: HeroSettings }) {
             setFocusX(68);
             setFocusY(28);
             setOverlay(72);
-            setKicker("NOVI IN RABLJENI MOTORJI Z GARANCIJO");
+            setKicker("PREVERJENI MOTORJI. BREZSKRBNA VOŽNJA.");
             setTitle("TVOJA POT. TVOJ MOTOR.");
             setText(
-              "Odkrij skrbno izbrano ponudbo novih in rabljenih motornih koles. Pri EL-MOTO ti pomagamo najti motor za tvojo naslednjo pustolovščino.",
+              "Skrbno izbrana ponudba novih in rabljenih motornih koles z garancijo.\n\nNe glede na slog vožnje, pri EL-MOTO najdeš motor zase.",
             );
-            setButton("PREVERI PONUDBO");
+            setButton("Razišči motorje");
           }}
           className="btn btn-secondary text-sm"
         >

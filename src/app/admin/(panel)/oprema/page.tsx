@@ -23,13 +23,15 @@ const CATEGORIES = [
 export default async function AdminOpremaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; edit?: string }>;
 }) {
   const query = await searchParams;
   await ensureEquipmentSynced();
   const items = await prisma.equipment.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
+
+  const editingItem = query.edit ? items.find((i) => i.id === query.edit) || null : null;
 
   return (
     <section className="grid gap-8">
@@ -70,29 +72,55 @@ export default async function AdminOpremaPage({
         </p>
       ) : null}
 
-      {/* OBRAZEC ZA DODAJANJE NOVEGA ARTIKLA */}
+      {/* OBRAZEC ZA DODAJANJE / UREJANJE ARTIKLA */}
       <form action={saveEquipment} className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6 shadow-2xs">
-        <div>
-          <h2 className="display text-2xl text-[#16181c]">Dodaj nov kos moto opreme</h2>
-          <p className="mt-1 text-xs text-[#5B616B]">
-            Vnesi osnovne podatke za moto opremo (ime, cena, opis in slika).
-          </p>
+        {editingItem ? <input type="hidden" name="id" value={editingItem.id} /> : null}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="display text-2xl text-[#16181c]">
+              {editingItem ? `Uredi artikel: ${editingItem.title}` : "Dodaj nov kos moto opreme"}
+            </h2>
+            <p className="mt-1 text-xs text-[#5B616B]">
+              {editingItem
+                ? "Spremeni želene podatke in shrani posodobitev."
+                : "Vnesi osnovne podatke za moto opremo (ime, cena, opis in slika)."}
+            </p>
+          </div>
+          {editingItem ? (
+            <Link
+              href="/admin/oprema"
+              className="rounded-[8px] border border-black/15 bg-[#f8f9fa] px-3 py-1.5 text-xs font-semibold text-[#16181c] hover:bg-white"
+            >
+              ✕ Prekliči urejanje
+            </Link>
+          ) : null}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="field">
             <span>Naziv opreme *</span>
-            <input name="title" type="text" placeholder="npr. Čelada Scorpion EXO-R1 Carbon" required />
+            <input
+              name="title"
+              type="text"
+              placeholder="npr. Čelada Scorpion EXO-R1 Carbon"
+              defaultValue={editingItem?.title || ""}
+              required
+            />
           </label>
 
           <label className="field">
             <span>Cena v € (pusti prazno za po dogovoru)</span>
-            <input name="priceEur" type="text" placeholder="npr. 289 ali 289,00" />
+            <input
+              name="priceEur"
+              type="text"
+              placeholder="npr. 289 ali 289,00"
+              defaultValue={editingItem?.priceCents ? (editingItem.priceCents / 100).toFixed(2).replace(".00", "") : ""}
+            />
           </label>
 
           <label className="field">
             <span>Kategorija</span>
-            <select name="category" defaultValue="Splošno">
+            <select name="category" defaultValue={editingItem?.category || "Splošno"}>
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -103,11 +131,16 @@ export default async function AdminOpremaPage({
 
           <label className="field">
             <span>Povezava na oglas na Avto.net (neobvezno)</span>
-            <input name="avtonetUrl" type="url" placeholder="https://www.avto.net/..." />
+            <input
+              name="avtonetUrl"
+              type="url"
+              placeholder="https://www.avto.net/..."
+              defaultValue={editingItem?.avtonetUrl || ""}
+            />
           </label>
 
           <label className="field">
-            <span>Izberi sliko artikla iz računalnika</span>
+            <span>Izberi sliko artikla iz računalnika {editingItem?.imageUrl ? "(neobvezno, slika že naložena)" : ""}</span>
             <input
               name="file"
               type="file"
@@ -118,7 +151,12 @@ export default async function AdminOpremaPage({
 
           <label className="field">
             <span>Ali prilepi URL povezavo do slike</span>
-            <input name="imageUrl" type="url" placeholder="https://..." />
+            <input
+              name="imageUrl"
+              type="url"
+              placeholder="https://..."
+              defaultValue={editingItem?.imageUrl || ""}
+            />
           </label>
 
           <label className="field sm:col-span-2">
@@ -127,19 +165,30 @@ export default async function AdminOpremaPage({
               name="description"
               rows={3}
               placeholder="npr. Velikosti na voljo: M, L, XL. Vrhunska aerodinamična školjka, pinlock vključen v ceno..."
+              defaultValue={editingItem?.description || ""}
             />
           </label>
         </div>
 
         <label className="flex items-center gap-2 text-sm font-medium text-[#16181c]">
-          <input type="checkbox" name="published" defaultChecked className="h-5 w-5 accent-[#E31B2B]" />
+          <input
+            type="checkbox"
+            name="published"
+            defaultChecked={editingItem ? editingItem.published : true}
+            className="h-5 w-5 accent-[#E31B2B]"
+          />
           Objavi artikel na spletni strani
         </label>
 
-        <div className="pt-2">
+        <div className="flex items-center gap-3 pt-2">
           <button type="submit" className="btn btn-primary w-full sm:w-auto">
-            + Dodaj v ponudbo opreme
+            {editingItem ? "✓ Shrani spremembe" : "+ Dodaj v ponudbo opreme"}
           </button>
+          {editingItem ? (
+            <Link href="/admin/oprema" className="btn btn-secondary w-full sm:w-auto">
+              Prekliči
+            </Link>
+          ) : null}
         </div>
       </form>
 
@@ -204,13 +253,21 @@ export default async function AdminOpremaPage({
                     <span className="text-[11px] text-[#888]">
                       {new Date(item.createdAt).toLocaleDateString("sl-SI")}
                     </span>
-                    <form action={deleteEquipment}>
-                      <input type="hidden" name="id" value={item.id} />
-                      <AdminDeleteButton
-                        confirmMessage={`Ali ste prepričani, da želite izbrisati "${item.title}"?`}
-                        label="Izbriši"
-                      />
-                    </form>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/admin/oprema?edit=${item.id}`}
+                        className="text-xs font-semibold text-blue-600 transition hover:underline"
+                      >
+                        Uredi
+                      </Link>
+                      <form action={deleteEquipment}>
+                        <input type="hidden" name="id" value={item.id} />
+                        <AdminDeleteButton
+                          confirmMessage={`Ali ste prepričani, da želite izbrisati "${item.title}"?`}
+                          label="Izbriši"
+                        />
+                      </form>
+                    </div>
                   </div>
                 </div>
               </article>

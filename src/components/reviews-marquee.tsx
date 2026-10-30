@@ -11,6 +11,46 @@ export type ReviewItem = {
 
 export const googleReviews: ReviewItem[] = [
   {
+    id: "rev-alina",
+    authorName: "Alina Špacapan",
+    text: "Odlična izkušnja pri nakupu svojega prvega motorja. Motor je kot nov in vožnja z njim je odlična. Vsi papirji so urejeni. Elvis je res zaupanja vreden prodajalec!",
+    rating: 5,
+    source: "Google",
+    timeAgo: "pred 7 meseci",
+  },
+  {
+    id: "rev-sandi",
+    authorName: "Sandi Kuntarič",
+    text: "Nakup je potekal več kot korektno, že prvi vtis ob ogledu pri Elvisu zelo dober, ves čas dobra in odkrita komunikacija, vse kot dogovorjeno, pomoč pri registraciji in prevzemu, težko bi naredil več. Top.",
+    rating: 5,
+    source: "Google",
+    timeAgo: "pred 5 meseci",
+  },
+  {
+    id: "rev-ales",
+    authorName: "Aleš Valenčič",
+    text: "TOP storitev!",
+    rating: 5,
+    source: "Google",
+    timeAgo: "pred 2 mesecema",
+  },
+  {
+    id: "rev-robert",
+    authorName: "Robert Loverčič",
+    text: "Zelo korekten odnos priporocam 👍",
+    rating: 5,
+    source: "Google",
+    timeAgo: "pred 5 dnevi",
+  },
+  {
+    id: "rev-david-fidan",
+    authorName: "David Fidan",
+    text: "⭐⭐⭐⭐⭐ Odličen prodajalec, korekten odnos in nakup brez zapletov. Vse po dogovoru – priporočam! 🏍️",
+    rating: 5,
+    source: "Google",
+    timeAgo: "pred 2 dnevoma",
+  },
+  {
     id: "rev-1",
     authorName: "Maja Lapuh",
     text: "Korekten odnos. Vse tako kot je bilo dogovorjeno. Pohvale Elvisu.",
@@ -27,22 +67,6 @@ export const googleReviews: ReviewItem[] = [
     timeAgo: "pred 2 mesecema",
   },
   {
-    id: "rev-3",
-    authorName: "David Mihelič",
-    text: "Vsi papirji so urejeni. Elvis je res zaupanja vreden prodajalec!",
-    rating: 5,
-    source: "Google",
-    timeAgo: "pred 2 mesecema",
-  },
-  {
-    id: "rev-4",
-    authorName: "Valentina Salopek",
-    text: "Prezadovoljni, preporučam!",
-    rating: 5,
-    source: "Google",
-    timeAgo: "pred 3 meseci",
-  },
-  {
     id: "rev-6",
     authorName: "Dejan Košir",
     text: "Zelo sem zadovoljen z nakupom motorja. 😊 Na vsa vprašanja sem dobil odgovor. 👍",
@@ -57,22 +81,6 @@ export const googleReviews: ReviewItem[] = [
     rating: 5,
     source: "Google",
     timeAgo: "pred 6 meseci",
-  },
-  {
-    id: "rev-8",
-    authorName: "Lukas Sorgi",
-    text: "Prijaznost, strokovno in dobro svetovanje priporočam, super nakup +++",
-    rating: 5,
-    source: "Google",
-    timeAgo: "pred 7 meseci",
-  },
-  {
-    id: "rev-9",
-    authorName: "Grega Marolt",
-    text: "Dobra izkušnja z nakupom motorja. Prijazno osebje.",
-    rating: 5,
-    source: "Google",
-    timeAgo: "pred 7 meseci",
   },
   {
     id: "rev-10",
@@ -113,10 +121,19 @@ function GoogleBadge() {
 export function ReviewsMarquee({ extraReviews = [] }: { extraReviews?: ReviewItem[] }) {
   const seen = new Set<string>();
   const allReviews: ReviewItem[] = [];
+  const EXCLUDED_NAMES = [
+    "prando",
+    "lukas sorgi",
+    "grega marolt",
+    "valentina salopek",
+    "david mihelič",
+    "david mihelic",
+  ];
+
   for (const item of [...extraReviews, ...googleReviews]) {
-    // Explicitly exclude Andreas / Andrea Prando if present anywhere
-    if (item.authorName.toLowerCase().includes("prando")) continue;
-    const key = `${item.authorName.toLowerCase()}::${item.text.slice(0, 30).toLowerCase()}`;
+    const lowerName = item.authorName.toLowerCase();
+    if (EXCLUDED_NAMES.some((ex) => lowerName.includes(ex))) continue;
+    const key = `${lowerName}::${item.text.slice(0, 30).toLowerCase()}`;
     if (!seen.has(key)) {
       seen.add(key);
       allReviews.push(item);

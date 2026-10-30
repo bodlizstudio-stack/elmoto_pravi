@@ -27,9 +27,9 @@ function clampNumber(raw: string | undefined, min: number, max: number, fallback
 export const heroDefaults = {
   image: "/images/hero/hero-elmoto.webp",
   imageMobile: "/images/hero/hero-elmoto-mobile.webp",
-  kicker: "Novi in rabljeni motorji z garancijo",
-  title: "Tvoja pot. Tvoj motor.",
-  text: "Odkrij skrbno izbrano ponudbo novih in rabljenih motornih koles. Pri EL-MOTO ti pomagamo najti motor za tvojo naslednjo pustolovščino.",
+  kicker: "PREVERJENI MOTORJI. BREZSKRBNA VOŽNJA.",
+  title: "TVOJA POT. TVOJ MOTOR.",
+  text: "Skrbno izbrana ponudba novih in rabljenih motornih koles z garancijo.\n\nNe glede na slog vožnje, pri EL-MOTO najdeš motor zase.",
   button: "Razišči motorje",
   focusX: 82,
   focusY: 26,

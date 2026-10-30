@@ -204,14 +204,9 @@ export default async function MotorcyclePage({ params }: { params: Promise<{ slu
 
             <div className="mt-6 flex flex-col gap-3">
               {!sold ? (
-                <>
-                  <a className="btn btn-primary w-full" href="#povprasevanje">
-                    Pošlji povpraševanje
-                  </a>
-                  <a className="btn btn-dark w-full" href="#povprasevanje">
-                    Dogovori se za ogled
-                  </a>
-                </>
+                <a className="btn btn-primary w-full" href="#povprasevanje">
+                  Pošlji povpraševanje
+                </a>
               ) : (
                 <Link className="btn btn-dark w-full" href="/motorji">
                   Poglej druge motorje

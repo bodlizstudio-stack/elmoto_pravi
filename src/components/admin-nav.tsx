@@ -7,6 +7,7 @@ const links = [
   { href: "/admin", label: "Ponudba motorjev", exact: true },
   { href: "/admin/motorji/nov", label: "+ Dodaj motor", exact: true },
   { href: "/admin/oprema", label: "Moto oprema", exact: false },
+  { href: "/admin/kove", label: "Modeli KOVE", exact: false },
   { href: "/admin/galerija", label: "Galerija", exact: false },
   { href: "/admin/vsebina", label: "Urejanje naslovne strani & podatkov", exact: false },
 ] as const;

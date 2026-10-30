@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Building2, Clock, Mail, MapPin, MessageSquare, Navigation } from "lucide-react";
+import { Building2, Clock, Mail, MapPin, MessageSquare, Navigation, Phone } from "lucide-react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ContactForm } from "@/components/contact-form";
 import { ExternalLink } from "@/components/external-link";
@@ -50,11 +50,23 @@ export default async function ContactPage({
           <div className="grid content-start gap-6 rounded-[14px] border border-[#E2E5E9] bg-white p-6 shadow-sm sm:p-7 text-[#16181C]">
             <div>
               <p className="display text-3xl text-[#16181C] sm:text-4xl">
-                EL-MOTO <span className="lowercase text-xl font-sans font-bold text-[#5B616B] sm:text-2xl">d.o.o.</span>
+                EL-MOTO <span className="lowercase text-xl font-sans font-bold text-[#16181C] sm:text-2xl">d.o.o.</span>
               </p>
               <p className="mt-1 text-sm text-[#5B616B]">{site.slogan}</p>
 
               <div className="mt-5 grid gap-3.5 text-base text-[#16181C]">
+                <div className="flex items-start gap-3">
+                  <Phone aria-hidden className="mt-1 h-5 w-5 shrink-0 text-[#E31B2B]" />
+                  <div>
+                    <span className="font-semibold text-[#16181C]">Telefonska številka</span>
+                    <p className="text-sm text-[#5B616B]">
+                      <a href={`tel:${settings.phoneTel}`} className="text-[#16181C] font-semibold underline hover:text-[#E31B2B]">
+                        {settings.phoneDisplay}
+                      </a>
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex items-start gap-3">
                   <MapPin aria-hidden className="mt-1 h-5 w-5 shrink-0 text-[#E31B2B]" />
                   <div>
@@ -126,6 +138,13 @@ export default async function ContactPage({
             <div className="grid gap-3 border-t border-[#E2E5E9] pt-5">
               <a
                 className="btn btn-primary w-full justify-center"
+                href={`tel:${settings.phoneTel}`}
+              >
+                <Phone aria-hidden className="h-4 w-4" />
+                <span>Pokliči {settings.phoneDisplay}</span>
+              </a>
+              <a
+                className="btn btn-secondary w-full justify-center"
                 href={`mailto:${settings.email}`}
               >
                 <Mail aria-hidden className="h-4 w-4" />

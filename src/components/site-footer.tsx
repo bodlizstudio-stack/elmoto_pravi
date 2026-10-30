@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Phone } from "lucide-react";
 import { LogoLink } from "@/components/logo";
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
 import { avtoNetUrl, site } from "@/lib/site";
@@ -36,7 +37,7 @@ export function SiteFooter({
         <div className="col-span-2">
           <LogoLink className="h-11 w-auto sm:h-14" theme="light" />
           <p className="mt-4 text-base font-bold tracking-wider text-[#16181C]">
-            EL-MOTO <span className="text-sm font-semibold text-[#5B616B]">d.o.o.</span>
+            EL-MOTO d.o.o.
           </p>
           <p className="mt-1 max-w-md text-sm text-[#5B616B]">{site.slogan}</p>
           <p className="mt-4 text-sm leading-6 text-[#16181C]">
@@ -48,6 +49,14 @@ export function SiteFooter({
             Delovni čas: <span className="text-[#16181C]">{hours || "Po dogovoru"}</span>
           </p>
           <div className="mt-5 flex items-center gap-3">
+            <a
+              href={`tel:${tel}`}
+              aria-label={`Pokliči ${phone}`}
+              title={`Pokliči ${phone}`}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#E2E5E9] bg-[#F6F6F4] text-[#16181C] transition-colors hover:border-[#E31B2B] hover:text-[#E31B2B] hover:bg-white"
+            >
+              <Phone className="h-5 w-5" />
+            </a>
             <ExternalLink
               href={site.whatsappUrl}
               aria-label="WhatsApp EL-MOTO"
@@ -73,9 +82,7 @@ export function SiteFooter({
         </div>
         <div className="grid content-start gap-2.5 text-sm text-[#5B616B]">
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#16181C]">Ponudba & Strani</p>
-          <Link className="hover:text-[#16181C]" href="/motorji">Vsi motorji</Link>
-          <Link className="hover:text-[#16181C]" href="/motorji?condition=NEW">Novi motorji</Link>
-          <Link className="hover:text-[#16181C]" href="/motorji?condition=USED">Rabljeni motorji</Link>
+          <Link className="hover:text-[#16181C]" href="/motorji">Ponudba motorjev</Link>
           <Link className="hover:text-[#16181C]" href="/oprema">Moto oprema</Link>
           <Link className="hover:text-[#16181C]" href="/najem">Najem motorjev</Link>
           <Link className="hover:text-[#16181C]" href="/komisijska-prodaja">Komisijska prodaja</Link>
@@ -97,6 +104,14 @@ export function SiteFooter({
             {email}
           </a>
           <div className="my-1 flex items-center gap-2.5">
+            <a
+              href={`tel:${tel}`}
+              aria-label={`Pokliči ${phone}`}
+              title={`Pokliči ${phone}`}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#E2E5E9] bg-[#F6F6F4] text-[#16181C] transition-colors hover:border-[#E31B2B] hover:text-[#E31B2B] hover:bg-white"
+            >
+              <Phone className="h-4 w-4" />
+            </a>
             <ExternalLink
               href={site.whatsappUrl}
               aria-label="WhatsApp EL-MOTO"

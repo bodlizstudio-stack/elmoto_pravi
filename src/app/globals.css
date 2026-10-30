@@ -612,7 +612,8 @@ textarea {
 }
 
 .home-hero .kicker {
-  color: #f5f5f5;
+  color: #B2B8C4;
+  font-size: 0.8rem;
 }
 
 .kicker::before,

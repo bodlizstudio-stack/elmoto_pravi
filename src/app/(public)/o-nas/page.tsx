@@ -102,7 +102,10 @@ export default async function AboutPage() {
             Za še več brezskrbnosti na cesti so na voljo podaljšano jamstvo pri nakupu novega ali rabljenega motornega kolesa Bike PROTECTION by CarGarantie ter prilagodljive možnosti financiranja prek Leanpay, NLB Buy&amp;Go in NLB Lease&amp;Go.
           </p>
           <p>
-            Pri <strong className="font-bold text-[#16181C]">EL-MOTO</strong> stavimo na kakovost, prilagodljivost in oseben pristop – od prvega vprašanja do končne odločitve. Nahajamo se na naslovu {site.street}, {site.postalCode} {site.city}.
+            Pri <strong className="font-bold text-[#16181C]">EL-MOTO</strong> stavimo na kakovost, prilagodljivost in oseben pristop – od prvega vprašanja do končne odločitve.
+          </p>
+          <p className="font-medium text-[#16181C]">
+            Nahajamo se v IOC Trzin, na naslovu Špruha 33, 1236 Trzin.
           </p>
         </div>
 

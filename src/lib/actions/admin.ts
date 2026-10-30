@@ -17,6 +17,7 @@ import { parseInTimeZone } from "@/lib/time";
 import { removeUpload, saveImage, saveRemoteImage } from "@/lib/uploads";
 import { validateAvtoNetImageUrl } from "@/lib/avtonet-import";
 import { ensureDbSynced, ensureSettingsSynced, persistDbSnapshot, persistSettingsSnapshot, ensureMediaSynced, persistMediaSnapshot, ensureEquipmentSynced, persistEquipmentSnapshot } from "@/lib/shared-store";
+import { getKoveModels, koveModels, type KoveModel } from "@/lib/kove";
 
 export type ActionState = { error?: string; ok?: string } | null;
 
@@ -1022,12 +1023,18 @@ export async function saveEquipment(formData: FormData) {
     }
   }
 
+  let finalImageUrl = imageUrl || "";
+  if (id && !finalImageUrl) {
+    const existing = await prisma.equipment.findUnique({ where: { id } });
+    if (existing?.imageUrl) finalImageUrl = existing.imageUrl;
+  }
+
   const data = {
     title,
     priceCents,
     description: text(formData, "description"),
     category: text(formData, "category") || "Splošno",
-    imageUrl: imageUrl || "",
+    imageUrl: finalImageUrl,
     avtonetUrl: text(formData, "avtonetUrl"),
     sortOrder: optionalInt(formData, "sortOrder") ?? 0,
     published: checked(formData, "published"),
@@ -1041,6 +1048,7 @@ export async function saveEquipment(formData: FormData) {
 
   await persistEquipmentSnapshot();
   await audit(admin.id, id ? "UPDATE" : "CREATE", "Equipment", id || title);
+  revalidatePath("/");
   revalidatePath("/oprema");
   revalidatePath("/admin/oprema");
   redirect("/admin/oprema?saved=1");
@@ -1060,6 +1068,7 @@ export async function deleteEquipment(formData: FormData) {
   await prisma.equipment.delete({ where: { id } });
   await persistEquipmentSnapshot();
   await audit(admin.id, "DELETE", "Equipment", id);
+  revalidatePath("/");
   revalidatePath("/oprema");
   revalidatePath("/admin/oprema");
   redirect("/admin/oprema?saved=1");
@@ -1106,4 +1115,109 @@ export async function createManualBooking(formData: FormData) {
   await audit(admin.id, "MANUAL_BOOKING", "RentalBooking", motorcycleId);
   revalidatePath("/admin/najem");
   redirect("/admin/najem?saved=1");
+}
+
+export async function saveKoveModel(formData: FormData) {
+  const admin = await requireAdmin();
+  const slug = text(formData, "slug")?.toLowerCase().trim() || "";
+  const originalSlug = text(formData, "originalSlug")?.trim() || "";
+  const name = text(formData, "name") || "";
+  if (!name) redirect("/admin/kove?error=naziv");
+  const modelSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  let imageUrl = text(formData, "imageUrl");
+  const file = formData.get("file");
+  if (file instanceof File && file.size > 0) {
+    try {
+      imageUrl = await saveImage(file);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "slika";
+      redirect(`/admin/kove?error=${encodeURIComponent(msg)}`);
+    }
+  }
+
+  const rawFeatures = text(formData, "features") || "";
+  const features = rawFeatures
+    .split(/[\n,;]+/)
+    .map((f) => f.trim())
+    .filter(Boolean);
+
+  const existingModels = await getKoveModels();
+  let updatedModels: KoveModel[];
+
+  const newModelData: KoveModel = {
+    slug: modelSlug,
+    name,
+    image: imageUrl || "",
+    imageWidth: 1200,
+    imageHeight: 800,
+    description: text(formData, "description") || "",
+    features,
+    sourceUrl: text(formData, "sourceUrl") || "https://kove.si",
+    checkedOn: new Date().toISOString().slice(0, 10),
+    published: checked(formData, "published"),
+  };
+
+  const targetSlug = originalSlug || modelSlug;
+  const foundIndex = existingModels.findIndex((m) => m.slug === targetSlug);
+
+  if (foundIndex >= 0) {
+    if (!newModelData.image && existingModels[foundIndex].image) {
+      newModelData.image = existingModels[foundIndex].image;
+    }
+    updatedModels = [...existingModels];
+    updatedModels[foundIndex] = newModelData;
+  } else {
+    updatedModels = [...existingModels, newModelData];
+  }
+
+  await prisma.siteSetting.upsert({
+    where: { key: "kove_models_json" },
+    update: { value: JSON.stringify(updatedModels) },
+    create: { key: "kove_models_json", value: JSON.stringify(updatedModels) },
+  });
+
+  await persistSettingsSnapshot();
+  await audit(admin.id, originalSlug ? "UPDATE" : "CREATE", "KoveModel", modelSlug);
+  revalidatePath("/");
+  revalidatePath("/kove");
+  revalidatePath("/admin/kove");
+  redirect("/admin/kove?saved=1");
+}
+
+export async function deleteKoveModel(formData: FormData) {
+  const admin = await requireAdmin();
+  const slug = text(formData, "slug");
+  if (!slug) redirect("/admin/kove");
+
+  const existingModels = await getKoveModels();
+  const updatedModels = existingModels.filter((m) => m.slug !== slug);
+
+  await prisma.siteSetting.upsert({
+    where: { key: "kove_models_json" },
+    update: { value: JSON.stringify(updatedModels) },
+    create: { key: "kove_models_json", value: JSON.stringify(updatedModels) },
+  });
+
+  await persistSettingsSnapshot();
+  await audit(admin.id, "DELETE", "KoveModel", slug);
+  revalidatePath("/");
+  revalidatePath("/kove");
+  revalidatePath("/admin/kove");
+  redirect("/admin/kove?saved=1");
+}
+
+export async function resetKoveModels() {
+  const admin = await requireAdmin();
+  await prisma.siteSetting.upsert({
+    where: { key: "kove_models_json" },
+    update: { value: JSON.stringify(koveModels) },
+    create: { key: "kove_models_json", value: JSON.stringify(koveModels) },
+  });
+  await persistSettingsSnapshot();
+  await audit(admin.id, "RESET", "KoveModel", "defaults");
+  revalidatePath("/");
+  revalidatePath("/kove");
+  revalidatePath("/admin/kove");
+  redirect("/admin/kove?saved=1");
 }
