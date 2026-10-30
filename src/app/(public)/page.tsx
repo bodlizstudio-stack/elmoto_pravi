@@ -134,8 +134,7 @@ export default async function HomePage() {
             <img
               src={hero.imageMobile || hero.image || "/images/hero/hero-elmoto-mobile.webp"}
               alt="EL-MOTO d.o.o. — Tvoja pot. Tvoj motor."
-              style={{ objectPosition: "center top" }}
-              className="home-hero-photo block h-full w-full object-top lg:hidden"
+              className="home-hero-photo block h-full w-full object-[80%_top] lg:hidden"
             />
             <div
               className="home-hero-fade"
