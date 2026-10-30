@@ -146,10 +146,48 @@ async function cacheSet<T>(key: string, value: T): Promise<void> {
   }
 }
 
-export async function persistDbSnapshot(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
+async function blobSet<T>(key: string, value: T): Promise<void> {
+  const hasBlob = Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+  if (hasBlob) {
+    try {
+      const { put } = await import("@vercel/blob");
+      await put(`snapshots/${key}.json`, JSON.stringify(value), {
+        access: "public",
+        contentType: "application/json",
+        addRandomSuffix: false,
+        cacheControlMaxAge: 0,
+        ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
+      });
+      return;
+    } catch (err) {
+      console.error(`[shared-store] Error writing blob snapshot for ${key}:`, err);
+    }
+  }
+  await cacheSet(key, value);
+}
 
+async function blobGet<T>(key: string): Promise<T | null> {
+  const hasBlob = Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+  if (hasBlob) {
+    try {
+      const { head } = await import("@vercel/blob");
+      const metadata = await head(`snapshots/${key}.json`, {
+        ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
+      });
+      if (metadata?.url) {
+        const res = await fetch(metadata.url, { cache: "no-store" });
+        if (res.ok) {
+          return (await res.json()) as T;
+        }
+      }
+    } catch {
+      // Snapshot does not exist yet or offline
+    }
+  }
+  return cacheGet<T>(key);
+}
+
+export async function persistDbSnapshot(): Promise<void> {
   const rows = await prisma.motorcycle.findMany({
     include: {
       images: { orderBy: { sortOrder: "asc" } },
@@ -220,40 +258,13 @@ export async function persistDbSnapshot(): Promise<void> {
     })),
   }));
 
-  // Store individual large images separately if needed so the catalog snapshot stays under FetchCache's 2MB limit
   const fullSnapshot: CatalogSnapshot = { version, bikes };
-  const serializedSize = JSON.stringify(fullSnapshot).length;
-
-  if (serializedSize > 1_400_000) {
-    await Promise.all(
-      bikes.flatMap((bike) =>
-        bike.images.map(async (img) => {
-          if (img.url.length > 1000) {
-            await cacheSet(`${IMG_KEY_PREFIX}${img.id}`, { url: img.url });
-          }
-        }),
-      ),
-    );
-    const compactBikes: SerializedBike[] = bikes.map((bike) => ({
-      ...bike,
-      images: bike.images.map((img) => ({
-        ...img,
-        url: img.url.length > 1000 ? "__SPLIT__" : img.url,
-      })),
-    }));
-    await cacheSet(CATALOG_KEY, { version, bikes: compactBikes });
-  } else {
-    await cacheSet(CATALOG_KEY, fullSnapshot);
-  }
-
+  await blobSet(CATALOG_KEY, fullSnapshot);
   globalSync.__elmotoSyncedVersion = version;
 }
 
 export async function ensureDbSynced(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
-
-  const snapshot = await cacheGet<CatalogSnapshot>(CATALOG_KEY);
+  const snapshot = await blobGet<CatalogSnapshot>(CATALOG_KEY);
   if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.bikes)) {
     return;
   }
@@ -405,18 +416,14 @@ const globalSettingsSync = globalThis as unknown as { __elmotoSettingsVersion?: 
 const PRIVATE_SETTING_KEYS = new Set(["admin_reset"]);
 
 export async function persistSettingsSnapshot(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
   const rows = (await prisma.siteSetting.findMany()).filter((row) => !PRIVATE_SETTING_KEYS.has(row.key));
   const version = Date.now();
-  await cacheSet(SETTINGS_KEY, { version, rows });
+  await blobSet(SETTINGS_KEY, { version, rows });
   globalSettingsSync.__elmotoSettingsVersion = version;
 }
 
 export async function ensureSettingsSynced(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
-  const snapshot = await cacheGet<SettingsSnapshot>(SETTINGS_KEY);
+  const snapshot = await blobGet<SettingsSnapshot>(SETTINGS_KEY);
   if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.rows)) return;
   if (globalSettingsSync.__elmotoSettingsVersion === snapshot.version) return;
   for (const row of snapshot.rows) {
@@ -451,11 +458,9 @@ type MediaSnapshot = {
 const globalMediaSync = globalThis as unknown as { __elmotoMediaVersion?: number };
 
 export async function persistMediaSnapshot(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
   const items = await prisma.mediaAsset.findMany();
   const version = Date.now();
-  await cacheSet(MEDIA_KEY, {
+  await blobSet(MEDIA_KEY, {
     version,
     items: items.map((m) => ({
       ...m,
@@ -466,9 +471,7 @@ export async function persistMediaSnapshot(): Promise<void> {
 }
 
 export async function ensureMediaSynced(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
-  const snapshot = await cacheGet<MediaSnapshot>(MEDIA_KEY);
+  const snapshot = await blobGet<MediaSnapshot>(MEDIA_KEY);
   if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.items)) return;
   if (globalMediaSync.__elmotoMediaVersion === snapshot.version) return;
 
@@ -528,11 +531,9 @@ type EquipmentSnapshot = {
 const globalEquipmentSync = globalThis as unknown as { __elmotoEquipmentVersion?: number };
 
 export async function persistEquipmentSnapshot(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
   const items = await prisma.equipment.findMany();
   const version = Date.now();
-  await cacheSet(EQUIPMENT_KEY, {
+  await blobSet(EQUIPMENT_KEY, {
     version,
     items: items.map((e) => ({
       ...e,
@@ -544,9 +545,7 @@ export async function persistEquipmentSnapshot(): Promise<void> {
 }
 
 export async function ensureEquipmentSynced(): Promise<void> {
-  const cache = getIncrementalCache();
-  if (!cache) return;
-  const snapshot = await cacheGet<EquipmentSnapshot>(EQUIPMENT_KEY);
+  const snapshot = await blobGet<EquipmentSnapshot>(EQUIPMENT_KEY);
   if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.items)) return;
   if (globalEquipmentSync.__elmotoEquipmentVersion === snapshot.version) return;
 

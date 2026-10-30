@@ -31,16 +31,20 @@ export async function saveImageBuffer(buffer: Buffer) {
   if (!kind) throw new Error("Dovoljene so samo fotografije JPG, PNG ali WebP.");
   const optimized = await displayBuffer(buffer);
   const name = `${Date.now()}-${randomBytes(6).toString("hex")}.webp`;
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (token) {
-    const { put } = await import("@vercel/blob");
-    const blob = await put(`motorji/${name}`, optimized, {
-      access: "public",
-      token,
-      contentType: "image/webp",
-      addRandomSuffix: false,
-    });
-    return blob.url;
+  const hasBlob = Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+  if (hasBlob) {
+    try {
+      const { put } = await import("@vercel/blob");
+      const blob = await put(`motorji/${name}`, optimized, {
+        access: "public",
+        contentType: "image/webp",
+        addRandomSuffix: false,
+        ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
+      });
+      return blob.url;
+    } catch (err) {
+      console.error("[uploads] Vercel Blob upload failed, falling back:", err);
+    }
   }
   if (process.env.VERCEL) {
     return `data:image/webp;base64,${optimized.toString("base64")}`;
@@ -93,8 +97,10 @@ export async function removeUpload(url: string) {
     await unlink(target).catch(() => undefined);
     return;
   }
-  if (url.startsWith("https://") && process.env.BLOB_READ_WRITE_TOKEN) {
+  if (url.startsWith("https://") && (process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN)) {
     const { del } = await import("@vercel/blob");
-    await del(url, { token: process.env.BLOB_READ_WRITE_TOKEN }).catch(() => undefined);
+    await del(url, {
+      ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
+    }).catch(() => undefined);
   }
 }
