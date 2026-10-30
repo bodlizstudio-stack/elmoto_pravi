@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AdminDeleteButton } from "@/components/admin-delete-button";
-import { deleteMedia, uploadMedia } from "@/lib/actions/admin";
+import { deleteMedia, saveMedia } from "@/lib/actions/admin";
 import { prisma } from "@/lib/db";
 import { ensureMediaSynced } from "@/lib/shared-store";
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminGalerijaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; edit?: string }>;
 }) {
   const query = await searchParams;
   await ensureMediaSynced();
@@ -18,13 +18,15 @@ export default async function AdminGalerijaPage({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
 
+  const editingPhoto = query.edit ? photos.find((p) => p.id === query.edit) || null : null;
+
   return (
     <section className="grid gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="display text-4xl text-[#16181c]">Galerija slik</h1>
           <p className="mt-1 text-sm text-[#4e555d]">
-            Dodaj in upravljaj fotografije, ki se prikazujejo v javni galeriji EL-MOTO.
+            Dodaj, uredi in upravljaj fotografije, ki se prikazujejo v javni galeriji EL-MOTO.
           </p>
         </div>
         <Link
@@ -43,25 +45,58 @@ export default async function AdminGalerijaPage({
       ) : null}
       {query.error ? (
         <p className="rounded-[10px] border border-[#E31B2B]/40 bg-red-50 px-4 py-3 text-sm font-semibold text-[#E31B2B]">
-          Pri nalaganju je prišlo do napake ({decodeURIComponent(query.error)}). Preveri datoteko ali povezavo do slike.
+          Pri obdelavi je prišlo do napake ({decodeURIComponent(query.error)}). Preveri datoteko ali povezavo do slike.
         </p>
       ) : null}
 
-      {/* OBRAZEC ZA DODAJANJE NOVE SLIKE */}
-      <form action={uploadMedia} className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6 shadow-2xs">
-        <div>
-          <h2 className="display text-2xl text-[#16181c]">Dodaj novo sliko v galerijo</h2>
-          <p className="mt-1 text-xs text-[#5B616B]">
-            Naloži sliko iz računalnika (JPG, PNG, WebP) ali prilepi spletno povezavo (URL) do slike.
-          </p>
-        </div>
-
+      {/* OBRAZEC ZA DODAJANJE / UREJANJE SLIKE */}
+      <form action={saveMedia} className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6 shadow-2xs">
+        {editingPhoto ? <input type="hidden" name="id" value={editingPhoto.id} /> : null}
         <input type="hidden" name="returnTo" value="/admin/galerija" />
         <input type="hidden" name="kind" value="gallery" />
 
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="display text-2xl text-[#16181c]">
+              {editingPhoto ? "Uredi fotografijo v galeriji" : "Dodaj novo sliko v galerijo"}
+            </h2>
+            <p className="mt-1 text-xs text-[#5B616B]">
+              {editingPhoto
+                ? "Spremeni opis, povezavo ali naloži novo sliko in shrani spremembe."
+                : "Naloži sliko iz računalnika (JPG, PNG, WebP) ali prilepi spletno povezavo (URL) do slike."}
+            </p>
+          </div>
+          {editingPhoto ? (
+            <Link
+              href="/admin/galerija"
+              className="rounded-[8px] border border-black/15 bg-[#f8f9fa] px-3 py-1.5 text-xs font-semibold text-[#16181c] hover:bg-white"
+            >
+              ✕ Prekliči urejanje
+            </Link>
+          ) : null}
+        </div>
+
+        {editingPhoto?.url ? (
+          <div className="flex items-center gap-3.5 rounded-lg border border-black/10 bg-[#f8f9fa] p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={editingPhoto.url}
+              alt={editingPhoto.alt || "Trenutna slika"}
+              className="h-16 w-16 rounded-md object-cover border border-black/10 shadow-2xs"
+            />
+            <div className="text-xs text-[#5B616B]">
+              <span className="font-semibold text-[#16181C]">Trenutna slika</span>
+              <p className="max-w-md truncate font-mono text-[11px] text-[#4e555d]">{editingPhoto.url}</p>
+              <p className="mt-0.5 text-[11px] text-[#888]">
+                Če želiš sliko obdržati, pusti polji za novo sliko spodaj prazni.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="field">
-            <span>Izberi sliko iz računalnika</span>
+            <span>Izberi sliko iz računalnika {editingPhoto ? "(neobvezno, slika že izbrana)" : ""}</span>
             <input
               name="file"
               type="file"
@@ -72,24 +107,44 @@ export default async function AdminGalerijaPage({
 
           <label className="field">
             <span>Ali prilepi URL povezavo do slike</span>
-            <input name="imageUrl" type="url" placeholder="https://..." />
+            <input
+              name="imageUrl"
+              type="text"
+              placeholder="https://... ali /images/..."
+              defaultValue={editingPhoto?.url || ""}
+            />
           </label>
 
           <label className="field">
             <span>Opis slike / naslov (neobvezno)</span>
-            <input name="alt" type="text" placeholder="npr. Salon EL-MOTO Trzin ali Predaja motorja Kove" />
+            <input
+              name="alt"
+              type="text"
+              placeholder="npr. Salon EL-MOTO Trzin ali Predaja motorja Kove"
+              defaultValue={editingPhoto?.alt || ""}
+            />
           </label>
 
           <label className="field">
             <span>Povezava ob kliku (neobvezno)</span>
-            <input name="linkUrl" type="url" placeholder="https://..." />
+            <input
+              name="linkUrl"
+              type="text"
+              placeholder="https://... ali /motorji/..."
+              defaultValue={editingPhoto?.linkUrl || ""}
+            />
           </label>
         </div>
 
-        <div className="pt-2">
+        <div className="flex items-center gap-3 pt-2">
           <button type="submit" className="btn btn-primary w-full sm:w-auto">
-            Naloži v galerijo
+            {editingPhoto ? "✓ Shrani spremembe" : "Naloži v galerijo"}
           </button>
+          {editingPhoto ? (
+            <Link href="/admin/galerija" className="btn btn-secondary w-full sm:w-auto">
+              Prekliči
+            </Link>
+          ) : null}
         </div>
       </form>
 
@@ -127,14 +182,22 @@ export default async function AdminGalerijaPage({
                     <span className="text-[11px] text-[#888]">
                       {new Date(item.createdAt).toLocaleDateString("sl-SI")}
                     </span>
-                    <form action={deleteMedia}>
-                      <input type="hidden" name="returnTo" value="/admin/galerija" />
-                      <input type="hidden" name="id" value={item.id} />
-                      <AdminDeleteButton
-                        confirmMessage="Ali ste prepričani, da želite odstraniti to sliko iz galerije?"
-                        label="Odstrani sliko"
-                      />
-                    </form>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/admin/galerija?edit=${item.id}`}
+                        className="text-xs font-semibold text-blue-600 transition hover:underline"
+                      >
+                        Uredi
+                      </Link>
+                      <form action={deleteMedia}>
+                        <input type="hidden" name="returnTo" value="/admin/galerija" />
+                        <input type="hidden" name="id" value={item.id} />
+                        <AdminDeleteButton
+                          confirmMessage="Ali ste prepričani, da želite odstraniti to sliko iz galerije?"
+                          label="Izbriši"
+                        />
+                      </form>
+                    </div>
                   </div>
                 </div>
               </article>

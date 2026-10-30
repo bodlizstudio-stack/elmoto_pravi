@@ -39,6 +39,9 @@ export const metadata: Metadata = {
     locale: "sl_SI",
     siteName: site.brand,
   },
+  verification: {
+    google: "PUBJ1Lo_4f4ugjoGI7fAIk0h50djUfGbItS5Nuce1FA",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

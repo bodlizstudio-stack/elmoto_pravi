@@ -941,9 +941,10 @@ export async function deleteTestimonial(formData: FormData) {
   redirect("/admin/vsebina?saved=1");
 }
 
-export async function uploadMedia(formData: FormData) {
+export async function saveMedia(formData: FormData) {
   const admin = await requireAdmin();
   const returnTo = text(formData, "returnTo") || "/admin/galerija";
+  const id = text(formData, "id");
   const kind = text(formData, "kind") || "gallery";
   const file = formData.get("file");
   let url = text(formData, "imageUrl");
@@ -957,6 +958,35 @@ export async function uploadMedia(formData: FormData) {
     }
   }
 
+  if (id) {
+    const existing = await prisma.mediaAsset.findUnique({ where: { id } });
+    if (!existing) redirect(`${returnTo}?error=neobstojece`);
+
+    const finalUrl = url || existing.url;
+    if (url && url !== existing.url) {
+      await removeUpload(existing.url);
+    }
+
+    const sortOrderVal = optionalInt(formData, "sortOrder");
+
+    await prisma.mediaAsset.update({
+      where: { id },
+      data: {
+        url: finalUrl,
+        alt: text(formData, "alt"),
+        linkUrl: text(formData, "linkUrl"),
+        published: formData.has("published") ? checked(formData, "published") : existing.published,
+        ...(sortOrderVal !== null ? { sortOrder: sortOrderVal } : {}),
+      },
+    });
+    await persistMediaSnapshot();
+    await audit(admin.id, "UPDATE", "MediaAsset", id);
+    revalidatePath("/", "layout");
+    revalidatePath("/galerija");
+    revalidatePath("/admin/galerija");
+    redirect(`${returnTo}?saved=1`);
+  }
+
   if (!url) {
     redirect(`${returnTo}?error=datoteka`);
   }
@@ -968,8 +998,8 @@ export async function uploadMedia(formData: FormData) {
       alt: text(formData, "alt"),
       kind,
       linkUrl: text(formData, "linkUrl"),
-      sortOrder: count,
-      published: true,
+      sortOrder: optionalInt(formData, "sortOrder") ?? count,
+      published: formData.has("published") ? checked(formData, "published") : true,
     },
   });
   await persistMediaSnapshot();
@@ -979,6 +1009,8 @@ export async function uploadMedia(formData: FormData) {
   revalidatePath("/admin/galerija");
   redirect(`${returnTo}?saved=1`);
 }
+
+export const uploadMedia = saveMedia;
 
 export async function deleteMedia(formData: FormData) {
   const admin = await requireAdmin();
@@ -1024,9 +1056,14 @@ export async function saveEquipment(formData: FormData) {
   }
 
   let finalImageUrl = imageUrl || "";
-  if (id && !finalImageUrl) {
+  if (id) {
     const existing = await prisma.equipment.findUnique({ where: { id } });
-    if (existing?.imageUrl) finalImageUrl = existing.imageUrl;
+    if (imageUrl && existing?.imageUrl && existing.imageUrl !== imageUrl) {
+      await removeUpload(existing.imageUrl);
+    }
+    if (!finalImageUrl && existing?.imageUrl) {
+      finalImageUrl = existing.imageUrl;
+    }
   }
 
   const data = {
@@ -1061,7 +1098,7 @@ export async function deleteEquipment(formData: FormData) {
   const item = await prisma.equipment.findUnique({ where: { id } });
   if (!item) redirect("/admin/oprema?saved=1");
 
-  if (item.imageUrl && item.imageUrl.startsWith("/uploads/")) {
+  if (item.imageUrl) {
     await removeUpload(item.imageUrl);
   }
 

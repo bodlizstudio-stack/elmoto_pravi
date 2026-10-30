@@ -18,15 +18,13 @@ export function Logo({
     <Image
       src="/images/logo/logo-transparent.png"
       alt={ariaHidden ? "" : "EL-MOTO d.o.o."}
-      width={923}
-      height={211}
+      width={859}
+      height={210}
       priority
       unoptimized
       aria-hidden={ariaHidden || undefined}
       className={`${className} select-none object-contain ${
-        isDark
-          ? "drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
-          : "drop-shadow-[0_1px_4px_rgba(0,0,0,0.35)]"
+        isDark ? "drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]" : ""
       }`}
     />
   );

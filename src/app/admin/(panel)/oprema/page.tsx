@@ -96,6 +96,24 @@ export default async function AdminOpremaPage({
           ) : null}
         </div>
 
+        {editingItem?.imageUrl ? (
+          <div className="flex items-center gap-3.5 rounded-lg border border-black/10 bg-[#f8f9fa] p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={editingItem.imageUrl}
+              alt="Trenutna slika"
+              className="h-16 w-16 rounded-md object-cover border border-black/10 shadow-2xs"
+            />
+            <div className="text-xs text-[#5B616B]">
+              <span className="font-semibold text-[#16181C]">Trenutna slika artikla</span>
+              <p className="max-w-md truncate font-mono text-[11px] text-[#4e555d]">{editingItem.imageUrl}</p>
+              <p className="mt-0.5 text-[11px] text-[#888]">
+                Če želiš sliko obdržati, pusti polji za novo sliko spodaj prazni.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="field">
             <span>Naziv opreme *</span>
@@ -153,8 +171,8 @@ export default async function AdminOpremaPage({
             <span>Ali prilepi URL povezavo do slike</span>
             <input
               name="imageUrl"
-              type="url"
-              placeholder="https://..."
+              type="text"
+              placeholder="https://... ali /uploads/..."
               defaultValue={editingItem?.imageUrl || ""}
             />
           </label>

@@ -29,10 +29,13 @@ export default async function KovePage() {
           Spoznaj motocikle KOVE in poišči model za svoj način vožnje. Pri EL-MOTO ti pomagamo pri izbiri ter preverimo ponudbo in dobavljivost.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <ExternalLink href={koveCatalogUrl} className="btn btn-primary w-full sm:w-auto">
+            Poglej ponudbo KOVE motorjev ↗
+          </ExternalLink>
           <a className="btn btn-secondary w-full sm:w-auto" href="#modeli">
             Razišči modele KOVE
           </a>
-          <Link className="btn btn-primary w-full sm:w-auto" href="/kontakt?vrsta=PURCHASE&model=KOVE">
+          <Link className="btn btn-secondary w-full sm:w-auto" href="/kontakt?vrsta=PURCHASE&model=KOVE">
             Povprašaj za KOVE
           </Link>
         </div>

@@ -146,7 +146,7 @@ export default async function HomePage() {
           </div>
 
           <div className="wrap home-hero-grid">
-            <div className="home-hero-copy max-w-[36rem]">
+            <div className="home-hero-copy max-w-[38rem]">
               <p className="kicker text-[11px] sm:text-xs tracking-wider">
                 {hero.kicker || "PREVERJENI MOTORJI. BREZSKRBNA VOŽNJA."}
               </p>
@@ -154,9 +154,9 @@ export default async function HomePage() {
                 <span className="block">TVOJA POT.</span>
                 <span className="block text-white">TVOJ MOTOR.</span>
               </h1>
-              <div className="mt-4 max-w-[33rem] space-y-2 text-base leading-7 text-[#F5F5F5]/90 sm:text-[17px]">
-                <p>Skrbno izbrana ponudba novih in rabljenih motornih koles z garancijo.</p>
-                <p>Ne glede na slog vožnje, pri EL-MOTO najdeš motor zase.</p>
+              <div className="mt-4 max-w-[38rem] space-y-1.5 text-[14px] leading-relaxed text-[#F5F5F5]/90 sm:text-[15px]">
+                <p className="sm:whitespace-nowrap">Skrbno izbrana ponudba novih in rabljenih motornih koles z garancijo.</p>
+                <p className="sm:whitespace-nowrap">Ne glede na slog vožnje, pri EL-MOTO najdeš motor zase.</p>
               </div>
               <div className="mt-6 flex flex-col items-start gap-3">
                 <Link

@@ -82,6 +82,7 @@ export function SiteFooter({
         </div>
         <div className="grid content-start gap-2.5 text-sm text-[#5B616B]">
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#16181C]">Ponudba & Strani</p>
+          <ExternalLink className="hover:text-[#16181C]" href={avtoNetUrl}>Aktualna ponudba na Avto.net</ExternalLink>
           <Link className="hover:text-[#16181C]" href="/motorji">Ponudba motorjev</Link>
           <Link className="hover:text-[#16181C]" href="/oprema">Moto oprema</Link>
           <Link className="hover:text-[#16181C]" href="/najem">Najem motorjev</Link>
@@ -93,7 +94,6 @@ export function SiteFooter({
           <Link className="hover:text-[#16181C]" href="/galerija">Galerija</Link>
           <Link className="hover:text-[#16181C]" href="/o-nas">O nas</Link>
           <Link className="hover:text-[#16181C]" href="/kontakt">Kontakt</Link>
-          <ExternalLink className="hover:text-[#16181C]" href={avtoNetUrl}>Aktualna ponudba na Avto.net</ExternalLink>
         </div>
         <div className="grid content-start gap-2.5 text-sm text-[#5B616B]">
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#16181C]">Kontakt & Pravno</p>
