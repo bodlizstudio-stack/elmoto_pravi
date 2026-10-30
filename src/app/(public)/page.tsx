@@ -300,7 +300,7 @@ export default async function HomePage() {
                 Povprašaj za KOVE
               </Link>
               <ExternalLink href={koveCatalogUrl} className="btn btn-secondary w-full sm:w-auto">
-                Uradni katalog KOVE ↗
+                Poglej ponudbo KOVE motorjev ↗
               </ExternalLink>
               <Link className="btn btn-secondary w-full sm:w-auto" href="/kove">
                 Vsi modeli KOVE

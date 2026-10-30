@@ -38,7 +38,7 @@ export default async function AdminKovePage({
             rel="noopener noreferrer"
             className="rounded-[10px] border border-[#E31B2B]/30 bg-[#E31B2B]/10 px-4 py-2 text-sm font-semibold text-[#E31B2B] transition-colors hover:bg-[#E31B2B] hover:text-white"
           >
-            Uradni katalog kove.si ↗
+            Ponudba na Avto.net ↗
           </a>
         </div>
       </div>

@@ -52,7 +52,7 @@ export default async function KovePage() {
 
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <ExternalLink href={koveCatalogUrl} className="btn btn-secondary w-full sm:w-auto">
-            Uradni katalog KOVE ↗
+            Poglej ponudbo KOVE motorjev ↗
           </ExternalLink>
           <Link className="btn btn-secondary w-full sm:w-auto" href="/motorji?brand=KOVE">
             Objavljeni motorji KOVE
