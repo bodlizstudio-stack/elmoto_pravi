@@ -193,6 +193,37 @@ export default function GarancijaFinanciranjePage() {
             ))}
           </div>
 
+          {/* LEANPAY INFOGRAFIKE V ENI VRSTICI */}
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+            <div className="group overflow-hidden rounded-[14px] border border-[#eb5a7a]/20 bg-[#eb5a7a] p-1.5 shadow-2xs transition hover:shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/partners/leanpay-info-1.webp"
+                alt="Leanpay - Hitro, brez papirologije in brez banke"
+                className="h-auto w-full rounded-[10px] object-contain transition duration-200 group-hover:scale-[1.01]"
+                loading="lazy"
+              />
+            </div>
+            <div className="group overflow-hidden rounded-[14px] border border-[#eb5a7a]/20 bg-[#eb5a7a] p-1.5 shadow-2xs transition hover:shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/partners/leanpay-info-2.webp"
+                alt="Leanpay - Enostavna plačila na obroke do 12.000 EUR"
+                className="h-auto w-full rounded-[10px] object-contain transition duration-200 group-hover:scale-[1.01]"
+                loading="lazy"
+              />
+            </div>
+            <div className="group overflow-hidden rounded-[14px] border border-[#eb5a7a]/20 bg-[#eb5a7a] p-1.5 shadow-2xs transition hover:shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/partners/leanpay-info-3.webp"
+                alt="Leanpay - Enostavna plačila na do 84 obrokov"
+                className="h-auto w-full rounded-[10px] object-contain transition duration-200 group-hover:scale-[1.01]"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <div className="rounded-[14px] border border-[#E2E5E9] bg-[#F6F6F4] p-6">
               <h3 className="display text-2xl text-[#16181C]">Kakšni so pogoji za nakup na obroke?</h3>
