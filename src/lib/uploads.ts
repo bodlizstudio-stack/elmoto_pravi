@@ -4,7 +4,7 @@ import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "@/lib/db";
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 25 * 1024 * 1024;
 
 export function sniffImage(buffer: Buffer) {
   if (buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return "jpg";
@@ -23,13 +23,18 @@ async function displayBuffer(buffer: Buffer) {
 }
 
 export async function saveImageBuffer(buffer: Buffer) {
-  if (buffer.length <= 0 || buffer.length > MAX_BYTES) throw new Error("Fotografija mora biti manjša od 8 MB.");
+  if (buffer.length <= 0 || buffer.length > MAX_BYTES) throw new Error("Fotografija mora biti manjša od 25 MB.");
   const kind = sniffImage(buffer);
-  if (kind === "heic") {
-    throw new Error("HEIC ni podprt. V telefonu pri izbiri fotografije izberi Najbolj združljivo ali JPG.");
-  }
   if (!kind) throw new Error("Dovoljene so samo fotografije JPG, PNG ali WebP.");
-  const optimized = await displayBuffer(buffer);
+  let optimized: Buffer;
+  try {
+    optimized = await displayBuffer(buffer);
+  } catch {
+    if (kind === "heic") {
+      throw new Error("HEIC format ni podprt. V nastavitvah fotoaparata na telefonu izberi Najbolj združljivo ali JPG.");
+    }
+    throw new Error("Pretvorba fotografije ni uspela. Preveri format datoteke.");
+  }
   const name = `${Date.now()}-${randomBytes(6).toString("hex")}.webp`;
   const hasBlob = Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
   if (hasBlob) {
@@ -56,7 +61,7 @@ export async function saveImageBuffer(buffer: Buffer) {
 }
 
 export async function saveImage(file: File) {
-  if (file.size <= 0 || file.size > MAX_BYTES) throw new Error("Fotografija mora biti manjša od 8 MB.");
+  if (file.size <= 0 || file.size > MAX_BYTES) throw new Error("Fotografija mora biti manjša od 25 MB.");
   const buffer = Buffer.from(await file.arrayBuffer());
   return saveImageBuffer(buffer);
 }

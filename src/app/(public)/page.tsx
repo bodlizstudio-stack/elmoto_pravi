@@ -154,9 +154,9 @@ export default async function HomePage() {
                 <span className="block">TVOJA POT.</span>
                 <span className="block text-white">TVOJ MOTOR.</span>
               </h1>
-              <div className="mt-4 max-w-[38rem] space-y-1.5 text-[14px] leading-relaxed text-[#F5F5F5]/90 sm:text-[15px]">
-                <p className="sm:whitespace-nowrap">Skrbno izbrana ponudba novih in rabljenih motornih koles z garancijo.</p>
-                <p className="sm:whitespace-nowrap">Ne glede na slog vožnje, pri EL-MOTO najdeš motor zase.</p>
+              <div className="mt-4 max-w-[44rem] space-y-1.5 text-[12.5px] sm:text-[13.5px] md:text-[14.5px] leading-relaxed text-[#F5F5F5]/90">
+                <p className="whitespace-nowrap">Skrbno izbrana ponudba novih in rabljenih motornih koles z garancijo.</p>
+                <p className="whitespace-nowrap">Ne glede na slog vožnje, pri EL-MOTO najdeš motor zase.</p>
               </div>
               <div className="mt-6 flex flex-col items-start gap-3">
                 <Link

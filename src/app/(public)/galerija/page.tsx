@@ -16,7 +16,7 @@ export default async function GalerijaPage() {
   await ensureMediaSynced();
   const rawPhotos = await prisma.mediaAsset.findMany({
     where: { kind: "gallery", published: true },
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    orderBy: [{ createdAt: "desc" }, { sortOrder: "asc" }],
   });
 
   const photos = rawPhotos.map((p) => ({

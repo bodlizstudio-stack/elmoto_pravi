@@ -952,23 +952,28 @@ export async function saveMedia(formData: FormData) {
   const id = text(formData, "id");
   const kind = text(formData, "kind") || "gallery";
   const file = formData.get("file");
+  const rawFiles = formData.getAll("files").filter((f) => f instanceof File && f.size > 0) as File[];
+  const files = [...rawFiles];
+  if (file instanceof File && file.size > 0 && !files.includes(file)) {
+    files.unshift(file);
+  }
   let url = text(formData, "imageUrl");
 
-  if (file instanceof File && file.size > 0) {
-    try {
-      url = await saveImage(file);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "datoteka";
-      redirect(`${returnTo}?error=${encodeURIComponent(msg)}`);
-    }
-  }
-
   if (id) {
+    if (files.length > 0) {
+      try {
+        url = await saveImage(files[0]);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "datoteka";
+        redirect(`${returnTo}?error=${encodeURIComponent(msg)}`);
+      }
+    }
+
     const existing = await prisma.mediaAsset.findUnique({ where: { id } });
     if (!existing) redirect(`${returnTo}?error=neobstojece`);
 
     const finalUrl = url || existing.url;
-    if (url && url !== existing.url) {
+    if (url && url !== existing.url && !existing.url.startsWith("/images/")) {
       await removeUpload(existing.url);
     }
 
@@ -992,21 +997,44 @@ export async function saveMedia(formData: FormData) {
     redirect(`${returnTo}?saved=1`);
   }
 
-  if (!url) {
+  if (files.length === 0 && !url) {
     redirect(`${returnTo}?error=datoteka`);
   }
 
-  const count = await prisma.mediaAsset.count({ where: { kind } });
-  await prisma.mediaAsset.create({
-    data: {
-      url,
-      alt: text(formData, "alt"),
-      kind,
-      linkUrl: text(formData, "linkUrl"),
-      sortOrder: optionalInt(formData, "sortOrder") ?? count,
-      published: formData.has("published") ? checked(formData, "published") : true,
-    },
-  });
+  try {
+    if (url) {
+      await prisma.mediaAsset.create({
+        data: {
+          url,
+          alt: text(formData, "alt"),
+          kind,
+          linkUrl: text(formData, "linkUrl"),
+          sortOrder: 0,
+          published: formData.has("published") ? checked(formData, "published") : true,
+          createdAt: new Date(),
+        },
+      });
+    }
+
+    for (const f of files) {
+      const uploadedUrl = await saveImage(f);
+      await prisma.mediaAsset.create({
+        data: {
+          url: uploadedUrl,
+          alt: text(formData, "alt") || f.name.replace(/\.[^.]+$/, ""),
+          kind,
+          linkUrl: text(formData, "linkUrl"),
+          sortOrder: 0,
+          published: formData.has("published") ? checked(formData, "published") : true,
+          createdAt: new Date(),
+        },
+      });
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "datoteka";
+    redirect(`${returnTo}?error=${encodeURIComponent(msg)}`);
+  }
+
   await persistMediaSnapshot();
   await audit(admin.id, "UPLOAD", "MediaAsset", kind);
   revalidatePath("/", "layout");
@@ -1024,15 +1052,55 @@ export async function deleteMedia(formData: FormData) {
   const id = text(formData, "id");
   if (!id) redirect(`${returnTo}?saved=1`);
   const asset = await prisma.mediaAsset.findUnique({ where: { id } });
-  if (!asset) redirect(`${returnTo}?saved=1`);
-  await prisma.mediaAsset.delete({ where: { id } });
-  await removeUpload(asset.url);
+  if (asset) {
+    await prisma.mediaAsset.delete({ where: { id } });
+    if (asset.url && !asset.url.startsWith("/images/")) {
+      await removeUpload(asset.url);
+    }
+  } else {
+    await prisma.mediaAsset.deleteMany({ where: { id } });
+  }
   await persistMediaSnapshot();
   await audit(admin.id, "DELETE", "MediaAsset", id);
   revalidatePath("/", "layout");
   revalidatePath("/galerija");
   revalidatePath("/admin/galerija");
   redirect(`${returnTo}?saved=1`);
+}
+
+export async function clearPlaceholderGalleryPhotos() {
+  const admin = await requireAdmin();
+  await ensureMediaSynced();
+  await prisma.mediaAsset.deleteMany({
+    where: {
+      kind: "gallery",
+      url: { startsWith: "/images/galerija/" },
+    },
+  });
+  await persistMediaSnapshot();
+  await audit(admin.id, "DELETE_PLACEHOLDERS", "MediaAsset", "gallery");
+  revalidatePath("/", "layout");
+  revalidatePath("/galerija");
+  revalidatePath("/admin/galerija");
+  redirect("/admin/galerija?saved=1");
+}
+
+export async function deleteAllGalleryPhotos() {
+  const admin = await requireAdmin();
+  await ensureMediaSynced();
+  const photos = await prisma.mediaAsset.findMany({ where: { kind: "gallery" } });
+  for (const p of photos) {
+    if (p.url && !p.url.startsWith("/images/")) {
+      await removeUpload(p.url).catch(() => undefined);
+    }
+  }
+  await prisma.mediaAsset.deleteMany({ where: { kind: "gallery" } });
+  await persistMediaSnapshot();
+  await audit(admin.id, "DELETE_ALL", "MediaAsset", "gallery");
+  revalidatePath("/", "layout");
+  revalidatePath("/galerija");
+  revalidatePath("/admin/galerija");
+  redirect("/admin/galerija?saved=1");
 }
 
 export async function saveEquipment(formData: FormData) {
