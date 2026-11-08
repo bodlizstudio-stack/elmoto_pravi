@@ -609,6 +609,7 @@ export async function resetPasswordWithToken(_prev: ActionState, formData: FormD
 
 export async function importMotorcycles(formData: FormData) {
   const admin = await requireAdmin();
+  await ensureDbSynced();
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) redirect("/admin/uvoz?error=datoteka");
   if (file.size > 2_000_000) redirect("/admin/uvoz?error=velikost");
@@ -672,6 +673,9 @@ export async function importMotorcycles(formData: FormData) {
       summary: `Uvoženih: ${created}. Napake: ${parsed.errors.join(" | ") || "ni"}`.slice(0, 2000),
     },
   });
+  if (created > 0) {
+    await persistDbSnapshot();
+  }
   revalidatePath("/", "layout");
   redirect(`/admin/uvoz?imported=${created}&errors=${parsed.errors.length}`);
 }
@@ -943,6 +947,7 @@ export async function deleteTestimonial(formData: FormData) {
 
 export async function saveMedia(formData: FormData) {
   const admin = await requireAdmin();
+  await ensureMediaSynced();
   const returnTo = text(formData, "returnTo") || "/admin/galerija";
   const id = text(formData, "id");
   const kind = text(formData, "kind") || "gallery";
@@ -1014,6 +1019,7 @@ export const uploadMedia = saveMedia;
 
 export async function deleteMedia(formData: FormData) {
   const admin = await requireAdmin();
+  await ensureMediaSynced();
   const returnTo = text(formData, "returnTo") || "/admin/galerija";
   const id = text(formData, "id");
   if (!id) redirect(`${returnTo}?saved=1`);
@@ -1031,6 +1037,7 @@ export async function deleteMedia(formData: FormData) {
 
 export async function saveEquipment(formData: FormData) {
   const admin = await requireAdmin();
+  await ensureEquipmentSynced();
   const id = text(formData, "id");
   const title = text(formData, "title");
   if (!title) redirect("/admin/oprema?error=naziv");
@@ -1093,6 +1100,7 @@ export async function saveEquipment(formData: FormData) {
 
 export async function deleteEquipment(formData: FormData) {
   const admin = await requireAdmin();
+  await ensureEquipmentSynced();
   const id = text(formData, "id");
   if (!id) redirect("/admin/oprema");
   const item = await prisma.equipment.findUnique({ where: { id } });

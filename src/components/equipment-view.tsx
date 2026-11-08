@@ -17,6 +17,11 @@ export type EquipmentItemData = {
 
 export function EquipmentView({ items }: { items: EquipmentItemData[] }) {
   const [selectedItem, setSelectedItem] = useState<EquipmentItemData | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Vse");
+
+  const categories = ["Vse", ...Array.from(new Set(items.map((i) => i.category.trim()).filter(Boolean)))];
+  const displayedItems =
+    selectedCategory === "Vse" ? items : items.filter((i) => i.category.trim() === selectedCategory);
 
   const closeModal = useCallback(() => {
     setSelectedItem(null);
@@ -44,8 +49,38 @@ export function EquipmentView({ items }: { items: EquipmentItemData[] }) {
 
   return (
     <>
+      {categories.length > 2 ? (
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          {categories.map((cat) => {
+            const count = cat === "Vse" ? items.length : items.filter((i) => i.category.trim() === cat).length;
+            const active = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition ${
+                  active
+                    ? "bg-[#16181C] text-white shadow-xs"
+                    : "border border-[#E2E5E9] bg-white text-[#5B616B] hover:border-black/30 hover:text-[#16181C]"
+                }`}
+              >
+                <span>{cat}</span>
+                <span
+                  className={`rounded-full px-1.5 py-0.2 text-[10px] ${
+                    active ? "bg-white/20 text-white" : "bg-black/5 text-[#888]"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {items.map((item) => (
+        {displayedItems.map((item) => (
           <article
             key={item.id}
             onClick={() => setSelectedItem(item)}

@@ -155,6 +155,7 @@ async function blobSet<T>(key: string, value: T): Promise<void> {
         access: "public",
         contentType: "application/json",
         addRandomSuffix: false,
+        allowOverwrite: true,
         cacheControlMaxAge: 0,
         ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
       });
@@ -175,7 +176,8 @@ async function blobGet<T>(key: string): Promise<T | null> {
         ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
       });
       if (metadata?.url) {
-        const res = await fetch(metadata.url, { cache: "no-store" });
+        const cacheBuster = `${metadata.url}${metadata.url.includes("?") ? "&" : "?"}_t=${Date.now()}`;
+        const res = await fetch(cacheBuster, { cache: "no-store" });
         if (res.ok) {
           return (await res.json()) as T;
         }
@@ -477,9 +479,13 @@ export async function ensureMediaSynced(): Promise<void> {
 
   const currentIds = snapshot.items.map((i) => i.id);
   await prisma.$transaction(async (tx) => {
-    await tx.mediaAsset.deleteMany({
-      where: { id: { notIn: currentIds } },
-    });
+    if (currentIds.length === 0) {
+      await tx.mediaAsset.deleteMany({});
+    } else {
+      await tx.mediaAsset.deleteMany({
+        where: { id: { notIn: currentIds } },
+      });
+    }
     for (const item of snapshot.items) {
       await tx.mediaAsset.upsert({
         where: { id: item.id },
@@ -551,9 +557,13 @@ export async function ensureEquipmentSynced(): Promise<void> {
 
   const currentIds = snapshot.items.map((i) => i.id);
   await prisma.$transaction(async (tx) => {
-    await tx.equipment.deleteMany({
-      where: { id: { notIn: currentIds } },
-    });
+    if (currentIds.length === 0) {
+      await tx.equipment.deleteMany({});
+    } else {
+      await tx.equipment.deleteMany({
+        where: { id: { notIn: currentIds } },
+      });
+    }
     for (const item of snapshot.items) {
       await tx.equipment.upsert({
         where: { id: item.id },

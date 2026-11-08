@@ -8,18 +8,6 @@ import { ensureEquipmentSynced } from "@/lib/shared-store";
 
 export const dynamic = "force-dynamic";
 
-const CATEGORIES = [
-  "Čelade",
-  "Oblačila & Jakne",
-  "Hlače",
-  "Rokavice",
-  "Škornji & Obutev",
-  "Zaščitna oprema",
-  "Dodatki & Kovčki",
-  "Olja & Vzdrževanje",
-  "Splošno",
-];
-
 export default async function AdminOpremaPage({
   searchParams,
 }: {
@@ -32,6 +20,22 @@ export default async function AdminOpremaPage({
   });
 
   const editingItem = query.edit ? items.find((i) => i.id === query.edit) || null : null;
+
+  const existingCategories = [...new Set(items.map((i) => i.category.trim()).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "sl"),
+  );
+  const defaultSuggestions = [
+    "Čelade",
+    "Oblačila & Jakne",
+    "Hlače",
+    "Rokavice",
+    "Škornji & Obutev",
+    "Zaščitna oprema",
+    "Dodatki & Kovčki",
+    "Olja & Vzdrževanje",
+    "Splošno",
+  ];
+  const allCategorySuggestions = [...new Set([...existingCategories, ...defaultSuggestions])];
 
   return (
     <section className="grid gap-8">
@@ -137,14 +141,20 @@ export default async function AdminOpremaPage({
           </label>
 
           <label className="field">
-            <span>Kategorija</span>
-            <select name="category" defaultValue={editingItem?.category || "Splošno"}>
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
+            <span>Kategorija / oddelek (izberi ali vpiši novo) *</span>
+            <input
+              name="category"
+              type="text"
+              list="category-list"
+              placeholder="npr. Čelade, Jakne, Rokavice..."
+              defaultValue={editingItem?.category || (existingCategories[0] ?? "Splošno")}
+              required
+            />
+            <datalist id="category-list">
+              {allCategorySuggestions.map((cat) => (
+                <option key={cat} value={cat} />
               ))}
-            </select>
+            </datalist>
           </label>
 
           <label className="field">
@@ -212,8 +222,27 @@ export default async function AdminOpremaPage({
 
       {/* SEZNAM OBSTOJEČE OPREME */}
       <div className="grid gap-4 rounded-[14px] border border-black/10 bg-white p-5 sm:p-6 shadow-2xs">
-        <div className="flex items-center justify-between">
-          <h2 className="display text-2xl text-[#16181c]">Vsa vnesena moto oprema ({items.length})</h2>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <h2 className="display text-2xl text-[#16181c]">Vsa vnesena moto oprema ({items.length})</h2>
+          </div>
+          {existingCategories.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-xs font-semibold text-[#5B616B]">Trenutni oddelki / kategorije:</span>
+              {existingCategories.map((cat) => {
+                const count = items.filter((i) => i.category.trim() === cat).length;
+                return (
+                  <span
+                    key={cat}
+                    className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-[#f8f9fa] px-2.5 py-0.5 text-xs text-[#16181C]"
+                  >
+                    <span className="font-semibold">{cat}</span>
+                    <span className="text-[11px] text-[#888]">({count})</span>
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
 
         {items.length > 0 ? (

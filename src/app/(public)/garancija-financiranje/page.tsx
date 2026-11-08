@@ -162,21 +162,21 @@ export default function GarancijaFinanciranjePage() {
                 .
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3 self-start">
+            <div className="flex flex-row items-center gap-2.5 sm:gap-3 flex-nowrap shrink-0 overflow-x-auto">
               <ExternalLink
                 href="https://www.leanpay.si/avto-moto/"
-                className="inline-flex shrink-0 items-center gap-2 rounded-[12px] bg-[#F6F6F4] border border-[#E2E5E9] px-4 py-3 shadow-xs transition hover:opacity-90"
+                className="inline-flex h-11 sm:h-12 shrink-0 items-center gap-2 rounded-[12px] bg-[#F6F6F4] border border-[#E2E5E9] px-3.5 py-1.5 shadow-xs transition hover:opacity-90"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/partners/leanpay_logo2.png" alt="Leanpay" width={150} height={38} className="h-8 w-auto object-contain" />
-                <ArrowUpRight aria-hidden className="h-4 w-4 text-[#5b2d90]" />
+                <img src="/images/partners/leanpay_logo2.png" alt="Leanpay" width={130} height={32} className="h-6 sm:h-7 w-auto object-contain" />
+                <ArrowUpRight aria-hidden className="h-3.5 w-3.5 text-[#5b2d90]" />
               </ExternalLink>
               <ExternalLink
                 href="https://www.leanpay.si/avto-moto/"
-                className="inline-flex shrink-0 items-center overflow-hidden rounded-[12px] border border-[#E2E5E9] shadow-xs transition hover:opacity-90"
+                className="inline-flex h-11 sm:h-12 shrink-0 items-center rounded-[12px] bg-white border border-[#E2E5E9] px-3.5 py-1.5 shadow-xs transition hover:opacity-90"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/partners/Leanpay-logo.png" alt="Leanpay Avto-Moto" width={120} height={51} className="h-12 w-auto object-contain" />
+                <img src="/images/partners/Leanpay-logo.png" alt="Leanpay Avto-Moto" width={110} height={40} className="h-7 sm:h-8 w-auto object-contain" />
               </ExternalLink>
             </div>
           </div>
