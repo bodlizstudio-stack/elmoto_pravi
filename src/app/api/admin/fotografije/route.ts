@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { readSession } from "@/lib/auth";
 import { audit } from "@/lib/guard";
 import { assertDurableStore, prisma } from "@/lib/db";
+import { persistDbSnapshot } from "@/lib/shared-store";
 import { removeUpload, saveImage } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
@@ -130,6 +131,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
+  await persistDbSnapshot();
   revalidatePath("/", "layout");
   const images = await prisma.motorcycleImage.findMany({
     where: { motorcycleId: id },

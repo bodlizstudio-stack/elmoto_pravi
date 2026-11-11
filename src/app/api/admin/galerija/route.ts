@@ -17,7 +17,7 @@ async function requireAdminSession() {
 export async function GET() {
   const user = await requireAdminSession();
   if (!user) return NextResponse.json({ error: "Prijava je potrebna." }, { status: 401 });
-  await ensureMediaSynced();
+  await ensureMediaSynced({ force: true });
   const photos = await prisma.mediaAsset.findMany({
     where: { kind: "gallery" },
     orderBy: [{ createdAt: "desc" }, { sortOrder: "asc" }],
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const user = await requireAdminSession();
   if (!user) return NextResponse.json({ error: "Prijava je potrebna." }, { status: 401 });
 
-  await ensureMediaSynced();
+  await ensureMediaSynced({ force: true });
 
   const contentType = request.headers.get("content-type") || "";
 

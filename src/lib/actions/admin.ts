@@ -137,7 +137,7 @@ export async function saveMotorcycle(_prev: ActionState, formData: FormData): Pr
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Shranjevanje ni trajno." };
   }
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const id = text(formData, "id");
   const brand = text(formData, "brand");
   const model = text(formData, "model");
@@ -418,7 +418,7 @@ export async function uploadMotorcycleImages(formData: FormData) {
     const message = error instanceof Error ? error.message : "Shranjevanje ni trajno.";
     redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const id = text(formData, "id");
   const bike = await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } });
   if (!bike) return;
@@ -446,7 +446,7 @@ export async function uploadMotorcycleImages(formData: FormData) {
 
 export async function updateImage(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const imageId = text(formData, "imageId");
   const action = text(formData, "imageAction");
   const image = await prisma.motorcycleImage.findUnique({ where: { id: imageId } });
@@ -491,7 +491,7 @@ export async function setOfferAction(formData: FormData) {
     const message = error instanceof Error ? error.message : "Shranjevanje ni trajno.";
     redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const id = text(formData, "id");
   const offerAction = text(formData, "offerAction");
   const back = text(formData, "back") || "/admin";
@@ -537,7 +537,7 @@ export async function deleteMotorcycle(formData: FormData) {
     const message = error instanceof Error ? error.message : "Shranjevanje ni trajno.";
     redirect(`/admin?error=${encodeURIComponent(message)}`);
   }
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const id = text(formData, "id");
   const bike = await prisma.motorcycle.findUnique({ where: { id }, include: { images: true } });
   if (!bike) redirect("/admin?ok=1");
@@ -609,7 +609,7 @@ export async function resetPasswordWithToken(_prev: ActionState, formData: FormD
 
 export async function importMotorcycles(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) redirect("/admin/uvoz?error=datoteka");
   if (file.size > 2_000_000) redirect("/admin/uvoz?error=velikost");
@@ -802,7 +802,7 @@ export async function updateInquiry(formData: FormData) {
 
 export async function saveHeroSettings(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureSettingsSynced();
+  await ensureSettingsSynced({ force: true });
 
   let heroImage = text(formData, "heroImage") || "/images/hero/hero-elmoto.webp";
   let heroImageMobile = text(formData, "heroImageMobile") || "/images/hero/hero-elmoto-mobile.webp";
@@ -840,7 +840,7 @@ export async function saveHeroSettings(formData: FormData) {
 
 export async function saveSettings(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureSettingsSynced();
+  await ensureSettingsSynced({ force: true });
   const entries = [
     ["phone", text(formData, "phone")],
     ["email", text(formData, "email")],
@@ -947,7 +947,7 @@ export async function deleteTestimonial(formData: FormData) {
 
 export async function saveMedia(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureMediaSynced();
+  await ensureMediaSynced({ force: true });
   const returnTo = text(formData, "returnTo") || "/admin/galerija";
   const id = text(formData, "id");
   const kind = text(formData, "kind") || "gallery";
@@ -1047,7 +1047,7 @@ export const uploadMedia = saveMedia;
 
 export async function deleteMedia(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureMediaSynced();
+  await ensureMediaSynced({ force: true });
   const returnTo = text(formData, "returnTo") || "/admin/galerija";
   const id = text(formData, "id");
   if (!id) redirect(`${returnTo}?saved=1`);
@@ -1070,7 +1070,7 @@ export async function deleteMedia(formData: FormData) {
 
 export async function clearPlaceholderGalleryPhotos() {
   const admin = await requireAdmin();
-  await ensureMediaSynced();
+  await ensureMediaSynced({ force: true });
   await prisma.mediaAsset.deleteMany({
     where: {
       kind: "gallery",
@@ -1087,7 +1087,7 @@ export async function clearPlaceholderGalleryPhotos() {
 
 export async function deleteAllGalleryPhotos() {
   const admin = await requireAdmin();
-  await ensureMediaSynced();
+  await ensureMediaSynced({ force: true });
   const photos = await prisma.mediaAsset.findMany({ where: { kind: "gallery" } });
   for (const p of photos) {
     if (p.url && !p.url.startsWith("/images/")) {
@@ -1105,7 +1105,7 @@ export async function deleteAllGalleryPhotos() {
 
 export async function saveEquipment(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureEquipmentSynced();
+  await ensureEquipmentSynced({ force: true });
   const id = text(formData, "id");
   const title = text(formData, "title");
   if (!title) redirect("/admin/oprema?error=naziv");
@@ -1168,7 +1168,7 @@ export async function saveEquipment(formData: FormData) {
 
 export async function deleteEquipment(formData: FormData) {
   const admin = await requireAdmin();
-  await ensureEquipmentSynced();
+  await ensureEquipmentSynced({ force: true });
   const id = text(formData, "id");
   if (!id) redirect("/admin/oprema");
   const item = await prisma.equipment.findUnique({ where: { id } });

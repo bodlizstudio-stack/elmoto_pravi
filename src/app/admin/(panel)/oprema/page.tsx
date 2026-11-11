@@ -14,7 +14,7 @@ export default async function AdminOpremaPage({
   searchParams: Promise<{ saved?: string; error?: string; edit?: string }>;
 }) {
   const query = await searchParams;
-  await ensureEquipmentSynced();
+  await ensureEquipmentSynced({ force: true });
   const items = await prisma.equipment.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });

@@ -44,6 +44,7 @@ export async function saveImageBuffer(buffer: Buffer) {
         access: "public",
         contentType: "image/webp",
         addRandomSuffix: false,
+        cacheControlMaxAge: 31536000,
         ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
       });
       return blob.url;

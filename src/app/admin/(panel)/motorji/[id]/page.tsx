@@ -13,7 +13,7 @@ export default async function EditMotorcyclePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const { id } = await params;
   const query = await searchParams;
   const bike = await prisma.motorcycle.findUnique({

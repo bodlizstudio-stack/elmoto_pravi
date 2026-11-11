@@ -38,7 +38,7 @@ export default async function AdminHome({
 }: {
   searchParams: Promise<{ q?: string; status?: string; error?: string; ok?: string }>;
 }) {
-  await ensureDbSynced();
+  await ensureDbSynced({ force: true });
   const query = await searchParams;
   const q = (query.q ?? "").trim().toLocaleLowerCase("sl");
   const status = query.status ?? "";

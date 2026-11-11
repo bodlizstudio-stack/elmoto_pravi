@@ -18,7 +18,7 @@ export default async function AdminGalerijaPage({
   searchParams: Promise<{ saved?: string; error?: string; edit?: string }>;
 }) {
   const query = await searchParams;
-  await ensureMediaSynced();
+  await ensureMediaSynced({ force: true });
 
   // Najnovejše fotografije se vedno prikažejo na vrhu
   const photos = await prisma.mediaAsset.findMany({
