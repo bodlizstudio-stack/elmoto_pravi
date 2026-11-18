@@ -9,10 +9,10 @@ export function resolvePostgresUrl(): string {
   ];
 
   for (const raw of candidates) {
-    if (!raw || raw.includes("YOUR-PASSWORD") || raw.includes("VASE-GESLO")) continue;
+    if (!raw || raw.includes("YOUR-PASSWORD") || raw.includes("VASE-GESLO") || raw.includes("<GESLO>")) continue;
     let cleaned = raw.trim().replace(/^["']+|["']+$/g, "").trim();
     cleaned = cleaned.replace(/^(DATABASE_URL|DIRECT_URL)\s*=\s*/i, "").replace(/^["']+|["']+$/g, "").trim();
-    cleaned = cleaned.replace(/:(\[([^\]]+)\])@/, ":$2@");
+    cleaned = cleaned.replace(/:[<\[]([^>\]@]+)[>\]]@/, ":$1@");
     if (cleaned.startsWith("postgresql://") || cleaned.startsWith("postgres://")) {
       if (cleaned.includes(".pooler.supabase.com") && /^postgres(?:ql)?:\/\/postgres:/i.test(cleaned)) {
         cleaned = cleaned.replace(/^(postgres(?:ql)?:\/\/)postgres:/i, "$1postgres.cewjffougzewilewyjpc:");

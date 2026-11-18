@@ -35,7 +35,18 @@ export async function GET(request: Request) {
         image: bike.images[0]?.url ?? null,
       })),
     );
-  } catch {
-    return NextResponse.json({ error: "Database connection error" }, { status: 500 });
+  } catch (err) {
+    const rawDb = process.env.DATABASE_URL || "";
+    const msg = err instanceof Error ? err.message.replace(/postgres(?:ql)?:\/\/[^\s"']+/gi, "[REDACTED_URL]") : "unknown";
+    return NextResponse.json(
+      {
+        error: "Database connection error",
+        detail: msg,
+        hasPlaceholder: rawDb.includes("YOUR-PASSWORD") || rawDb.includes("GESLO"),
+        hasAngleBrackets: rawDb.includes("<") || rawDb.includes(">"),
+        hasSquareBrackets: rawDb.includes("[") || rawDb.includes("]"),
+      },
+      { status: 500 },
+    );
   }
 }
