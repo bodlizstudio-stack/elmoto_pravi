@@ -22,7 +22,13 @@ export function Photo({
   return (
     // External photos are admin-provided and may not be on an allowed image host.
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} className={`absolute inset-0 h-full w-full ${fitClass}`} />
+    <img
+      src={src}
+      alt={alt}
+      loading={priority ? undefined : "lazy"}
+      decoding="async"
+      className={`absolute inset-0 h-full w-full ${fitClass}`}
+    />
   );
 }
 

@@ -72,12 +72,12 @@ export async function POST(request: Request) {
 
       if (action === "delete_all") {
         const photos = await prisma.mediaAsset.findMany({ where: { kind: "gallery" } });
+        await prisma.mediaAsset.deleteMany({ where: { kind: "gallery" } });
         for (const p of photos) {
           if (p.url && !p.url.startsWith("/images/")) {
             await removeUpload(p.url).catch(() => undefined);
           }
         }
-        await prisma.mediaAsset.deleteMany({ where: { kind: "gallery" } });
         await persistMediaSnapshot();
         await audit(user.id, "DELETE_ALL", "MediaAsset", "gallery");
         revalidatePath("/", "layout");
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
           const base64Data = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
           if (!base64Data) continue;
           const buffer = Buffer.from(base64Data, "base64");
-          const url = await saveImageBuffer(buffer);
+          const url = await saveImageBuffer(buffer, "gallery");
           const record = await prisma.mediaAsset.create({
             data: {
               url,
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
       }
 
       for (const file of files) {
-        const url = await saveImage(file);
+        const url = await saveImage(file, "gallery");
         await prisma.mediaAsset.create({
           data: {
             url,

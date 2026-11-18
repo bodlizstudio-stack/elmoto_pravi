@@ -14,7 +14,7 @@ import { displayName, extractMileageFromText, parseSpecs, slugify, euroToCents }
 import { createHash, timingSafeEqual } from "node:crypto";
 import { findOverlap } from "@/lib/availability";
 import { parseInTimeZone } from "@/lib/time";
-import { removeUpload, saveImage, saveRemoteImage } from "@/lib/uploads";
+import { removeUpload, saveDataUrlImage, saveImage, saveRemoteImage } from "@/lib/uploads";
 import { validateAvtoNetImageUrl } from "@/lib/avtonet-import";
 import { ensureDbSynced, ensureSettingsSynced, persistDbSnapshot, persistSettingsSnapshot, ensureMediaSynced, persistMediaSnapshot, ensureEquipmentSynced, persistEquipmentSnapshot } from "@/lib/shared-store";
 import { getKoveModels, koveModels, type KoveModel } from "@/lib/kove";
@@ -289,7 +289,7 @@ async function attachPhotos(
   motorcycleId: string,
   brand: string,
   model: string,
-  images: { sortOrder: number }[],
+  images: { url: string; sortOrder: number }[],
   formData: FormData,
 ) {
   if (formData.has("galleryJson")) {
@@ -297,7 +297,7 @@ async function attachPhotos(
     try {
       const parsed = JSON.parse(rawGallery) as unknown;
       if (Array.isArray(parsed)) {
-        const items = parsed
+        const rawItems = parsed
           .map((item) => {
             if (!item || typeof item !== "object") return null;
             const rec = item as Record<string, unknown>;
@@ -312,9 +312,24 @@ async function attachPhotos(
           .filter((item): item is { url: string; alt: string; isCover: boolean } => Boolean(item))
           .slice(0, 30);
 
+        const items: { url: string; alt: string; isCover: boolean }[] = [];
+        for (const item of rawItems) {
+          const finalUrl = item.url.startsWith("data:image/")
+            ? await saveDataUrlImage(item.url, "motorcycles")
+            : item.url;
+          items.push({
+            url: finalUrl,
+            alt: item.alt,
+            isCover: item.isCover,
+          });
+        }
+
         if (items.length > 0 && !items.some((item) => item.isCover)) {
           items[0].isCover = true;
         }
+
+        const keptUrls = new Set(items.map((item) => item.url));
+        const removedUrls = images.map((img) => img.url).filter((u) => u && !keptUrls.has(u));
 
         await prisma.motorcycleImage.deleteMany({ where: { motorcycleId } });
         for (let idx = 0; idx < items.length; idx += 1) {
@@ -328,9 +343,16 @@ async function attachPhotos(
             },
           });
         }
+
+        for (const removedUrl of removedUrls) {
+          await removeUpload(removedUrl).catch(() => undefined);
+        }
         return;
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.message) {
+        throw err;
+      }
       // Fallback to importedImages / photos below
     }
   }
@@ -359,7 +381,7 @@ async function attachPhotos(
   let addedCount = 0;
 
   for (const remoteUrl of importedUrls) {
-    const storedUrl = (await saveRemoteImage(remoteUrl)) || validateAvtoNetImageUrl(remoteUrl);
+    const storedUrl = (await saveRemoteImage(remoteUrl, "motorcycles")) || validateAvtoNetImageUrl(remoteUrl);
     if (!storedUrl) continue;
     order += 1;
     const isCover = images.length === 0 && addedCount === preferredCoverIdx;
@@ -376,7 +398,7 @@ async function attachPhotos(
   }
 
   for (const file of files) {
-    const url = await saveImage(file);
+    const url = await saveImage(file, "motorcycles");
     order += 1;
     const isCover = images.length === 0 && addedCount === preferredCoverIdx;
     addedCount += 1;
@@ -426,7 +448,7 @@ export async function uploadMotorcycleImages(formData: FormData) {
   if (bike.images.length + files.length > 30) redirect(`/admin/motorji/${id}?error=prevec-fotografij`);
   let order = bike.images.reduce((max, image) => Math.max(max, image.sortOrder), 0);
   for (const file of files.slice(0, 12)) {
-    const url = await saveImage(file);
+    const url = await saveImage(file, "motorcycles");
     order += 1;
     await prisma.motorcycleImage.create({
       data: {
@@ -804,17 +826,34 @@ export async function saveHeroSettings(formData: FormData) {
   const admin = await requireAdmin();
   await ensureSettingsSynced({ force: true });
 
+  const [prevHeroRow, prevHeroMobileRow] = await Promise.all([
+    prisma.siteSetting.findUnique({ where: { key: "hero_image" } }),
+    prisma.siteSetting.findUnique({ where: { key: "hero_image_mobile" } }),
+  ]);
+  const prevHeroImage = prevHeroRow?.value || "";
+  const prevHeroImageMobile = prevHeroMobileRow?.value || "";
+
   let heroImage = text(formData, "heroImage") || "/images/hero/hero-elmoto.webp";
   let heroImageMobile = text(formData, "heroImageMobile") || "/images/hero/hero-elmoto-mobile.webp";
 
   const desktopFile = formData.get("heroImageFile");
   if (desktopFile instanceof File && desktopFile.size > 0) {
-    heroImage = await saveImage(desktopFile);
+    try {
+      heroImage = await saveImage(desktopFile, "homepage");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "slika";
+      redirect(`/admin/vsebina?error=${encodeURIComponent(msg)}`);
+    }
   }
 
   const mobileFile = formData.get("heroImageMobileFile");
   if (mobileFile instanceof File && mobileFile.size > 0) {
-    heroImageMobile = await saveImage(mobileFile);
+    try {
+      heroImageMobile = await saveImage(mobileFile, "homepage");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "slika";
+      redirect(`/admin/vsebina?error=${encodeURIComponent(msg)}`);
+    }
   }
 
   const entries = [
@@ -831,6 +870,12 @@ export async function saveHeroSettings(formData: FormData) {
 
   for (const [key, value] of entries) {
     await prisma.siteSetting.upsert({ where: { key }, update: { value }, create: { key, value } });
+  }
+  if (prevHeroImage && prevHeroImage !== heroImage && !prevHeroImage.startsWith("/images/")) {
+    await removeUpload(prevHeroImage).catch(() => undefined);
+  }
+  if (prevHeroImageMobile && prevHeroImageMobile !== heroImageMobile && !prevHeroImageMobile.startsWith("/images/")) {
+    await removeUpload(prevHeroImageMobile).catch(() => undefined);
   }
   await persistSettingsSnapshot();
   await audit(admin.id, "HERO_SETTINGS", "SiteSetting");
@@ -951,6 +996,7 @@ export async function saveMedia(formData: FormData) {
   const returnTo = text(formData, "returnTo") || "/admin/galerija";
   const id = text(formData, "id");
   const kind = text(formData, "kind") || "gallery";
+  const folder = kind === "hero" ? "homepage" : "gallery";
   const file = formData.get("file");
   const rawFiles = formData.getAll("files").filter((f) => f instanceof File && f.size > 0) as File[];
   const files = [...rawFiles];
@@ -962,7 +1008,7 @@ export async function saveMedia(formData: FormData) {
   if (id) {
     if (files.length > 0) {
       try {
-        url = await saveImage(files[0]);
+        url = await saveImage(files[0], folder);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "datoteka";
         redirect(`${returnTo}?error=${encodeURIComponent(msg)}`);
@@ -973,9 +1019,8 @@ export async function saveMedia(formData: FormData) {
     if (!existing) redirect(`${returnTo}?error=neobstojece`);
 
     const finalUrl = url || existing.url;
-    if (url && url !== existing.url && !existing.url.startsWith("/images/")) {
-      await removeUpload(existing.url);
-    }
+    const oldUrlToRemove =
+      url && url !== existing.url && !existing.url.startsWith("/images/") ? existing.url : null;
 
     const sortOrderVal = optionalInt(formData, "sortOrder");
 
@@ -989,6 +1034,9 @@ export async function saveMedia(formData: FormData) {
         ...(sortOrderVal !== null ? { sortOrder: sortOrderVal } : {}),
       },
     });
+    if (oldUrlToRemove) {
+      await removeUpload(oldUrlToRemove).catch(() => undefined);
+    }
     await persistMediaSnapshot();
     await audit(admin.id, "UPDATE", "MediaAsset", id);
     revalidatePath("/", "layout");
@@ -1017,7 +1065,7 @@ export async function saveMedia(formData: FormData) {
     }
 
     for (const f of files) {
-      const uploadedUrl = await saveImage(f);
+      const uploadedUrl = await saveImage(f, folder);
       await prisma.mediaAsset.create({
         data: {
           url: uploadedUrl,
@@ -1089,12 +1137,12 @@ export async function deleteAllGalleryPhotos() {
   const admin = await requireAdmin();
   await ensureMediaSynced({ force: true });
   const photos = await prisma.mediaAsset.findMany({ where: { kind: "gallery" } });
+  await prisma.mediaAsset.deleteMany({ where: { kind: "gallery" } });
   for (const p of photos) {
     if (p.url && !p.url.startsWith("/images/")) {
       await removeUpload(p.url).catch(() => undefined);
     }
   }
-  await prisma.mediaAsset.deleteMany({ where: { kind: "gallery" } });
   await persistMediaSnapshot();
   await audit(admin.id, "DELETE_ALL", "MediaAsset", "gallery");
   revalidatePath("/", "layout");
@@ -1123,7 +1171,7 @@ export async function saveEquipment(formData: FormData) {
   const file = formData.get("file");
   if (file instanceof File && file.size > 0) {
     try {
-      imageUrl = await saveImage(file);
+      imageUrl = await saveImage(file, "equipment");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "slika";
       redirect(`/admin/oprema?error=${encodeURIComponent(msg)}`);
@@ -1131,10 +1179,11 @@ export async function saveEquipment(formData: FormData) {
   }
 
   let finalImageUrl = imageUrl || "";
+  let oldEquipmentUrlToRemove: string | null = null;
   if (id) {
     const existing = await prisma.equipment.findUnique({ where: { id } });
     if (imageUrl && existing?.imageUrl && existing.imageUrl !== imageUrl) {
-      await removeUpload(existing.imageUrl);
+      oldEquipmentUrlToRemove = existing.imageUrl;
     }
     if (!finalImageUrl && existing?.imageUrl) {
       finalImageUrl = existing.imageUrl;
@@ -1158,6 +1207,10 @@ export async function saveEquipment(formData: FormData) {
     await prisma.equipment.create({ data });
   }
 
+  if (oldEquipmentUrlToRemove) {
+    await removeUpload(oldEquipmentUrlToRemove).catch(() => undefined);
+  }
+
   await persistEquipmentSnapshot();
   await audit(admin.id, id ? "UPDATE" : "CREATE", "Equipment", id || title);
   revalidatePath("/");
@@ -1174,11 +1227,10 @@ export async function deleteEquipment(formData: FormData) {
   const item = await prisma.equipment.findUnique({ where: { id } });
   if (!item) redirect("/admin/oprema?saved=1");
 
-  if (item.imageUrl) {
-    await removeUpload(item.imageUrl);
-  }
-
   await prisma.equipment.delete({ where: { id } });
+  if (item.imageUrl) {
+    await removeUpload(item.imageUrl).catch(() => undefined);
+  }
   await persistEquipmentSnapshot();
   await audit(admin.id, "DELETE", "Equipment", id);
   revalidatePath("/");
@@ -1242,7 +1294,7 @@ export async function saveKoveModel(formData: FormData) {
   const file = formData.get("file");
   if (file instanceof File && file.size > 0) {
     try {
-      imageUrl = await saveImage(file);
+      imageUrl = await saveImage(file, "kove");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "slika";
       redirect(`/admin/kove?error=${encodeURIComponent(msg)}`);
@@ -1273,10 +1325,14 @@ export async function saveKoveModel(formData: FormData) {
 
   const targetSlug = originalSlug || modelSlug;
   const foundIndex = existingModels.findIndex((m) => m.slug === targetSlug);
+  let oldKoveImageToRemove: string | null = null;
 
   if (foundIndex >= 0) {
-    if (!newModelData.image && existingModels[foundIndex].image) {
-      newModelData.image = existingModels[foundIndex].image;
+    const prevImage = existingModels[foundIndex].image;
+    if (!newModelData.image && prevImage) {
+      newModelData.image = prevImage;
+    } else if (prevImage && newModelData.image && prevImage !== newModelData.image && !prevImage.startsWith("/images/")) {
+      oldKoveImageToRemove = prevImage;
     }
     updatedModels = [...existingModels];
     updatedModels[foundIndex] = newModelData;
@@ -1289,6 +1345,10 @@ export async function saveKoveModel(formData: FormData) {
     update: { value: JSON.stringify(updatedModels) },
     create: { key: "kove_models_json", value: JSON.stringify(updatedModels) },
   });
+
+  if (oldKoveImageToRemove) {
+    await removeUpload(oldKoveImageToRemove).catch(() => undefined);
+  }
 
   await persistSettingsSnapshot();
   await audit(admin.id, originalSlug ? "UPDATE" : "CREATE", "KoveModel", modelSlug);
@@ -1304,6 +1364,7 @@ export async function deleteKoveModel(formData: FormData) {
   if (!slug) redirect("/admin/kove");
 
   const existingModels = await getKoveModels();
+  const deletedModel = existingModels.find((m) => m.slug === slug);
   const updatedModels = existingModels.filter((m) => m.slug !== slug);
 
   await prisma.siteSetting.upsert({
@@ -1311,6 +1372,10 @@ export async function deleteKoveModel(formData: FormData) {
     update: { value: JSON.stringify(updatedModels) },
     create: { key: "kove_models_json", value: JSON.stringify(updatedModels) },
   });
+
+  if (deletedModel?.image && !deletedModel.image.startsWith("/images/")) {
+    await removeUpload(deletedModel.image).catch(() => undefined);
+  }
 
   await persistSettingsSnapshot();
   await audit(admin.id, "DELETE", "KoveModel", slug);

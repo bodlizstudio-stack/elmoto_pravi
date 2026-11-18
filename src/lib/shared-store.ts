@@ -1,4 +1,11 @@
 import { prisma } from "@/lib/db";
+import {
+  SUPABASE_BUCKET,
+  ensureSupabaseBucket,
+  getSupabaseAdmin,
+  getSupabasePublicUrl,
+  isSupabaseConfigured,
+} from "@/lib/supabase";
 
 const CATALOG_KEY = "elmoto-shared-catalog-v2";
 const IMG_KEY_PREFIX = "elmoto-shared-img-v2-";
@@ -95,8 +102,9 @@ type MemoryEntry<T> = {
 
 const memoryStore = new Map<string, MemoryEntry<unknown>>();
 
-// Premor med preverjanji na aktivnih instancah: 5 minut za javne obiskovalce
+// Premor med preverjanji na aktivnih instancah: 5 minut za javne obiskovalce, 15 sekund za administracijo
 const PUBLIC_SYNC_COOLDOWN_MS = 5 * 60 * 1000;
+const FORCE_SYNC_COOLDOWN_MS = 15 * 1000;
 
 // Obtain Next.js's internal IncrementalCache instance (backed by Vercel's shared FetchCache in production)
 function getIncrementalCache(): {
@@ -166,7 +174,6 @@ async function cacheSet<T>(key: string, value: T): Promise<void> {
 }
 
 async function blobSet<T>(key: string, value: T): Promise<void> {
-  const hasBlob = Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
   const version = (value as { version?: number })?.version ?? Date.now();
 
   // Takoj posodobi lokalni pomnilnik te instance
@@ -177,77 +184,102 @@ async function blobSet<T>(key: string, value: T): Promise<void> {
     version,
   });
 
-  if (hasBlob) {
+  if (isSupabaseConfigured()) {
     try {
-      const { put } = await import("@vercel/blob");
-      await put(`snapshots/${key}.json`, JSON.stringify(value), {
-        access: "public",
-        contentType: "application/json",
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        cacheControlMaxAge: 300, // 5 min CDN cache
-        ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
-      });
-
-      try {
-        const { revalidateTag } = await import("next/cache");
-        revalidateTag(`snapshot-${key}`, { expire: 0 });
-      } catch {
-        // Ignoriraj izven zahteve
+      await ensureSupabaseBucket();
+      const supabase = getSupabaseAdmin();
+      const payload = Buffer.from(JSON.stringify(value), "utf-8");
+      const { error } = await supabase.storage
+        .from(SUPABASE_BUCKET)
+        .upload(`snapshots/${key}.json`, payload, {
+          contentType: "application/json",
+          cacheControl: "300",
+          upsert: true,
+        });
+      if (error) {
+        console.error(`[shared-store] Error writing Supabase snapshot for ${key}:`, error.message);
+      } else {
+        try {
+          const { revalidateTag } = await import("next/cache");
+          revalidateTag(`snapshot-${key}`, { expire: 0 });
+        } catch {
+          // Ignoriraj izven zahteve
+        }
+        return;
       }
-      return;
     } catch (err) {
-      console.error(`[shared-store] Error writing blob snapshot for ${key}:`, err);
+      console.error(`[shared-store] Unexpected Supabase snapshot error for ${key}:`, err);
     }
   }
+
   await cacheSet(key, value);
+}
+
+async function fetchSnapshotUrl<T>(
+  url: string,
+  key: string,
+  cached: MemoryEntry<T> | undefined,
+  force: boolean,
+  now: number,
+): Promise<{ status: "ok" | "not_modified" | "miss"; data: T | null }> {
+  try {
+    const headers: Record<string, string> = {};
+    if (cached?.etag && !force) {
+      headers["If-None-Match"] = cached.etag;
+    }
+    const res = await fetch(url, {
+      headers,
+      next: {
+        revalidate: 300,
+        tags: [`snapshot-${key}`],
+      },
+    });
+    if (res.status === 304 && cached) {
+      cached.checkedAt = now;
+      return { status: "not_modified", data: cached.data };
+    }
+    if (res.ok) {
+      const etag = res.headers.get("etag");
+      const data = (await res.json()) as T;
+      memoryStore.set(key, {
+        data,
+        etag,
+        checkedAt: now,
+        version: (data as { version?: number })?.version,
+      });
+      return { status: "ok", data };
+    }
+  } catch {
+    // Snapshot še ne obstaja ali je omrežna napaka
+  }
+  return { status: "miss", data: null };
 }
 
 async function blobGet<T>(key: string, force = false): Promise<T | null> {
   const now = Date.now();
   const cached = memoryStore.get(key) as MemoryEntry<T> | undefined;
+  const cooldown = force ? FORCE_SYNC_COOLDOWN_MS : PUBLIC_SYNC_COOLDOWN_MS;
 
-  // Če je instanca pred kratkim že preverila in ni vsiljeno, takoj vrni iz pomnilnika (0 Vercel Blob klicev)
-  if (!force && cached && now - cached.checkedAt < PUBLIC_SYNC_COOLDOWN_MS) {
+  // Če je instanca pred kratkim že preverila, takoj vrni iz pomnilnika (0 zunanjih klicev)
+  if (cached && now - cached.checkedAt < cooldown) {
     return cached.data;
   }
 
-  const hasBlob = Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
-  if (hasBlob) {
-    try {
-      const url = `${SNAPSHOT_BASE_URL}/snapshots/${key}.json`;
-      const headers: Record<string, string> = {};
-      if (cached?.etag && !force) {
-        headers["If-None-Match"] = cached.etag;
-      }
+  if (isSupabaseConfigured()) {
+    const supaUrl = getSupabasePublicUrl(`snapshots/${key}.json`);
+    const supaRes = await fetchSnapshotUrl<T>(supaUrl, key, cached, force, now);
+    if (supaRes.status === "ok" || supaRes.status === "not_modified") {
+      return supaRes.data;
+    }
+  }
 
-      // Uporabi Next.js Data Cache za 5 minut predpomnjenja, brez klicanja head() API
-      const res = await fetch(url, {
-        headers,
-        next: {
-          revalidate: 300,
-          tags: [`snapshot-${key}`],
-        },
-      });
-
-      if (res.status === 304 && cached) {
-        cached.checkedAt = now;
-        return cached.data;
-      }
-
-      if (res.ok) {
-        const etag = res.headers.get("etag");
-        const data = (await res.json()) as T;
-        memoryStore.set(key, {
-          data,
-          etag,
-          checkedAt: now,
-          version: (data as { version?: number })?.version,
-        });
-        return data;
-      }
-    } catch {
-      // Snapshot še ne obstaja ali je omrežna napaka
+  // Varnostni fallback na obstoječi javni posnetek (dokler migracija posnetkov v Supabase še ni izvedena)
+  const hasLegacySnapshot = Boolean(SNAPSHOT_BASE_URL);
+  if (hasLegacySnapshot && (!isSupabaseConfigured() || !cached?.data)) {
+    const legacyUrl = `${SNAPSHOT_BASE_URL}/snapshots/${key}.json`;
+    const legacyRes = await fetchSnapshotUrl<T>(legacyUrl, key, cached, force, now);
+    if (legacyRes.status === "ok" || legacyRes.status === "not_modified") {
+      return legacyRes.data;
     }
   }
 

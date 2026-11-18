@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+vi.mock("server-only", () => ({}));
 import { parseInTimeZone } from "@/lib/time";
 import { lowestDailyCents, quoteCents, rangesOverlap, rentalDays, selectRate } from "@/lib/rental";
 import { canPublish, publicListStatuses } from "@/lib/offer";
@@ -6,6 +7,8 @@ import { euroToCents, formatPrice, slugify } from "@/lib/utils";
 import { contactSchema } from "@/lib/validators";
 import { parseMotorcycleImport } from "@/lib/import-motorcycles";
 import { parseAvtoNetContent, validateAvtoNetUrl } from "@/lib/avtonet-import";
+import { extractSupabaseObjectPath, getSupabasePublicUrl } from "@/lib/supabase";
+import { sniffImage } from "@/lib/uploads";
 
 describe("cene", () => {
   it("ne prikaže 0 EUR ali nepotrjene cene", () => {
@@ -186,5 +189,27 @@ describe("avto.net uvoz", () => {
     expect(empty.engineCc).toBeNull();
     expect(empty.powerKw).toBeNull();
     expect(empty.imageUrls).toEqual([]);
+  });
+});
+
+describe("supabase storage in validacija slik", () => {
+  it("prepozna JPG, PNG in WebP glave datotek", () => {
+    expect(sniffImage(Buffer.from([0xff, 0xd8, 0xff, 0xe0]))).toBe("jpg");
+    expect(sniffImage(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]))).toBe("png");
+    expect(sniffImage(Buffer.from("RIFF____WEBPVP8 ", "ascii"))).toBe("webp");
+    expect(sniffImage(Buffer.from("neveljavna-datoteka", "ascii"))).toBeNull();
+  });
+
+  it("pravilno sestavi in razčleni javni URL za vedro el-moto-images", () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://exampleproject.supabase.co";
+    const pub = getSupabasePublicUrl("motorcycles/1700000000-abcdef.webp");
+    expect(pub).toBe(
+      "https://exampleproject.supabase.co/storage/v1/object/public/el-moto-images/motorcycles/1700000000-abcdef.webp",
+    );
+    expect(extractSupabaseObjectPath(pub)).toBe("motorcycles/1700000000-abcdef.webp");
+    expect(
+      extractSupabaseObjectPath("https://js2xtopypf0trcpc.public.blob.vercel-storage.com/motorji/test.webp"),
+    ).toBeNull();
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
   });
 });

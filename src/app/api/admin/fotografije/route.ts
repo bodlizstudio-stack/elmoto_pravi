@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       if (!(file instanceof File) || file.size <= 0) {
         return NextResponse.json({ error: "Izberi fotografijo." }, { status: 400 });
       }
-      const url = await saveImage(file);
+      const url = await saveImage(file, "motorcycles");
       return NextResponse.json({
         images: [
           {
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       if (bike.images.length >= 30) {
         return NextResponse.json({ error: "Na enem motorju je lahko največ 30 fotografij." }, { status: 400 });
       }
-      const url = await saveImage(file);
+      const url = await saveImage(file, "motorcycles");
       const order = bike.images.reduce((max, image) => Math.max(max, image.sortOrder), 0) + 1;
       await prisma.motorcycleImage.create({
         data: {
