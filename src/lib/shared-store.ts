@@ -193,7 +193,7 @@ async function blobSet<T>(key: string, value: T): Promise<void> {
         .from(SUPABASE_BUCKET)
         .upload(`snapshots/${key}.json`, payload, {
           contentType: "application/json",
-          cacheControl: "300",
+          cacheControl: "0",
           upsert: true,
         });
       if (error) {
@@ -227,13 +227,19 @@ async function fetchSnapshotUrl<T>(
     if (cached?.etag && !force) {
       headers["If-None-Match"] = cached.etag;
     }
-    const res = await fetch(url, {
-      headers,
-      next: {
-        revalidate: 300,
-        tags: [`snapshot-${key}`],
-      },
-    });
+    const fetchUrl = force ? `${url}${url.includes("?") ? "&" : "?"}t=${now}` : url;
+    const res = await fetch(
+      fetchUrl,
+      force
+        ? { headers, cache: "no-store" }
+        : {
+            headers,
+            next: {
+              revalidate: 300,
+              tags: [`snapshot-${key}`],
+            },
+          },
+    );
     if (res.status === 304 && cached) {
       cached.checkedAt = now;
       return { status: "not_modified", data: cached.data };

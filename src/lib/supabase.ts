@@ -1,24 +1,35 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-export const SUPABASE_BUCKET = (process.env.SUPABASE_STORAGE_BUCKET || "el-moto-images").trim();
+function cleanEnvValue(raw: string | undefined): string {
+  if (!raw) return "";
+  return raw.trim().replace(/^["']+|["']+$/g, "").trim();
+}
+
+export const SUPABASE_BUCKET = cleanEnvValue(process.env.SUPABASE_STORAGE_BUCKET) || "el-moto-images";
 
 export type UploadFolder = "motorcycles" | "equipment" | "kove" | "gallery" | "homepage" | "snapshots";
 
 export function getSupabaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
+  const raw = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL).replace(/\/+$/, "");
+  if (!raw) return "";
+  if (/^[a-z0-9]{15,30}$/i.test(raw)) {
+    return `https://${raw.toLowerCase()}.supabase.co`;
+  }
+  if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
+    return `https://${raw}`;
+  }
+  return raw;
 }
 
 export function getSupabasePublishableKey(): string {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    ""
-  ).trim();
+  return cleanEnvValue(
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
 }
 
 export function getSupabaseSecretKey(): string {
-  return (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  return cleanEnvValue(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export function isSupabaseConfigured(): boolean {

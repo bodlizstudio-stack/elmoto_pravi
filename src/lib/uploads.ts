@@ -65,7 +65,7 @@ export async function saveImageBuffer(buffer: Buffer, folder: UploadFolder = "mo
     });
     if (error) {
       console.error(`[uploads] Supabase Storage upload error (${storagePath}):`, error.message);
-      throw new Error("Nalaganje fotografije v shrambo Supabase ni uspelo. Preveri nastavitve.");
+      throw new Error(`Nalaganje fotografije v shrambo Supabase ni uspelo (${error.message}).`);
     }
     const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(storagePath);
     return data.publicUrl;

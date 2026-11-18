@@ -64,29 +64,38 @@ async function fetchSourceBuffer(rawUrl: string): Promise<Buffer> {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function fetchCurrentSnapshot<T>(key: string): Promise<T | null> {
+async function fetchCurrentSnapshot<T extends { version?: number }>(key: string): Promise<T | null> {
+  let supaData: T | null = null;
+  let legacyData: T | null = null;
   if (SUPABASE_URL) {
     try {
       const supaRes = await fetch(
-        `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/snapshots/${key}.json`,
+        `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/snapshots/${key}.json?t=${Date.now()}`,
         { signal: AbortSignal.timeout(10000) },
       );
       if (supaRes.ok) {
-        return (await supaRes.json()) as T;
+        supaData = (await supaRes.json()) as T;
       }
     } catch {
-      // Fallback na legacy posnetek
+      // Ignore
     }
   }
   try {
-    const res = await fetch(`${LEGACY_BLOB_BASE}/snapshots/${key}.json`, {
+    const res = await fetch(`${LEGACY_BLOB_BASE}/snapshots/${key}.json?t=${Date.now()}`, {
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
+    if (res.ok) {
+      legacyData = (await res.json()) as T;
+    }
   } catch {
-    return null;
+    // Ignore
   }
+  if (supaData && legacyData) {
+    const supaVer = typeof supaData.version === "number" ? supaData.version : 0;
+    const legacyVer = typeof legacyData.version === "number" ? legacyData.version : 0;
+    return legacyVer > supaVer ? legacyData : supaData;
+  }
+  return supaData || legacyData;
 }
 
 async function main() {
