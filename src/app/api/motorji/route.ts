@@ -35,23 +35,7 @@ export async function GET(request: Request) {
         image: bike.images[0]?.url ?? null,
       })),
     );
-  } catch (err) {
-    const rawDb = process.env.DATABASE_URL || "";
-    const rawDirect = process.env.DIRECT_URL || "";
-    let diag: Record<string, unknown> = {
-      hasDatabaseUrl: Boolean(rawDb),
-      hasDirectUrl: Boolean(rawDirect),
-      dbHasPlaceholder: rawDb.includes("YOUR-PASSWORD"),
-      directHasPlaceholder: rawDirect.includes("YOUR-PASSWORD"),
-      dbHasBrackets: rawDb.includes("[") || rawDb.includes("]"),
-    };
-    try {
-      const u = new URL(rawDb.trim().replace(/^["']+|["']+$/g, ""));
-      diag = { ...diag, protocol: u.protocol, username: u.username, host: u.host, pwdLen: u.password.length };
-    } catch {
-      diag = { ...diag, urlParseError: true };
-    }
-    const msg = err instanceof Error ? err.message.replace(/postgres(?:ql)?:\/\/[^\s"']+/gi, "[REDACTED_URL]") : "unknown";
-    return NextResponse.json({ error: "Database connection error", detail: msg, diag }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Database connection error" }, { status: 500 });
   }
 }
