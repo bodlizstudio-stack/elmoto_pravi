@@ -21,6 +21,7 @@ type MigrationItem = {
 };
 
 const BUCKET = (process.env.SUPABASE_STORAGE_BUCKET || "el-moto-images").trim();
+const BACKUP_BUCKET = (process.env.SUPABASE_BACKUP_BUCKET || "el-moto-backups").trim();
 const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
 const SUPABASE_KEY = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const LEGACY_BLOB_BASE =
@@ -67,14 +68,14 @@ async function fetchSourceBuffer(rawUrl: string): Promise<Buffer> {
 async function fetchCurrentSnapshot<T extends { version?: number }>(key: string): Promise<T | null> {
   let supaData: T | null = null;
   let legacyData: T | null = null;
-  if (SUPABASE_URL) {
+  if (SUPABASE_URL && SUPABASE_KEY) {
     try {
-      const supaRes = await fetch(
-        `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/snapshots/${key}.json?t=${Date.now()}`,
-        { signal: AbortSignal.timeout(10000) },
-      );
-      if (supaRes.ok) {
-        supaData = (await supaRes.json()) as T;
+      const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data, error } = await supabase.storage.from(BACKUP_BUCKET).download(`snapshots/${key}.json`);
+      if (!error && data) {
+        supaData = JSON.parse(await data.text()) as T;
       }
     } catch {
       // Ignore
@@ -416,15 +417,15 @@ async function main() {
       for (const [key, data] of snapshotsToUpload) {
         if (!data) continue;
         const payload = Buffer.from(JSON.stringify(data), "utf-8");
-        const { error } = await supabase.storage.from(BUCKET).upload(`snapshots/${key}.json`, payload, {
+        const { error } = await supabase.storage.from(BACKUP_BUCKET).upload(`snapshots/${key}.json`, payload, {
           contentType: "application/json",
-          cacheControl: "300",
+          cacheControl: "0",
           upsert: true,
         });
         if (error) {
           console.error(`  ✕ Napaka pri zapisu posnetka ${key}: ${error.message}`);
         } else {
-          console.log(`  ✓ Posnetek snapshots/${key}.json shranjen v Supabase Storage.`);
+          console.log(`  ✓ Posnetek snapshots/${key}.json shranjen v zasebno vedro ${BACKUP_BUCKET}.`);
         }
       }
     }

@@ -7,8 +7,9 @@ function cleanEnvValue(raw: string | undefined): string {
 }
 
 export const SUPABASE_BUCKET = cleanEnvValue(process.env.SUPABASE_STORAGE_BUCKET) || "el-moto-images";
+export const SUPABASE_BACKUP_BUCKET = cleanEnvValue(process.env.SUPABASE_BACKUP_BUCKET) || "el-moto-backups";
 
-export type UploadFolder = "motorcycles" | "equipment" | "kove" | "gallery" | "homepage" | "snapshots";
+export type UploadFolder = "motorcycles" | "equipment" | "kove" | "gallery" | "homepage";
 
 export function getSupabaseUrl(): string {
   const raw = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL).replace(/\/+$/, "");
@@ -40,6 +41,7 @@ const globalForSupabase = globalThis as unknown as {
   __elmotoSupabaseAdmin?: SupabaseClient;
   __elmotoSupabaseUrl?: string;
   __elmotoSupabaseBucketChecked?: boolean;
+  __elmotoSupabaseBackupBucketChecked?: boolean;
 };
 
 export function getSupabaseAdmin(): SupabaseClient {
@@ -78,6 +80,25 @@ export async function ensureSupabaseBucket(): Promise<void> {
     }
   }
   globalForSupabase.__elmotoSupabaseBucketChecked = true;
+}
+
+export async function ensureSupabaseBackupBucket(): Promise<void> {
+  if (globalForSupabase.__elmotoSupabaseBackupBucketChecked) return;
+  const supabase = getSupabaseAdmin();
+  const { data: existing, error: getErr } = await supabase.storage.getBucket(SUPABASE_BACKUP_BUCKET);
+  if (!existing && getErr) {
+    const { error: createErr } = await supabase.storage.createBucket(SUPABASE_BACKUP_BUCKET, {
+      public: false,
+      fileSizeLimit: 50 * 1024 * 1024,
+      allowedMimeTypes: ["application/json"],
+    });
+    if (createErr && !createErr.message?.toLowerCase().includes("already exists")) {
+      console.warn("[supabase] Backup bucket creation notice:", createErr.message);
+    }
+  } else if (existing?.public) {
+    await supabase.storage.updateBucket(SUPABASE_BACKUP_BUCKET, { public: false }).catch(() => undefined);
+  }
+  globalForSupabase.__elmotoSupabaseBackupBucketChecked = true;
 }
 
 export function getSupabasePublicUrl(storagePath: string): string {

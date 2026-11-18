@@ -18,6 +18,8 @@
     "storage:setup": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/setup-supabase-storage.ts",
     "storage:migrate:dry": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/migrate-blob-to-supabase.ts --dry-run",
     "storage:migrate": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/migrate-blob-to-supabase.ts",
+    "db:migrate:postgres:dry": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/migrate-to-postgres.ts --dry-run",
+    "db:migrate:postgres": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/migrate-to-postgres.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

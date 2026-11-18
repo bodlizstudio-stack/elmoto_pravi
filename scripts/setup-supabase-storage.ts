@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const BUCKET = (process.env.SUPABASE_STORAGE_BUCKET || "el-moto-images").trim();
+const BACKUP_BUCKET = (process.env.SUPABASE_BACKUP_BUCKET || "el-moto-backups").trim();
 const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
 const SUPABASE_KEY = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 
@@ -43,6 +44,28 @@ async function main() {
       throw new Error(`Ustvarjanje vedra "${BUCKET}" ni uspelo: ${createErr.message}`);
     }
     console.log(`✓ Javno vedro "${BUCKET}" je bilo uspešno ustvarjeno.`);
+  }
+
+  const { data: existingBackup, error: getBackupErr } = await supabase.storage.getBucket(BACKUP_BUCKET);
+  if (existingBackup) {
+    console.log(`✓ Zasebno vedro "${BACKUP_BUCKET}" že obstaja (public: ${existingBackup.public}).`);
+    if (existingBackup.public) {
+      await supabase.storage.updateBucket(BACKUP_BUCKET, { public: false });
+      console.log(`✓ Vedro "${BACKUP_BUCKET}" je bilo nastavljeno kot zasebno (public: false).`);
+    }
+  } else {
+    if (getBackupErr) {
+      console.log(`Vedro "${BACKUP_BUCKET}" še ne obstaja (${getBackupErr.message}). Ustvarjam...`);
+    }
+    const { error: createBackupErr } = await supabase.storage.createBucket(BACKUP_BUCKET, {
+      public: false,
+      fileSizeLimit: 50 * 1024 * 1024,
+      allowedMimeTypes: ["application/json"],
+    });
+    if (createBackupErr) {
+      throw new Error(`Ustvarjanje vedra "${BACKUP_BUCKET}" ni uspelo: ${createBackupErr.message}`);
+    }
+    console.log(`✓ Zasebno vedro "${BACKUP_BUCKET}" je bilo uspešno ustvarjeno.`);
   }
 
   console.log("✓ Povezava s Supabase Storage deluje pravilno.");

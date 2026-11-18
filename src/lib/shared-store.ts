@@ -1,9 +1,8 @@
-import { prisma } from "@/lib/db";
+import { isPostgresConfigured, prisma } from "@/lib/db";
 import {
-  SUPABASE_BUCKET,
-  ensureSupabaseBucket,
+  SUPABASE_BACKUP_BUCKET,
+  ensureSupabaseBackupBucket,
   getSupabaseAdmin,
-  getSupabasePublicUrl,
   isSupabaseConfigured,
 } from "@/lib/supabase";
 
@@ -194,11 +193,11 @@ async function blobSet<T>(key: string, value: T): Promise<void> {
 
   if (isSupabaseConfigured()) {
     try {
-      await ensureSupabaseBucket();
+      await ensureSupabaseBackupBucket();
       const supabase = getSupabaseAdmin();
       const payload = Buffer.from(JSON.stringify(value), "utf-8");
       const { error } = await supabase.storage
-        .from(SUPABASE_BUCKET)
+        .from(SUPABASE_BACKUP_BUCKET)
         .upload(`snapshots/${key}.json`, payload, {
           contentType: "application/json",
           cacheControl: "0",
@@ -223,52 +222,6 @@ async function blobSet<T>(key: string, value: T): Promise<void> {
   await cacheSet(key, value);
 }
 
-async function fetchSnapshotUrl<T>(
-  url: string,
-  key: string,
-  cached: MemoryEntry<T> | undefined,
-  force: boolean,
-  now: number,
-): Promise<{ status: "ok" | "not_modified" | "miss"; data: T | null }> {
-  try {
-    const headers: Record<string, string> = {};
-    if (cached?.etag && !force) {
-      headers["If-None-Match"] = cached.etag;
-    }
-    const fetchUrl = force ? `${url}${url.includes("?") ? "&" : "?"}t=${now}` : url;
-    const res = await fetch(
-      fetchUrl,
-      force
-        ? { headers, cache: "no-store" }
-        : {
-            headers,
-            next: {
-              revalidate: 300,
-              tags: [`snapshot-${key}`],
-            },
-          },
-    );
-    if (res.status === 304 && cached) {
-      cached.checkedAt = now;
-      return { status: "not_modified", data: cached.data };
-    }
-    if (res.ok) {
-      const etag = res.headers.get("etag");
-      const data = (await res.json()) as T;
-      memoryStore.set(key, {
-        data,
-        etag,
-        checkedAt: now,
-        version: (data as { version?: number })?.version,
-      });
-      return { status: "ok", data };
-    }
-  } catch {
-    // Snapshot še ne obstaja ali je omrežna napaka
-  }
-  return { status: "miss", data: null };
-}
-
 async function blobGet<T>(key: string, force = false): Promise<T | null> {
   const now = Date.now();
   const cached = memoryStore.get(key) as MemoryEntry<T> | undefined;
@@ -280,20 +233,24 @@ async function blobGet<T>(key: string, force = false): Promise<T | null> {
   }
 
   if (isSupabaseConfigured()) {
-    const supaUrl = getSupabasePublicUrl(`snapshots/${key}.json`);
-    const supaRes = await fetchSnapshotUrl<T>(supaUrl, key, cached, force, now);
-    if (supaRes.status === "ok" || supaRes.status === "not_modified") {
-      return supaRes.data;
-    }
-  }
-
-  // Varnostni fallback na obstoječi javni posnetek (dokler migracija posnetkov v Supabase še ni izvedena)
-  const hasLegacySnapshot = Boolean(SNAPSHOT_BASE_URL);
-  if (hasLegacySnapshot && (!isSupabaseConfigured() || !cached?.data)) {
-    const legacyUrl = `${SNAPSHOT_BASE_URL}/snapshots/${key}.json`;
-    const legacyRes = await fetchSnapshotUrl<T>(legacyUrl, key, cached, force, now);
-    if (legacyRes.status === "ok" || legacyRes.status === "not_modified") {
-      return legacyRes.data;
+    try {
+      const supabase = getSupabaseAdmin();
+      const { data: blob, error } = await supabase.storage
+        .from(SUPABASE_BACKUP_BUCKET)
+        .download(`snapshots/${key}.json`);
+      if (!error && blob) {
+        const text = await blob.text();
+        const data = JSON.parse(text) as T;
+        memoryStore.set(key, {
+          data,
+          etag: null,
+          checkedAt: now,
+          version: (data as { version?: number })?.version,
+        });
+        return data;
+      }
+    } catch {
+      // Snapshot še ne obstaja ali je omrežna napaka
     }
   }
 
@@ -306,6 +263,7 @@ async function blobGet<T>(key: string, force = false): Promise<T | null> {
 }
 
 export async function persistDbSnapshot(): Promise<void> {
+  if (isPostgresConfigured()) return;
   const rows = await prisma.motorcycle.findMany({
     include: {
       images: { orderBy: { sortOrder: "asc" } },
@@ -383,6 +341,7 @@ export async function persistDbSnapshot(): Promise<void> {
 }
 
 export async function ensureDbSynced(options?: { force?: boolean }): Promise<void> {
+  if (isPostgresConfigured()) return;
   const now = Date.now();
   if (
     !options?.force &&
@@ -555,6 +514,7 @@ const globalSettingsSync = globalThis as unknown as {
 const PRIVATE_SETTING_KEYS = new Set(["admin_reset"]);
 
 export async function persistSettingsSnapshot(): Promise<void> {
+  if (isPostgresConfigured()) return;
   const rows = (await prisma.siteSetting.findMany()).filter((row) => !PRIVATE_SETTING_KEYS.has(row.key));
   const version = Date.now();
   await blobSet(SETTINGS_KEY, { version, rows });
@@ -563,6 +523,7 @@ export async function persistSettingsSnapshot(): Promise<void> {
 }
 
 export async function ensureSettingsSynced(options?: { force?: boolean }): Promise<void> {
+  if (isPostgresConfigured()) return;
   const now = Date.now();
   if (
     !options?.force &&
@@ -634,6 +595,7 @@ const globalMediaSync = globalThis as unknown as {
 };
 
 export async function persistMediaSnapshot(): Promise<void> {
+  if (isPostgresConfigured()) return;
   const items = await prisma.mediaAsset.findMany();
   const version = Date.now();
   await blobSet(MEDIA_KEY, {
@@ -648,6 +610,7 @@ export async function persistMediaSnapshot(): Promise<void> {
 }
 
 export async function ensureMediaSynced(options?: { force?: boolean }): Promise<void> {
+  if (isPostgresConfigured()) return;
   const now = Date.now();
   if (
     !options?.force &&
@@ -745,6 +708,7 @@ const globalEquipmentSync = globalThis as unknown as {
 };
 
 export async function persistEquipmentSnapshot(): Promise<void> {
+  if (isPostgresConfigured()) return;
   const items = await prisma.equipment.findMany();
   const version = Date.now();
   await blobSet(EQUIPMENT_KEY, {
@@ -760,6 +724,7 @@ export async function persistEquipmentSnapshot(): Promise<void> {
 }
 
 export async function ensureEquipmentSynced(options?: { force?: boolean }): Promise<void> {
+  if (isPostgresConfigured()) return;
   const now = Date.now();
   if (
     !options?.force &&
