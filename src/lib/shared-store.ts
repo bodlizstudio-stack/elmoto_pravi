@@ -85,7 +85,15 @@ const globalSync = globalThis as unknown as {
   __elmotoSyncedVersion?: number;
   __elmotoSyncPromise?: Promise<void> | null;
   __elmotoLastCheckedAt?: number;
+  __elmotoSqliteWriteQueue?: Promise<void>;
 };
+
+function runSqliteSync(task: () => Promise<void>): Promise<void> {
+  const prev = globalSync.__elmotoSqliteWriteQueue ?? Promise.resolve();
+  const next = prev.catch(() => undefined).then(task);
+  globalSync.__elmotoSqliteWriteQueue = next.catch(() => undefined);
+  return next;
+}
 
 const SNAPSHOT_BASE_URL =
   process.env.BLOB_BASE_URL ||
@@ -519,9 +527,13 @@ export async function ensureDbSynced(options?: { force?: boolean }): Promise<voi
     globalSync.__elmotoSyncedVersion = snapshot.version;
   };
 
-  globalSync.__elmotoSyncPromise = doSync().finally(() => {
-    globalSync.__elmotoSyncPromise = null;
-  });
+  globalSync.__elmotoSyncPromise = runSqliteSync(doSync)
+    .catch((err) => {
+      console.error("[shared-store] ensureDbSynced error:", err);
+    })
+    .finally(() => {
+      globalSync.__elmotoSyncPromise = null;
+    });
   await globalSync.__elmotoSyncPromise;
 }
 
@@ -536,6 +548,7 @@ type SettingsSnapshot = { version: number; rows: { key: string; value: string }[
 
 const globalSettingsSync = globalThis as unknown as {
   __elmotoSettingsVersion?: number;
+  __elmotoSettingsSyncPromise?: Promise<void> | null;
   __elmotoLastCheckedAt?: number;
 };
 
@@ -560,20 +573,40 @@ export async function ensureSettingsSynced(options?: { force?: boolean }): Promi
     return;
   }
 
+  if (globalSettingsSync.__elmotoSettingsSyncPromise) {
+    await globalSettingsSync.__elmotoSettingsSyncPromise;
+    if (!options?.force && globalSettingsSync.__elmotoSettingsVersion) return;
+  }
+
   const snapshot = await blobGet<SettingsSnapshot>(SETTINGS_KEY, options?.force);
   globalSettingsSync.__elmotoLastCheckedAt = now;
 
   if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.rows)) return;
   if (globalSettingsSync.__elmotoSettingsVersion === snapshot.version) return;
-  for (const row of snapshot.rows) {
-    if (!row?.key || PRIVATE_SETTING_KEYS.has(row.key)) continue;
-    await prisma.siteSetting.upsert({
-      where: { key: row.key },
-      update: { value: String(row.value ?? "") },
-      create: { key: row.key, value: String(row.value ?? "") },
+
+  const doSettingsSync = async () => {
+    if (globalSettingsSync.__elmotoSettingsVersion === snapshot.version) return;
+    await prisma.$transaction(async (tx) => {
+      for (const row of snapshot.rows) {
+        if (!row?.key || PRIVATE_SETTING_KEYS.has(row.key)) continue;
+        await tx.siteSetting.upsert({
+          where: { key: row.key },
+          update: { value: String(row.value ?? "") },
+          create: { key: row.key, value: String(row.value ?? "") },
+        });
+      }
     });
-  }
-  globalSettingsSync.__elmotoSettingsVersion = snapshot.version;
+    globalSettingsSync.__elmotoSettingsVersion = snapshot.version;
+  };
+
+  globalSettingsSync.__elmotoSettingsSyncPromise = runSqliteSync(doSettingsSync)
+    .catch((err) => {
+      console.error("[shared-store] ensureSettingsSynced error:", err);
+    })
+    .finally(() => {
+      globalSettingsSync.__elmotoSettingsSyncPromise = null;
+    });
+  await globalSettingsSync.__elmotoSettingsSyncPromise;
 }
 
 // ---------------------------------------------------------------------------
@@ -596,6 +629,7 @@ type MediaSnapshot = {
 };
 const globalMediaSync = globalThis as unknown as {
   __elmotoMediaVersion?: number;
+  __elmotoMediaSyncPromise?: Promise<void> | null;
   __elmotoLastCheckedAt?: number;
 };
 
@@ -624,46 +658,63 @@ export async function ensureMediaSynced(options?: { force?: boolean }): Promise<
     return;
   }
 
+  if (globalMediaSync.__elmotoMediaSyncPromise) {
+    await globalMediaSync.__elmotoMediaSyncPromise;
+    if (!options?.force && globalMediaSync.__elmotoMediaVersion) return;
+  }
+
   const snapshot = await blobGet<MediaSnapshot>(MEDIA_KEY, options?.force);
   globalMediaSync.__elmotoLastCheckedAt = now;
 
   if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.items)) return;
   if (globalMediaSync.__elmotoMediaVersion === snapshot.version) return;
 
-  const currentIds = snapshot.items.map((i) => i.id);
-  await prisma.$transaction(async (tx) => {
-    if (currentIds.length === 0) {
-      await tx.mediaAsset.deleteMany({});
-    } else {
-      await tx.mediaAsset.deleteMany({
-        where: { id: { notIn: currentIds } },
-      });
-    }
-    for (const item of snapshot.items) {
-      await tx.mediaAsset.upsert({
-        where: { id: item.id },
-        update: {
-          url: item.url,
-          alt: item.alt,
-          kind: item.kind,
-          linkUrl: item.linkUrl,
-          sortOrder: item.sortOrder,
-          published: item.published,
-        },
-        create: {
-          id: item.id,
-          url: item.url,
-          alt: item.alt,
-          kind: item.kind,
-          linkUrl: item.linkUrl,
-          sortOrder: item.sortOrder,
-          published: item.published,
-          createdAt: new Date(item.createdAt),
-        },
-      });
-    }
-  });
-  globalMediaSync.__elmotoMediaVersion = snapshot.version;
+  const doMediaSync = async () => {
+    if (globalMediaSync.__elmotoMediaVersion === snapshot.version) return;
+    const currentIds = snapshot.items.map((i) => i.id);
+    await prisma.$transaction(async (tx) => {
+      if (currentIds.length === 0) {
+        await tx.mediaAsset.deleteMany({});
+      } else {
+        await tx.mediaAsset.deleteMany({
+          where: { id: { notIn: currentIds } },
+        });
+      }
+      for (const item of snapshot.items) {
+        await tx.mediaAsset.upsert({
+          where: { id: item.id },
+          update: {
+            url: item.url,
+            alt: item.alt,
+            kind: item.kind,
+            linkUrl: item.linkUrl,
+            sortOrder: item.sortOrder,
+            published: item.published,
+          },
+          create: {
+            id: item.id,
+            url: item.url,
+            alt: item.alt,
+            kind: item.kind,
+            linkUrl: item.linkUrl,
+            sortOrder: item.sortOrder,
+            published: item.published,
+            createdAt: new Date(item.createdAt),
+          },
+        });
+      }
+    });
+    globalMediaSync.__elmotoMediaVersion = snapshot.version;
+  };
+
+  globalMediaSync.__elmotoMediaSyncPromise = runSqliteSync(doMediaSync)
+    .catch((err) => {
+      console.error("[shared-store] ensureMediaSynced error:", err);
+    })
+    .finally(() => {
+      globalMediaSync.__elmotoMediaSyncPromise = null;
+    });
+  await globalMediaSync.__elmotoMediaSyncPromise;
 }
 
 // ---------------------------------------------------------------------------
@@ -689,6 +740,7 @@ type EquipmentSnapshot = {
 };
 const globalEquipmentSync = globalThis as unknown as {
   __elmotoEquipmentVersion?: number;
+  __elmotoEquipmentSyncPromise?: Promise<void> | null;
   __elmotoLastCheckedAt?: number;
 };
 
@@ -718,49 +770,66 @@ export async function ensureEquipmentSynced(options?: { force?: boolean }): Prom
     return;
   }
 
+  if (globalEquipmentSync.__elmotoEquipmentSyncPromise) {
+    await globalEquipmentSync.__elmotoEquipmentSyncPromise;
+    if (!options?.force && globalEquipmentSync.__elmotoEquipmentVersion) return;
+  }
+
   const snapshot = await blobGet<EquipmentSnapshot>(EQUIPMENT_KEY, options?.force);
   globalEquipmentSync.__elmotoLastCheckedAt = now;
 
   if (!snapshot || typeof snapshot.version !== "number" || !Array.isArray(snapshot.items)) return;
   if (globalEquipmentSync.__elmotoEquipmentVersion === snapshot.version) return;
 
-  const currentIds = snapshot.items.map((i) => i.id);
-  await prisma.$transaction(async (tx) => {
-    if (currentIds.length === 0) {
-      await tx.equipment.deleteMany({});
-    } else {
-      await tx.equipment.deleteMany({
-        where: { id: { notIn: currentIds } },
-      });
-    }
-    for (const item of snapshot.items) {
-      await tx.equipment.upsert({
-        where: { id: item.id },
-        update: {
-          title: item.title,
-          priceCents: item.priceCents,
-          description: item.description,
-          category: item.category,
-          imageUrl: item.imageUrl,
-          avtonetUrl: item.avtonetUrl,
-          published: item.published,
-          sortOrder: item.sortOrder,
-        },
-        create: {
-          id: item.id,
-          title: item.title,
-          priceCents: item.priceCents,
-          description: item.description,
-          category: item.category,
-          imageUrl: item.imageUrl,
-          avtonetUrl: item.avtonetUrl,
-          published: item.published,
-          sortOrder: item.sortOrder,
-          createdAt: new Date(item.createdAt),
-          updatedAt: new Date(item.updatedAt),
-        },
-      });
-    }
-  });
-  globalEquipmentSync.__elmotoEquipmentVersion = snapshot.version;
+  const doEquipmentSync = async () => {
+    if (globalEquipmentSync.__elmotoEquipmentVersion === snapshot.version) return;
+    const currentIds = snapshot.items.map((i) => i.id);
+    await prisma.$transaction(async (tx) => {
+      if (currentIds.length === 0) {
+        await tx.equipment.deleteMany({});
+      } else {
+        await tx.equipment.deleteMany({
+          where: { id: { notIn: currentIds } },
+        });
+      }
+      for (const item of snapshot.items) {
+        await tx.equipment.upsert({
+          where: { id: item.id },
+          update: {
+            title: item.title,
+            priceCents: item.priceCents,
+            description: item.description,
+            category: item.category,
+            imageUrl: item.imageUrl,
+            avtonetUrl: item.avtonetUrl,
+            published: item.published,
+            sortOrder: item.sortOrder,
+          },
+          create: {
+            id: item.id,
+            title: item.title,
+            priceCents: item.priceCents,
+            description: item.description,
+            category: item.category,
+            imageUrl: item.imageUrl,
+            avtonetUrl: item.avtonetUrl,
+            published: item.published,
+            sortOrder: item.sortOrder,
+            createdAt: new Date(item.createdAt),
+            updatedAt: new Date(item.updatedAt),
+          },
+        });
+      }
+    });
+    globalEquipmentSync.__elmotoEquipmentVersion = snapshot.version;
+  };
+
+  globalEquipmentSync.__elmotoEquipmentSyncPromise = runSqliteSync(doEquipmentSync)
+    .catch((err) => {
+      console.error("[shared-store] ensureEquipmentSynced error:", err);
+    })
+    .finally(() => {
+      globalEquipmentSync.__elmotoEquipmentSyncPromise = null;
+    });
+  await globalEquipmentSync.__elmotoEquipmentSyncPromise;
 }
