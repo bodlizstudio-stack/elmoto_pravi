@@ -1,5 +1,22 @@
 import { PrismaClient } from "@prisma/client";
 
+function extractCleanPostgresUrl(raw: string | undefined): string {
+  if (!raw) return "";
+  const match = raw.match(/postgres(?:ql)?:\/\/[^\s"']+/i);
+  let cleaned = match ? match[0].trim() : raw.trim().replace(/^["']+|["']+$/g, "").trim();
+  cleaned = cleaned.replace(/:[<\[]([^>\]@]+)[>\]]@/, ":$1@");
+  if (cleaned.startsWith("postgresql://") || cleaned.startsWith("postgres://")) {
+    if (cleaned.includes(".pooler.supabase.com") && /^postgres(?:ql)?:\/\/postgres:/i.test(cleaned)) {
+      cleaned = cleaned.replace(/^(postgres(?:ql)?:\/\/)postgres:/i, "$1postgres.cewjffougzewilewyjpc:");
+    }
+    if (cleaned.includes(":6543/") && !cleaned.includes("pgbouncer=true")) {
+      cleaned = `${cleaned}${cleaned.includes("?") ? "&" : "?"}pgbouncer=true`;
+    }
+    return cleaned;
+  }
+  return "";
+}
+
 export function resolvePostgresUrl(): string {
   const candidates = [
     process.env.DATABASE_URL,
@@ -8,21 +25,19 @@ export function resolvePostgresUrl(): string {
     process.env.POSTGRES_URL,
   ];
 
+  // 1. Najprej poišči kandidat, ki nima placeholderja YOUR-PASSWORD / GESLO
   for (const raw of candidates) {
-    if (!raw || raw.includes("YOUR-PASSWORD") || raw.includes("VASE-GESLO") || raw.includes("<GESLO>")) continue;
-    let cleaned = raw.trim().replace(/^["']+|["']+$/g, "").trim();
-    cleaned = cleaned.replace(/^(DATABASE_URL|DIRECT_URL)\s*=\s*/i, "").replace(/^["']+|["']+$/g, "").trim();
-    cleaned = cleaned.replace(/:[<\[]([^>\]@]+)[>\]]@/, ":$1@");
-    if (cleaned.startsWith("postgresql://") || cleaned.startsWith("postgres://")) {
-      if (cleaned.includes(".pooler.supabase.com") && /^postgres(?:ql)?:\/\/postgres:/i.test(cleaned)) {
-        cleaned = cleaned.replace(/^(postgres(?:ql)?:\/\/)postgres:/i, "$1postgres.cewjffougzewilewyjpc:");
-      }
-      if (cleaned.includes(":6543/") && !cleaned.includes("pgbouncer=true")) {
-        cleaned = `${cleaned}${cleaned.includes("?") ? "&" : "?"}pgbouncer=true`;
-      }
-      return cleaned;
-    }
+    if (!raw || raw.includes("YOUR-PASSWORD") || raw.includes("VASE-GESLO") || raw.includes("GESLO")) continue;
+    const url = extractCleanPostgresUrl(raw);
+    if (url) return url;
   }
+
+  // 2. Fallback na kateregakoli veljavnega kandidata
+  for (const raw of candidates) {
+    const url = extractCleanPostgresUrl(raw);
+    if (url) return url;
+  }
+
   return "";
 }
 

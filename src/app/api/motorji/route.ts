@@ -37,14 +37,18 @@ export async function GET(request: Request) {
     );
   } catch (err) {
     const rawDb = process.env.DATABASE_URL || "";
+    const rawDirect = process.env.DIRECT_URL || "";
     const msg = err instanceof Error ? err.message.replace(/postgres(?:ql)?:\/\/[^\s"']+/gi, "[REDACTED_URL]") : "unknown";
     return NextResponse.json(
       {
         error: "Database connection error",
         detail: msg,
-        hasPlaceholder: rawDb.includes("YOUR-PASSWORD") || rawDb.includes("GESLO"),
-        hasAngleBrackets: rawDb.includes("<") || rawDb.includes(">"),
-        hasSquareBrackets: rawDb.includes("[") || rawDb.includes("]"),
+        dbContainsYourPassword: rawDb.includes("YOUR-PASSWORD"),
+        dbContainsGeslo: rawDb.includes("GESLO"),
+        directContainsYourPassword: rawDirect.includes("YOUR-PASSWORD"),
+        directContainsGeslo: rawDirect.includes("GESLO"),
+        dbStartsWithQuote: rawDb.trim().startsWith('"') || rawDb.trim().startsWith("'"),
+        dbStartsWithCommentOrKey: rawDb.trim().startsWith("#") || rawDb.trim().startsWith("DATABASE_URL"),
       },
       { status: 500 },
     );
