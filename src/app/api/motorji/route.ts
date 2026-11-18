@@ -35,8 +35,7 @@ export async function GET(request: Request) {
         image: bike.images[0]?.url ?? null,
       })),
     );
-  } catch (err) {
-    const msg = err instanceof Error ? err.message.replace(/postgres(?:ql)?:\/\/[^\s"']+/gi, "[REDACTED_URL]") : "unknown";
-    return NextResponse.json({ error: "Database connection error", detail: msg }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Database connection error" }, { status: 500 });
   }
 }

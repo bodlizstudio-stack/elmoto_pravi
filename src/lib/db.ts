@@ -6,11 +6,18 @@ function extractCleanPostgresUrl(raw: string | undefined): string {
   let cleaned = match ? match[0].trim() : raw.trim().replace(/^["']+|["']+$/g, "").trim();
   cleaned = cleaned.replace(/:[<\[]([^>\]@]+)[>\]]@/, ":$1@");
   if (cleaned.startsWith("postgresql://") || cleaned.startsWith("postgres://")) {
-    if (cleaned.includes(".pooler.supabase.com") && /^postgres(?:ql)?:\/\/postgres:/i.test(cleaned)) {
-      cleaned = cleaned.replace(/^(postgres(?:ql)?:\/\/)postgres:/i, "$1postgres.cewjffougzewilewyjpc:");
-    }
-    if (cleaned.includes(":6543/") && !cleaned.includes("pgbouncer=true")) {
-      cleaned = `${cleaned}${cleaned.includes("?") ? "&" : "?"}pgbouncer=true`;
+    if (cleaned.includes(".pooler.supabase.com")) {
+      if (/^postgres(?:ql)?:\/\/postgres:/i.test(cleaned)) {
+        cleaned = cleaned.replace(/^(postgres(?:ql)?:\/\/)postgres:/i, "$1postgres.cewjffougzewilewyjpc:");
+      }
+      // Za Vercel serverless runtime vedno uporabi Transaction pooler (vrata 6543), ne Session pooler (5432, omejitev 15 povezav)
+      cleaned = cleaned.replace(/\.pooler\.supabase\.com:5432\//, ".pooler.supabase.com:6543/");
+      if (cleaned.includes(":6543/") && !cleaned.includes("pgbouncer=true")) {
+        cleaned = `${cleaned}${cleaned.includes("?") ? "&" : "?"}pgbouncer=true`;
+      }
+      if (!cleaned.includes("connection_limit=")) {
+        cleaned = `${cleaned}${cleaned.includes("?") ? "&" : "?"}connection_limit=3`;
+      }
     }
     return cleaned;
   }
