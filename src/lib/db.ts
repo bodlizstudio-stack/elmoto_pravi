@@ -9,11 +9,14 @@ export function resolvePostgresUrl(): string {
   ];
 
   for (const raw of candidates) {
-    if (!raw) continue;
+    if (!raw || raw.includes("YOUR-PASSWORD") || raw.includes("VASE-GESLO")) continue;
     let cleaned = raw.trim().replace(/^["']+|["']+$/g, "").trim();
     cleaned = cleaned.replace(/^(DATABASE_URL|DIRECT_URL)\s*=\s*/i, "").replace(/^["']+|["']+$/g, "").trim();
     cleaned = cleaned.replace(/:(\[([^\]]+)\])@/, ":$2@");
     if (cleaned.startsWith("postgresql://") || cleaned.startsWith("postgres://")) {
+      if (cleaned.includes(".pooler.supabase.com") && /^postgres(?:ql)?:\/\/postgres:/i.test(cleaned)) {
+        cleaned = cleaned.replace(/^(postgres(?:ql)?:\/\/)postgres:/i, "$1postgres.cewjffougzewilewyjpc:");
+      }
       if (cleaned.includes(":6543/") && !cleaned.includes("pgbouncer=true")) {
         cleaned = `${cleaned}${cleaned.includes("?") ? "&" : "?"}pgbouncer=true`;
       }
